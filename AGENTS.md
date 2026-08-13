@@ -77,6 +77,17 @@ require component coverage plus a browser check at mobile and desktop widths. Be
 formatting, linting, type checks, relevant tests, migration checks, and production builds; report
 exact results and any unrun check.
 
+**Windows quick start (PowerShell):**
+```powershell
+cd apps\api
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1          # then `make` targets work via `python -m ...`
+python -m pip install -r requirements.txt -r requirements-dev.txt
+cd ..\..; docker compose up -d db minio; make test-db-create
+make lint; make typecheck; make test-api; make test-web; make build
+# PowerShell 5.1 has no `&&` — chain with `;` or run one target per line.
+```
+
 Use real PostgreSQL and the real API for core E2E journeys. Every bug fix needs a regression test.
 Initial coverage floors: 90% accounting services, 80% backend overall, 75% frontend logic;
 meaningful assertions matter more than percentages. CI workflows run for pull requests and `main`,
