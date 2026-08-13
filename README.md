@@ -24,8 +24,8 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 
 | Layer | Tool | Result | Notes |
 |---|---|---|---|
-| Backend unit/API/integration | pytest | ✅ 39 passed | real PostgreSQL; auth flows, RBAC, rotation, rate limit |
-| Backend coverage | pytest-cov | ✅ 91% (floor 80%) | ≥90% for accounting services from slice 2 |
+| Backend unit/API/integration | pytest | ✅ 108 passed | real PostgreSQL; auth flows, RBAC, rotation, rate limit, ledger invariants |
+| Backend coverage | pytest-cov | ✅ 93% (floor 80%) | ledger domain service 99% (floor 90%) |
 | Lint / format | Ruff | ✅ | `ruff check` + `ruff format --check` |
 | Types | mypy (strict) | ✅ | 18 source files clean |
 | Migrations | Alembic | ✅ | upgrade head; downgrade→upgrade exercised in tests |

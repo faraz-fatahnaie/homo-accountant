@@ -16,8 +16,8 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 |---|---|---|
 | Backend Ruff | ✅ pass | `ruff check` + `ruff format --check` clean |
 | Backend mypy | ✅ pass | strict, 18 source files, 0 issues |
-| Backend pytest | ✅ 39/39 | real PostgreSQL (`arya_test`), migrations applied |
-| Backend coverage | ✅ 91.12% | floor 80% (accounting domains get ≥90% from slice 2) |
+| Backend pytest | ✅ 108/108 | real PostgreSQL (`arya_test`), migrations applied |
+| Backend coverage | ✅ 93% | floor 80%; ledger domain service 99% (floor 90%) |
 | Migrations | ✅ pass | upgrade on dev+test; downgrade→upgrade exercised in tests |
 | Frontend ESLint | ✅ pass | 0 errors / 0 warnings |
 | Frontend typecheck | ✅ pass | `tsc --noEmit`, strict options on |
