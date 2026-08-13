@@ -86,5 +86,10 @@ ignore_missing_imports = true
 module = ["app.domains.queries.*"]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+# reports are pure SQLAlchemy aggregations over loosely-typed dict rows
+module = ["app.domains.reports.*"]
+ignore_errors = true
+
 [tool.ruff.lint.per-file-ignores]
 "app/domains/queries/*" = ["E501"]

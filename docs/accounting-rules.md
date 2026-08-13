@@ -87,3 +87,29 @@ Accounts are customizable (owner/accountant); system-seeded accounts cannot be r
   policy documented and tested (slice 4/5).
 - Funding: explicit account mappings; investment/loan/grant never booked as revenue (slice 6).
 - Cash-flow statement methodology documented and labeled clearly (slice 8).
+
+## گزارشها — Reports (slice 8)
+
+Every report is computed server-side from **posted journal entries only** — never from
+separately maintained totals. Drafts are excluded; reversals net out naturally (they are posted
+entries with opposite sides). Each report endpoint returns a `reconciled` flag that asserts its
+cross-check against the ledger; the dashboard and the reports hub surface these flags in the UI,
+and `/reports/reconciliation` summarizes all of them.
+
+| Report | Method | Invariant checked |
+|---|---|---|
+| تراز آزمایشی (`/reports/trial-balance`) | debit/credit totals + signed balance per account (assets/expenses debit-positive; liabilities/equity/revenue credit-positive), optionally `as_of` a date | total debits == total credits |
+| ترازنامه (`/reports/balance-sheet`) | assets vs liabilities + equity as of a date; current-period net income folded into equity as «سود (زیان) دوره» | assets == liabilities + equity |
+| سود و زیان (`/reports/profit-loss`) | revenue accounts' net credit − expense accounts' net debit in `[from, to]` | figures are direct ledger aggregates |
+| جریان وجوه نقد (`/reports/cash-flow`) | direct method on cash & bank accounts (101 صندوق, 102 بانک); each posted entry touching cash is classified by its non-cash counterpart lines (operating → financing → investing → other) | beginning cash + Σ net == ending cash |
+| دفتر کل (`/reports/general-ledger`) | per-account lines with running balance in `[from, to]`, opening = balance before `from` | running balance ties to the ledger |
+| سررسید (`/reports/aging`) | invoices/bills (issued/open/partially paid) by days past due: جاری / ۱–۳۰ / ۳۱–۶۰ / ۶۱–۹۰ / ۹۰+ | receivable total == account 203 balance; payable total == account 204 balance |
+| بودجه و عملکرد (`/reports/budget-vs-actual`) | per project: budget vs sum of **posted, non-void** expenses allocated to the project in range | figures are posted-document aggregates |
+| تأمین مالی (`/reports/funding-summary`) | posted funding events by type (count, total, maturity) | event total per type == credit booked on the type's mapped account for the same journal entries |
+
+**Cash & bank definition:** accounts 101 and 102 (the starter chart's cash accounts).
+If the chart grows, extend `CASH_BANK_CODES` in `app/domains/reports/service.py` and update this
+document — the reports and their reconciliation follow that single definition.
+
+Date parameters are ISO Gregorian dates; the UI converts Solar Hijri inputs using the same
+conversion the ledger uses (`app/core/jalali.py` ⇄ `lib/format.ts`).

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "project": "homo-accountant",
-  "generated_at_utc": "2026-08-13T08:35:00Z",
-  "verified_commit_sha": "0431ed9",
+  "generated_at_utc": "2026-08-13T21:45:00Z",
+  "verified_commit_sha": "3df4d92",
   "environment": {
     "os": "Debian 13 (sandbox)",
     "python": "3.13.14",
@@ -21,15 +21,16 @@
     },
     "backend_pytest": {
       "status": "pass",
-      "passed": 210,
+      "passed": 231,
       "failed": 0,
-      "coverage_pct": 93.0,
+      "coverage_pct": 93.2,
       "coverage_floor": 80,
       "ledger_service_coverage_pct": 99,
       "expenses_service_coverage_pct": 92,
       "invoices_service_coverage_pct": 93,
       "bills_service_coverage_pct": 95,
-      "funding_service_coverage_pct": 93
+      "funding_service_coverage_pct": 93,
+      "reports_service_coverage_pct": 96
     },
     "migrations": {
       "status": "pass",
@@ -45,7 +46,7 @@
     },
     "frontend_vitest": {
       "status": "pass",
-      "passed": 43,
+      "passed": 52,
       "failed": 0
     },
     "frontend_build": {
@@ -56,7 +57,7 @@
       "status": "pass",
       "passed": 54,
       "failed": 0,
-      "note": "ledger+expense+invoice+bill+funding+query-builder journeys; RBAC; per-role guide; CSV/XLSX/PDF export"
+      "note": "ledger+expense+invoice+bill+funding+query-builder journeys; RBAC; per-role guide; CSV/XLSX/PDF export; reports reachable from dashboard (slice 8 adds report journeys in a follow-up e2e pass)"
     },
     "docker_build": {
       "status": "not_run",
@@ -69,9 +70,10 @@
   },
   "known_limitations": [
     "Docker/container builds and compose-based E2E not executable inside this sandbox (no docker binary) — run `make dev`, `make e2e`, or the GitHub workflows",
+    "Docker/container builds and compose-based E2E not executable inside this sandbox (no docker binary) — run `make dev`, `make e2e`, or the GitHub workflows",
     "Backend integration tests target a locally installed PostgreSQL 17; compose/CI uses 16 (no schema divergence expected)",
     "OpenAPI-generated frontend client (packages/api-client) wired from slice 2 — pending first stable domain contract generation",
     "Accessibility linting (axe) and PDF/export tests land with their feature slices",
-    "Dashboard figures are design samples until slice 8 derives them from the ledger"
+    "Next.js 15.3.4 pinned in package.json carries CVE-2025-66478; upgrade is scheduled in slice 9 (hardening/security)"
   ]
 }

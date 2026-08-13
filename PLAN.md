@@ -101,6 +101,8 @@ deployment-engineer (containers/CI/deployment), project-manager (slice tracking)
       (verified: 195 backend 95% cov · 41 frontend · 50 E2E)
 - [x] **Slice 7 — Excel-like tables, server-side explorer, CSV/XLSX exports, safe no-code query builder**
       (verified: 210 backend 93% cov · 43 frontend · 54 E2E)
-- [ ] **Slice 8 — Real dashboard KPIs, financial reports, drill-downs, reconciliation**
+- [x] **Slice 8 — Real dashboard KPIs, financial reports, drill-downs, reconciliation**
+      (verified: 231 backend 93% cov · reports service 96% · 52 frontend · live API smoke test;
+      E2E report journeys deferred to slice-9 pass)
 - [ ] **Slice 9 — Hardening: security, a11y, responsive QA, backups, prod deployment assets**
 - [ ] Full-system QA + final quality snapshot + deployment handoff

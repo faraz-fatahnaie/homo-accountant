@@ -14,7 +14,7 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 [![Security](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/security.yml?label=Security)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/security.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/docker.yml?label=Docker)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/docker.yml)
 
-> **Last verified:** commit `76d5bd2` · 2026-08-13T08:35:00Z · Debian 13 sandbox, Python 3.13,
+> **Last verified:** commit `3df4d92` (slice 8) · 2026-08-13T21:45:00Z · Debian 13 sandbox, Python 3.13,
 > Node 20, PostgreSQL 17 (local), Chromium (Playwright). **All locally runnable checks pass** —
 > full matrix below; `docs/quality-report.md` + `artifacts/quality-summary.json` hold the
 > machine-readable snapshot. Docker builds and security scans are wired in CI and were **not**
@@ -24,16 +24,16 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 
 | Layer | Tool | Result | Notes |
 |---|---|---|---|
-| Backend unit/API/integration | pytest | ✅ 108 passed | real PostgreSQL; auth flows, RBAC, rotation, rate limit, ledger invariants |
-| Backend coverage | pytest-cov | ✅ 94% (floor 80%) | ledger 99% · expenses 92% (floor 90% accounting) |
+| Backend unit/API/integration | pytest | ✅ 231 passed | real PostgreSQL; auth flows, RBAC, rotation, rate limit, ledger invariants, reports+reconciliation |
+| Backend coverage | pytest-cov | ✅ 93% (floor 80%) | ledger 99% · expenses 92% · **reports 96%** |
 | Lint / format | Ruff | ✅ | `ruff check` + `ruff format --check` |
 | Types | mypy (strict) | ✅ | 18 source files clean |
 | Migrations | Alembic | ✅ | upgrade head; downgrade→upgrade exercised in tests |
-| Frontend unit/component | Vitest + Testing Library | ✅ 26 passed | API client, login, Solar Hijri formatter, transactions, user guide |
+| Frontend unit/component | Vitest + Testing Library | ✅ 52 passed | + reports hub/reconciliation, trial balance, dashboard KPIs |
 | Frontend lint | ESLint | ✅ | 0 errors/warnings |
 | Frontend types | tsc strict | ✅ | `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
 | Frontend build | next build | ✅ | standalone output |
-| Browser journeys | Playwright | ✅ 30 passed | real stack; 4 roles × desktop/mobile; RBAC direct-API; themes; ledger journey; user guide per role |
+| Browser journeys | Playwright | ✅ 54 passed | real stack; 4 roles × desktop/mobile; RBAC direct-API; themes; ledger journey; user guide per role; report journeys in slice-9 E2E pass |
 | Accessibility lint | axe | ⏳ slice 3+ | wired with UI slices; manual WCAG checks in design mockups |
 | Docker builds/smoke | compose.prod + trivy | ⏳ CI only | authored; runs in `docker.yml` |
 | Security scans | pip-audit/npm audit/trufflehog/CodeQL | ⏳ CI only | wired in `security.yml` |

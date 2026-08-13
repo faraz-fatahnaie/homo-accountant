@@ -290,7 +290,7 @@ def _coerce_value(value: object, col_type: str, op: str) -> object:
         try:
             return _dt.date.fromisoformat(str(value))
         except ValueError:
-            raise QueryError("مقدار تاریخ نامعتبر است", code="filter_value_invalid")
+            raise QueryError("مقدار تاریخ نامعتبر است", code="filter_value_invalid") from None
     if col_type == "amount":
         if isinstance(value, list):
             return [int(v) for v in value]

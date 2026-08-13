@@ -582,3 +582,238 @@ export const periodsApi = {
   close: (id: number) => api<PeriodOut>(`/periods/${id}/close`, { method: "POST" }),
   reopen: (id: number) => api<PeriodOut>(`/periods/${id}/reopen`, { method: "POST" }),
 };
+
+/* ---------------- reports (slice 8) ---------------- */
+
+export interface TrialBalanceRow {
+  code: string;
+  name: string;
+  type: AccountType;
+  debit_total: number;
+  credit_total: number;
+  balance: number;
+}
+
+export interface TrialBalanceReport {
+  as_of: string;
+  rows: TrialBalanceRow[];
+  total_debit: number;
+  total_credit: number;
+  balanced: boolean;
+  reconciled: boolean;
+}
+
+export interface SheetLine {
+  code: string;
+  name: string;
+  amount: number;
+}
+
+export interface BalanceSheetReport {
+  as_of: string;
+  assets: SheetLine[];
+  liabilities: SheetLine[];
+  equity: SheetLine[];
+  total_assets: number;
+  total_liabilities: number;
+  total_equity: number;
+  total_liabilities_equity: number;
+  net_income: number;
+  reconciled: boolean;
+}
+
+export interface ProfitLossLine {
+  code: string;
+  name: string;
+  amount: number;
+  type: "revenue" | "expense";
+}
+
+export interface ProfitLossReport {
+  from: string;
+  to: string;
+  revenue: ProfitLossLine[];
+  expenses: ProfitLossLine[];
+  total_revenue: number;
+  total_expenses: number;
+  net_income: number;
+  reconciled: boolean;
+}
+
+export interface CashFlowItem {
+  entry_id: number;
+  date: string;
+  reference: string | null;
+  memo: string;
+  counterparts: { code: string; name: string; type: string }[];
+  inflow: number;
+  outflow: number;
+  net: number;
+}
+
+export interface CashFlowSection {
+  items: CashFlowItem[];
+  inflow: number;
+  outflow: number;
+  net: number;
+}
+
+export interface CashFlowReport {
+  from: string;
+  to: string;
+  beginning_cash_bank: number;
+  ending_cash_bank: number;
+  net_change: number;
+  sections: Record<"operating" | "financing" | "investing" | "other", CashFlowSection>;
+  total_net: number;
+  reconciled: boolean;
+}
+
+export interface GeneralLedgerLine {
+  entry_id: number;
+  date: string;
+  reference: string | null;
+  memo: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface GeneralLedgerReport {
+  account: { code: string; name: string; type: AccountType };
+  from: string;
+  to: string;
+  opening_balance: number;
+  closing_balance: number;
+  lines: GeneralLedgerLine[];
+  reconciled: boolean;
+}
+
+export interface AgingRow {
+  number: string | null;
+  contact_name: string;
+  due_date: string;
+  total: number;
+  paid: number;
+  balance: number;
+  bucket: "current" | "1_30" | "31_60" | "61_90" | "over_90";
+}
+
+export interface AgingSide {
+  rows: AgingRow[];
+  buckets: { key: string; label: string; amount: number }[];
+  total: number;
+  ledger_balance: number;
+  reconciled: boolean;
+}
+
+export interface AgingReport {
+  as_of: string;
+  receivable: AgingSide;
+  payable: AgingSide;
+  reconciled: boolean;
+}
+
+export interface BudgetRow {
+  project_id: number;
+  name: string;
+  status: "active" | "completed" | "on_hold";
+  budget: number;
+  actual: number;
+  remaining: number;
+  utilization: number | null;
+}
+
+export interface BudgetVsActualReport {
+  from: string;
+  to: string;
+  rows: BudgetRow[];
+  total_budget: number;
+  total_actual: number;
+  total_remaining: number;
+  total_utilization: number | null;
+  reconciled: boolean;
+}
+
+export interface FundingTypeSummary {
+  funding_type: FundingType;
+  count: number;
+  total: number;
+  account_code: string;
+  ledger_credit: number;
+  reconciled: boolean;
+  maturity_date: string | null;
+}
+
+export interface FundingSummaryReport {
+  from: string;
+  to: string;
+  types: FundingTypeSummary[];
+  total: number;
+  reconciled: boolean;
+}
+
+export interface ReconciliationCheck {
+  key: string;
+  label: string;
+  ok: boolean;
+  detail: string;
+}
+
+export interface ReconciliationReport {
+  as_of: string;
+  checks: ReconciliationCheck[];
+  all_ok: boolean;
+}
+
+export interface DashboardSummary {
+  as_of: string;
+  fiscal_year: number;
+  period_start: string;
+  period_end: string;
+  cash_bank: number;
+  receivables: number;
+  payables: number;
+  revenue: number;
+  expenses: number;
+  net_income: number;
+  cash_flow_net: number;
+  cash_flow_reconciled: boolean;
+  receivable_aging_total: number;
+  payable_aging_total: number;
+  aging_reconciled: boolean;
+  total_budget: number;
+  total_actual: number;
+  budget_utilization: number | null;
+  funding_total: number;
+  funding_reconciled: boolean;
+  recent_entries: { id: number; entry_date: string; reference: string | null; memo: string; total: number }[];
+  key_accounts: { code: string; name: string; type: AccountType; balance: number }[];
+}
+
+function iso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export const reportsApi = {
+  dashboard: () => api<DashboardSummary>("/reports/dashboard"),
+  trialBalance: (asOf?: Date) =>
+    api<TrialBalanceReport>(`/reports/trial-balance${asOf ? `?as_of=${iso(asOf)}` : ""}`),
+  balanceSheet: (asOf?: Date) =>
+    api<BalanceSheetReport>(`/reports/balance-sheet${asOf ? `?as_of=${iso(asOf)}` : ""}`),
+  profitLoss: (from: Date, to: Date) =>
+    api<ProfitLossReport>(`/reports/profit-loss?from=${iso(from)}&to=${iso(to)}`),
+  cashFlow: (from: Date, to: Date) =>
+    api<CashFlowReport>(`/reports/cash-flow?from=${iso(from)}&to=${iso(to)}`),
+  generalLedger: (accountCode: string, from: Date, to: Date) =>
+    api<GeneralLedgerReport>(
+      `/reports/general-ledger?account_code=${encodeURIComponent(accountCode)}&from=${iso(from)}&to=${iso(to)}`,
+    ),
+  aging: (asOf?: Date) => api<AgingReport>(`/reports/aging${asOf ? `?as_of=${iso(asOf)}` : ""}`),
+  budgetVsActual: (from: Date, to: Date) =>
+    api<BudgetVsActualReport>(`/reports/budget-vs-actual?from=${iso(from)}&to=${iso(to)}`),
+  fundingSummary: (from: Date, to: Date) =>
+    api<FundingSummaryReport>(`/reports/funding-summary?from=${iso(from)}&to=${iso(to)}`),
+  reconciliation: (asOf?: Date) =>
+    api<ReconciliationReport>(`/reports/reconciliation${asOf ? `?as_of=${iso(asOf)}` : ""}`),
+};
