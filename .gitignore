@@ -55,3 +55,7 @@ Thumbs.db
 # --- Local tool caches ---
 .cache/
 .sudo_as_admin_successful
+
+# --- Tool caches ---
+.config/
+.npm/

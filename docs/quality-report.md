@@ -1,0 +1,51 @@
+# گزارش کیفیت — Quality Report
+
+Snapshot from the most recent complete local verification run.
+Machine-readable copy: `artifacts/quality-summary.json`.
+
+## Last verified
+
+- **Commit:** `bfc2c46` (`feat(slice1): frontend shell, infra, CI/CD, docs`)
+- **UTC:** 2026-08-13T08:35:00Z
+- **Environment:** Debian 13 sandbox · Python 3.13.14 · Node 20.20.2 · PostgreSQL 17.10
+  (local) · Chromium 151 (Playwright)
+
+## Results
+
+| Check | Result | Detail |
+|---|---|---|
+| Backend Ruff | ✅ pass | `ruff check` + `ruff format --check` clean |
+| Backend mypy | ✅ pass | strict, 18 source files, 0 issues |
+| Backend pytest | ✅ 39/39 | real PostgreSQL (`arya_test`), migrations applied |
+| Backend coverage | ✅ 91.12% | floor 80% (accounting domains get ≥90% from slice 2) |
+| Migrations | ✅ pass | upgrade on dev+test; downgrade→upgrade exercised in tests |
+| Frontend ESLint | ✅ pass | 0 errors / 0 warnings |
+| Frontend typecheck | ✅ pass | `tsc --noEmit`, strict options on |
+| Frontend Vitest | ✅ 8/8 | API client + login page (validation/error/success) |
+| Frontend build | ✅ pass | `next build` (standalone) |
+| Playwright E2E | ✅ 16/16 | real stack; 4 roles × desktop+mobile; RBAC via direct API; theme persistence |
+| Docker builds | ⛔ not run | no docker in sandbox — authored; runs in `docker.yml` |
+| Security scans | ⛔ not run | wired in `security.yml` (pip-audit, npm audit, trufflehog, CodeQL, trivy) |
+
+## Commands to reproduce
+
+```bash
+# backend
+cd apps/api && pip install -r requirements.txt -r requirements-dev.txt
+ruff check app/ tests/ migrations/env.py && ruff format --check app/ tests/
+mypy app/
+ARYA_DATABASE_URL=postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test \
+  python -m pytest tests/ --cov=app
+
+# frontend
+cd apps/web && npm ci && npx eslint . && npx tsc --noEmit && npx vitest run && npm run build
+
+# e2e (requires the compose stack: make dev)
+cd tests/e2e && npm ci && npx playwright test
+```
+
+## Known limitations & deferred
+
+See `artifacts/quality-summary.json` → `known_limitations`. Highlights: Docker execution
+unavailable in this sandbox (documented, reproducible via Make/CI), axe/PDF/export tests land
+with their feature slices, dashboard figures become ledger-derived in slice 8.

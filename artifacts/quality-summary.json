@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "project": "arya-tejarat-accounting",
+  "generated_at_utc": "2026-08-13T08:35:00Z",
+  "verified_commit_sha": "bfc2c46",
+  "environment": {
+    "os": "Debian 13 (sandbox)",
+    "python": "3.13.14",
+    "node": "20.20.2",
+    "postgres": "17.10 (local real instance; CI/compose uses 16)",
+    "browser": "Chromium headless 151 (Playwright)"
+  },
+  "checks": {
+    "backend_ruff": { "status": "pass", "note": "ruff check + format --check clean" },
+    "backend_mypy": { "status": "pass", "note": "strict, 18 files, no issues" },
+    "backend_pytest": { "status": "pass", "passed": 39, "failed": 0, "coverage_pct": 91.12, "coverage_floor": 80 },
+    "migrations": { "status": "pass", "note": "upgrade head on dev+test DB; downgrade base -> upgrade head exercised in tests" },
+    "frontend_eslint": { "status": "pass", "note": "0 errors, 0 warnings" },
+    "frontend_typecheck": { "status": "pass", "note": "tsc --noEmit strict (noUncheckedIndexedAccess, exactOptionalPropertyTypes)" },
+    "frontend_vitest": { "status": "pass", "passed": 8, "failed": 0 },
+    "frontend_build": { "status": "pass", "note": "next build standalone OK" },
+    "e2e_playwright": { "status": "pass", "passed": 16, "failed": 0, "note": "real PostgreSQL+API+browser; 4 roles x desktop/mobile; RBAC direct-API; theme persistence" },
+    "docker_build": { "status": "not_run", "note": "Docker unavailable in this sandbox; Dockerfiles+compose authored; docker.yml runs in CI" },
+    "security_scans": { "status": "not_run", "note": "npm audit/pip-audit/trivy wired in security.yml; not executed here" }
+  },
+  "known_limitations": [
+    "Docker/container builds and compose-based E2E not executable inside this sandbox (no docker binary) — run `make dev`, `make e2e`, or the GitHub workflows",
+    "Backend integration tests target a locally installed PostgreSQL 17; compose/CI uses 16 (no schema divergence expected)",
+    "OpenAPI-generated frontend client (packages/api-client) wired from slice 2",
+    "Accessibility linting (axe) and PDF/export tests land with their feature slices",
+    "Dashboard figures are design samples until slice 8 derives them from the ledger"
+  ]
+}

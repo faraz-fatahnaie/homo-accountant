@@ -1,0 +1,64 @@
+name: Docker
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * 1"
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build production images
+        run: |
+          docker compose -f compose.prod.yaml build api web
+          docker compose -f compose.prod.yaml build
+        env:
+          ARYA_JWT_SECRET: ci-secret-not-for-prod-0123456789
+      - name: Start production-like stack
+        run: |
+          # nginx TLS needs certs; smoke the core services directly (documented limitation)
+          docker compose -f compose.prod.yaml up -d db minio api web
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8000/api/v1/health/ready && break || sleep 2
+          done
+          curl -sf http://localhost:8000/api/v1/health/ready
+          curl -sf -o /dev/null http://localhost:3000/login
+          docker compose -f compose.prod.yaml ps
+      - name: Image scan (trivy)
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          image-ref: arya/api:latest
+          format: sarif
+          output: trivy-api.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+      - name: Upload trivy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-api.sarif
+          retention-days: 14
+
+  # Publishing images / deploying happens ONLY when the owner configures
+  # registry credentials and explicitly authorizes it (see docs/deployment.md).
+  publish:
+    if: ${{ false }} # disabled by default — enable with credentials + review
+    runs-on: ubuntu-latest
+    needs: build-and-smoke
+    steps:
+      - run: echo "Publishing intentionally disabled until owner authorizes registry access."

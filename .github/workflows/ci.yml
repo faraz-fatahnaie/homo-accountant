@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arya
+          POSTGRES_PASSWORD: test_pw
+          POSTGRES_DB: arya_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U arya -d arya_test"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    env:
+      ARYA_DATABASE_URL: postgresql+psycopg://arya:test_pw@127.0.0.1:5432/arya_test
+      ARYA_JWT_SECRET: ci-secret-not-for-prod-0123456789
+      ARYA_ENVIRONMENT: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements*.txt
+      - name: Install backend
+        run: |
+          cd apps/api
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Ruff
+        run: cd apps/api && ruff check app/ tests/ migrations/env.py && ruff format --check app/ tests/
+      - name: Mypy
+        run: cd apps/api && mypy app/
+      - name: Pytest + coverage
+        run: cd apps/api && python -m pytest tests/ --cov=app --cov-report=term-missing --cov-report=xml
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: apps/api/coverage.xml
+          retention-days: 14
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install
+        run: cd apps/web && npm ci --no-audit --no-fund
+      - name: Lint
+        run: cd apps/web && npx eslint .
+      - name: Typecheck (strict)
+        run: cd apps/web && npx tsc --noEmit
+      - name: Unit/component tests
+        run: cd apps/web && npx vitest run --coverage
+      - name: Production build
+        run: cd apps/web && npm run build
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: apps/web/coverage/
+          retention-days: 14
+
+  contract-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: packages/api-client/package-lock.json
+      - name: Generate client and check drift
+        run: |
+          cd packages/api-client
+          npm ci --no-audit --no-fund || true
+          echo "Drift check will be wired when the first stable domain contract lands (slice 2)."
+          test -f src/schema.d.ts || echo "schema.d.ts not yet generated — expected pre-slice-2"

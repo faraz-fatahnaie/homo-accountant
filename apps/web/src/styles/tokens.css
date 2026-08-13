@@ -1,0 +1,137 @@
+/* ============================================================
+   Design tokens — «کلاسیک و مورداعتماد» (Classic & Trusted)
+   Source: design/direction-classic.html (approved ADR-0001)
+   These tokens are the single source of truth for colors,
+   spacing, radii, typography and status colors. Tailwind maps
+   to these variables (see tailwind.config.ts).
+   ============================================================ */
+
+:root {
+  /* Fonts */
+  --font-sans: 'Vazirmatn', 'Segoe UI', Tahoma, 'Noto Sans Arabic', sans-serif;
+  --font-mono: 'SFMono-Regular', 'Consolas', 'Menlo', monospace;
+
+  /* Radii */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+
+  /* Typography scale */
+  --fs-xs: 11px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 19px;
+  --fs-xl: 24px;
+  --lh-base: 1.65;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 28px;
+}
+
+:root[data-theme='light'] {
+  --bg: #F5F3EC;
+  --surface: #FFFFFF;
+  --surface-2: #F0EDE4;
+  --text: #22271F;
+  --muted: #5F665C;
+  --border: #E1DDD0;
+  --border-strong: #C9C4B2;
+
+  --primary: #14604F;
+  --primary-strong: #0D4A3C;
+  --on-primary: #FFFFFF;
+  --primary-soft: #E2EEE9;
+
+  --success: #1F7A4F;
+  --success-strong: #155C3B;
+  --success-soft: #E4F2EA;
+  --warning: #9A6B00;
+  --warning-strong: #7A5500;
+  --warning-soft: #FAF1DC;
+  --danger: #A83B2C;
+  --danger-strong: #8A2E22;
+  --danger-soft: #F9E7E2;
+
+  --focus: #14604F;
+  --focus-soft: rgba(20, 96, 79, 0.16);
+
+  /* Charts */
+  --chart-1: #14604F;
+  --chart-2: #B08A3E;
+  --chart-3: #5C6B5E;
+  --chart-grid: #E1DDD0;
+  --chart-txt: #7A8177;
+  --chart-1-soft: #E2EEE9;
+  --chart-2-soft: #F4EBD7;
+  --chart-3-soft: #E7EAE4;
+
+  /* Chrome */
+  --sb-bg: #0F2E26;
+  --sb-text: #E8EDE8;
+  --sb-muted: #9DB8AE;
+  --sb-border: #1B4237;
+  --sb-hover: rgba(255, 255, 255, 0.06);
+  --sb-active: rgba(255, 255, 255, 0.12);
+  --sb-active-text: #FFFFFF;
+  --sb-active-icon: #D8B36A;
+  --topbar-bg: #F5F3EC;
+  --row-hover: #FAF9F4;
+  --thead-bg: #EFEDE3;
+  --thead-text: #3A4038;
+}
+
+:root[data-theme='dark'] {
+  --bg: #111613;
+  --surface: #181E1A;
+  --surface-2: #1F2722;
+  --text: #E9EAE2;
+  --muted: #97A29A;
+  --border: #2A342D;
+  --border-strong: #3A463E;
+
+  --primary: #3E9B80;
+  --primary-strong: #57B294;
+  --on-primary: #0B221A;
+  --primary-soft: #1C3A30;
+
+  --success: #4CAF7F;
+  --success-strong: #7FD6A8;
+  --success-soft: #1D3529;
+  --warning: #D9A84B;
+  --warning-strong: #EFC87E;
+  --warning-soft: #3A2F18;
+  --danger: #D97A63;
+  --danger-strong: #F0A08C;
+  --danger-soft: #3D2420;
+
+  --focus: #57B294;
+  --focus-soft: rgba(87, 178, 148, 0.25);
+
+  --chart-1: #4CAF84;
+  --chart-2: #D0A44E;
+  --chart-3: #8FA396;
+  --chart-grid: #2A342D;
+  --chart-txt: #97A29A;
+  --chart-1-soft: #1D3529;
+  --chart-2-soft: #3A2F18;
+  --chart-3-soft: #26322B;
+
+  --sb-bg: #0C201A;
+  --sb-text: #E4EAE5;
+  --sb-muted: #8FA99E;
+  --sb-border: #1C3A30;
+  --sb-hover: rgba(255, 255, 255, 0.05);
+  --sb-active: rgba(255, 255, 255, 0.10);
+  --sb-active-text: #FFFFFF;
+  --sb-active-icon: #D0A44E;
+  --topbar-bg: #111613;
+  --row-hover: #1B221D;
+  --thead-bg: #1F2722;
+  --thead-text: #C9D2CB;
+}

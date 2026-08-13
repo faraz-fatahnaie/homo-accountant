@@ -4,25 +4,97 @@ Production-ready MVP of a Persian-first (Solar Hijri, RTL, rial) accrual account
 small Iranian company (~3–4 users): expenses, supplier bills, customer invoices, payments,
 projects, budgets, funding, and a double-entry ledger that is the source of truth.
 
-> **Status: design phase.** Three visual directions are presented in [`design/`](design/) and are
-> awaiting approval before production scaffolding (per the project brief's mandatory checkpoint).
+## کیفیت و وضعیت تست — Quality and test status
 
-## Contents
+**Workflow badges** (live after the repository is published to GitHub — replace `OWNER/REPO` in the
+URLs; a badge is always the live source for the branch, the prose below is a dated snapshot):
+
+[![CI](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/ci.yml?label=CI)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![E2E](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/e2e.yml?label=E2E)](https://github.com/OWNER/REPO/actions/workflows/e2e.yml)
+[![Security](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/security.yml?label=Security)](https://github.com/OWNER/REPO/actions/workflows/security.yml)
+[![Docker](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/docker.yml?label=Docker)](https://github.com/OWNER/REPO/actions/workflows/docker.yml)
+
+> **Last verified:** commit `bfc2c46` · 2026-08-13T08:35:00Z · Debian 13 sandbox, Python 3.13,
+> Node 20, PostgreSQL 17 (local), Chromium (Playwright). **All locally runnable checks pass** —
+> full matrix below; `docs/quality-report.md` + `artifacts/quality-summary.json` hold the
+> machine-readable snapshot. Docker builds and security scans are wired in CI and were **not**
+> runnable inside the sandbox (no Docker) — do not treat them as passed.
+
+### Test matrix
+
+| Layer | Tool | Result | Notes |
+|---|---|---|---|
+| Backend unit/API/integration | pytest | ✅ 39 passed | real PostgreSQL; auth flows, RBAC, rotation, rate limit |
+| Backend coverage | pytest-cov | ✅ 91% (floor 80%) | ≥90% for accounting services from slice 2 |
+| Lint / format | Ruff | ✅ | `ruff check` + `ruff format --check` |
+| Types | mypy (strict) | ✅ | 18 source files clean |
+| Migrations | Alembic | ✅ | upgrade head; downgrade→upgrade exercised in tests |
+| Frontend unit/component | Vitest + Testing Library | ✅ 8 passed | API client + login states |
+| Frontend lint | ESLint | ✅ | 0 errors/warnings |
+| Frontend types | tsc strict | ✅ | `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
+| Frontend build | next build | ✅ | standalone output |
+| Browser journeys | Playwright | ✅ 16 passed | real stack; 4 roles × desktop/mobile; RBAC via direct API; themes |
+| Accessibility lint | axe | ⏳ slice 3+ | wired with UI slices; manual WCAG checks in design mockups |
+| Docker builds/smoke | compose.prod + trivy | ⏳ CI only | authored; runs in `docker.yml` |
+| Security scans | pip-audit/npm audit/trufflehog/CodeQL | ⏳ CI only | wired in `security.yml` |
+| PDF/export tests | — | ⏳ slice 4/7 | with their features |
+| Backup/restore smoke | infra/backup | ⏳ ops | scripts authored; rehearsal documented in `docs/operations.md` |
+
+### Commands
+
+```bash
+# quick checks
+make lint && make typecheck && make test-api && make test-web && make build
+
+# full local QA
+make quality          # format + lint + typecheck + backend+frontend tests + build
+
+# end-to-end against the real stack
+make dev              # docker compose up (PostgreSQL + MinIO + API + web)
+make e2e              # Playwright role journeys (desktop + mobile)
+
+# backend alone (expects local PostgreSQL: see PLAN.md/AGENTS.md)
+make migrate && make seed && make test
+```
+
+### Coverage policy
+
+Floors: **90%** accounting domain services · **80%** backend overall · **75%** frontend logic.
+Coverage is a floor, not a goal — accounting invariants and permission boundaries require explicit
+positive **and** negative tests. Reports: `artifacts/quality-summary.json` (machine-readable) and
+`docs/quality-report.md` (human-readable); CI uploads coverage + Playwright traces on failure.
+
+### Known limitations / deferred
+
+- OCR, tax/VAT, bank-statement import — explicitly out of scope (fixed product decisions).
+- Email reminders & live online-payment integration — deferred (documented in the invoice/funding
+  slices); Stripe exists only as disabled example infrastructure for legally supported regions.
+- Dashboard figures are design samples until slice 8 derives them from posted ledger entries.
+- `packages/api-client` generated from OpenAPI lands in slice 2 (drift guard in CI).
+
+## Quick start (dev)
+
+```bash
+cp .env.example .env            # adjust as needed
+make dev                        # full stack at http://localhost:3000
+```
+
+Demo users (dev only, seeded automatically): `owner@example.com / owner-arya-1405`,
+`accountant@example.com / acct-arya-1405`, `staff@example.com / staff-arya-1405`,
+`viewer@example.com / viewer-arya-1405`.
+
+## Repository map
 
 - [`PLAN.md`](PLAN.md) — milestones, risks, acceptance criteria, QA gates
-- [`design/`](design/) — three UI directions (Dashboard, Transactions, Add-expense, Invoice; RTL,
-  light/dark, desktop/mobile)
-- `AGENTS.md` — repository guide for agentic workflows
-- `docs/` — architecture, accounting rules, deployment, operations, ADRs (filled in as slices land)
+- [`AGENTS.md`](AGENTS.md) — repository guide (domains, invariants, commands)
+- [`design/`](design/) — approved classic direction + QA screenshots
+- [`docs/`](docs/) — architecture, accounting rules, deployment, operations, ADRs
+- [`apps/api`](apps/api) — FastAPI backend · [`apps/web`](apps/web) — Next.js frontend
+- [`packages/api-client`](packages/api-client) — typed client (slice 2)
+- [`tests/e2e`](tests/e2e) — Playwright journeys · [`infra/`](infra) — proxy/backup/scripts
 
-## Stack
+## Deployment
 
-FastAPI · SQLAlchemy 2 · Alembic · PostgreSQL · Next.js/TypeScript · Tailwind · TanStack Query ·
-pytest · Vitest · Playwright · Docker Compose · MinIO. Full details in `PLAN.md` and
-`docs/architecture.md` (once implemented).
-
-## Roadmap
-
-Slices 1–9 per `PLAN.md`. This README will gain live workflow badges, a factual test matrix,
-coverage policy, and a dated **Quality and test status** snapshot after the first genuinely
-verified run — never fabricated.
+Linux VPS + Docker Compose + nginx (TLS) — see [`docs/deployment.md`](docs/deployment.md) runbook
+and [`docs/operations.md`](docs/operations.md). Nothing is published or deployed without explicit
+owner credentials and authorization.
