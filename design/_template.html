@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>%%DIRTITLE%% — دموی طراحی | سامانه حسابداری آریا تجارت</title>
+<style>
+/* ===== Font (embedded Vazirmatn, OFL) ===== */
+%%FONT_CSS%%
+
+/* ===== Design tokens ===== */
+%%TOKENS%%
+
+/* ===== Base layout & components (shared) ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  font-size:var(--fs-base);
+  line-height:var(--lh);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+::placeholder{color:var(--muted)}
+.ic{width:1em;height:1em;vertical-align:-0.125em;flex:none}
+.ltr{direction:ltr;unicode-bidi:isolate}
+
+/* ---- Harness (design review chrome, not part of the product) ---- */
+.harness{
+  position:fixed;inset-inline:0;top:0;z-index:1000;height:46px;
+  background:#161b22;color:#e6edf3;display:flex;align-items:center;gap:12px;padding:0 14px;
+  font-size:12.5px;border-bottom:1px solid #000;
+}
+.harness .h-badge{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
+.harness .h-badge .dot{width:9px;height:9px;border-radius:50%;background:var(--primary,#4ade80)}
+.harness .h-note{color:#9aa7b5;max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.harness .h-grow{flex:1}
+.harness .h-group{display:flex;align-items:center;gap:6px}
+.harness .h-btn{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:7px;
+  background:#212a35;color:#dbe4ee;border:1px solid #303a48;font-size:12px;
+}
+.harness .h-btn[aria-pressed="true"]{background:#2f5cc9;border-color:#2f5cc9;color:#fff;font-weight:600}
+.harness .h-sep{width:1px;height:22px;background:#303a48}
+.harness .pal{display:inline-flex;gap:4px}
+.harness .pal i{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.25)}
+
+/* ---- Stage & shell ---- */
+.stage{min-height:100vh;padding-top:46px;display:flex;justify-content:center}
+.shell{
+  container-type:inline-size;
+  width:100%;max-width:1520px;min-height:calc(100vh - 46px);
+  background:var(--bg);
+}
+.shell.is-mobile{max-width:404px;border-inline:1px solid var(--border);box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+
+/* ---- Sidebar ---- */
+.sidebar{
+  position:fixed;inset-block:46px auto;inset-inline-start:0;width:var(--sbw);
+  background:var(--sb-bg);color:var(--sb-text);display:flex;flex-direction:column;
+  border-inline-end:1px solid var(--sb-border);z-index:50;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:14px 14px 12px}
+.brand-mark{
+  width:34px;height:34px;border-radius:var(--r-md);display:grid;place-items:center;flex:none;
+  background:var(--primary);color:var(--on-primary);font-weight:800;font-size:15px;
+}
+.brand-name{font-weight:800;font-size:14.5px;line-height:1.2}
+.brand-sub{font-size:10.5px;color:var(--sb-muted);margin-top:1px}
+.sb-fy{margin:0 14px 8px;font-size:10.5px;color:var(--sb-muted);border:1px dashed var(--sb-border);border-radius:6px;padding:4px 8px;display:inline-block}
+.nav{flex:1;overflow-y:auto;padding:4px 8px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--sb-muted);padding:12px 8px 4px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);
+  color:var(--sb-text);font-size:13px;font-weight:500;width:100%;text-align:start;
+}
+.nav-item:hover{background:var(--sb-hover)}
+.nav-item.active{background:var(--sb-active);color:var(--sb-active-text);font-weight:700}
+.nav-item.active .ic{color:var(--sb-active-icon)}
+.nav-item .ic{width:17px;height:17px;color:var(--sb-muted)}
+.nav-item.active .ic{color:var(--sb-active-icon)}
+.nav-item .lbl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-item .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--danger,#e07)}
+.nav-item.locked{opacity:.62}
+.nav-item.locked .ic{color:var(--sb-muted)}
+.lock-tip{position:relative}
+.lock-tip:hover::after{
+  content:attr(data-tip);position:absolute;inset-inline-start:100%;top:50%;transform:translateY(-50%);
+  margin-inline-start:10px;background:#1f242b;color:#e8edf3;font-size:11px;padding:5px 9px;border-radius:6px;
+  white-space:nowrap;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
+.sb-foot{padding:10px;border-top:1px solid var(--sb-border)}
+.user-chip{display:flex;align-items:center;gap:9px;padding:7px;border-radius:var(--r-md);background:var(--sb-hover)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.user-name{font-size:12.5px;font-weight:700;line-height:1.15}
+.user-role{font-size:10.5px;color:var(--sb-muted)}
+
+/* ---- Main & topbar ---- */
+.main{margin-inline-start:var(--sbw);display:flex;flex-direction:column;min-height:calc(100vh - 46px)}
+.topbar{
+  position:sticky;top:46px;z-index:40;display:flex;align-items:center;gap:10px;
+  padding:10px 20px;background:var(--topbar-bg);border-bottom:1px solid var(--border);
+  backdrop-filter:none;
+}
+.search{display:flex;align-items:center;gap:8px;flex:1;max-width:420px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;color:var(--muted)}
+.search input{background:none;border:none;outline:none;flex:1;font-size:13px;color:var(--text)}
+.kbd{font-size:10.5px;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:1px 6px;background:var(--surface);direction:ltr}
+.tb-period{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:7px 12px;font-size:12.5px;font-weight:600}
+.icon-btn{width:34px;height:34px;border-radius:var(--r-md);display:grid;place-items:center;color:var(--muted);position:relative;border:1px solid transparent}
+.icon-btn:hover{background:var(--surface-2);color:var(--text)}
+.icon-btn .ndot{position:absolute;top:7px;inset-inline-end:7px;width:7px;height:7px;border-radius:50%;background:var(--danger)}
+.tb-grow{flex:1}
+
+/* ---- Content & screens ---- */
+.content{padding:18px 20px 40px;max-width:1240px;width:100%;margin-inline:auto}
+.screen{display:none}
+.screen.active{display:block}
+.page-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.page-title{font-size:19px;font-weight:800;line-height:1.3}
+.page-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.page-actions{margin-inline-start:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ---- Buttons & chips ---- */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-md);
+  font-size:13px;font-weight:700;border:1px solid transparent;white-space:nowrap;
+}
+.btn .ic{width:15px;height:15px}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{background:var(--primary-strong)}
+.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text)}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn-danger-ghost{background:transparent;border-color:transparent;color:var(--danger)}
+.btn-danger-ghost:hover{background:var(--danger-soft)}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:var(--r-sm)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"],.chip.active{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-strong)}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:3px;gap:2px}
+.seg button{padding:5px 12px;border-radius:calc(var(--r-md) - 2px);font-size:12px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:700}
+.chip-filter{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--primary-soft);border:1px solid var(--primary);color:var(--primary-strong);font-size:11.5px;font-weight:600}
+.chip-filter .x{cursor:pointer;display:grid;place-items:center;width:15px;height:15px;border-radius:50%}
+.chip-filter .x:hover{background:var(--primary);color:#fff}
+
+/* ---- KPI cards ---- */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.kpi .k-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kpi-label{font-size:12px;color:var(--muted);font-weight:600}
+.kpi-icon{width:30px;height:30px;border-radius:var(--r-md);display:grid;place-items:center;background:var(--primary-soft);color:var(--primary-strong);font-size:15px}
+.kpi-value{font-size:19px;font-weight:800;letter-spacing:-.2px;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi-unit{font-size:11px;color:var(--muted);font-weight:600}
+.kpi-delta{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
+.kpi-delta.up{background:var(--success-soft);color:var(--success-strong)}
+.kpi-delta.down{background:var(--danger-soft);color:var(--danger-strong)}
+.kpi-delta.flat{background:var(--surface-2);color:var(--muted)}
+
+/* ---- Cards ---- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px}
+.card-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.card-title{font-size:13.5px;font-weight:800}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.card-head .grow{flex:1}
+.card-body{padding:14px 16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* ---- Charts ---- */
+.chart-box{position:relative}
+.chart-table-toggle{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-weight:600;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.chart-table-toggle:hover{color:var(--text)}
+.data-table-alt{display:none;margin-top:10px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.data-table-alt table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table-alt th,.data-table-alt td{padding:5px 10px;border-bottom:1px solid var(--border);text-align:start}
+.data-table-alt th{background:var(--surface-2);font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);font-weight:600}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* ---- Progress (budget) ---- */
+.prog-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px dashed var(--border)}
+.prog-row:last-child{border-bottom:none}
+.prog-info{flex:1;min-width:0}
+.prog-name{font-size:12.5px;font-weight:700}
+.prog-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.prog{flex:0 0 34%;height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.prog i{display:block;height:100%;border-radius:99px;background:var(--primary)}
+.prog.warn i{background:var(--warning)}
+.prog.danger i{background:var(--danger)}
+.prog-pct{font-size:12px;font-weight:800;width:44px;text-align:end;font-variant-numeric:tabular-nums}
+
+/* ---- Mini lists (attention / activity / funding) ---- */
+.mini-list{display:flex;flex-direction:column}
+.mini-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border);align-items:flex-start}
+.mini-item:last-child{border-bottom:none}
+.mini-ic{width:28px;height:28px;border-radius:var(--r-sm);display:grid;place-items:center;flex:none;font-size:14px}
+.mini-ic.info{background:var(--primary-soft);color:var(--primary-strong)}
+.mini-ic.warn{background:var(--warning-soft);color:var(--warning-strong)}
+.mini-ic.danger{background:var(--danger-soft);color:var(--danger-strong)}
+.mini-ic.neutral{background:var(--surface-2);color:var(--muted)}
+.mini-txt{flex:1;min-width:0}
+.mini-t{font-size:12.5px;font-weight:700;line-height:1.4}
+.mini-s{font-size:11px;color:var(--muted);margin-top:2px}
+.mini-val{font-size:12px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.link{color:var(--primary-strong);font-size:11.5px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:3px}
+.link:hover{text-decoration:underline}
+
+/* ---- Filters & toolbar ---- */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 12px}
+.filters .f-grow{flex:1}
+.fselect{display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 10px;font-size:12px;color:var(--muted)}
+.fselect select{border:none;background:none;outline:none;font-size:12.5px;color:var(--text);font-weight:600;cursor:pointer}
+.fselect .lbl{font-size:11px;color:var(--muted)}
+.fdates{display:flex;align-items:center;gap:5px}
+.fdates input{width:104px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 9px;font-size:12px;color:var(--text)}
+.fdates .sep{color:var(--muted);font-size:11px}
+.fchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.fchips .clr{font-size:11.5px;color:var(--danger);font-weight:700;cursor:pointer}
+
+/* ---- Data table ---- */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.table-scroll{overflow-x:auto}
+table.data{width:100%;border-collapse:collapse;font-size:var(--fs-table);min-width:900px}
+table.data thead th{
+  background:var(--thead-bg);color:var(--thead-text);font-size:11px;font-weight:800;
+  text-align:start;padding:9px 12px;white-space:nowrap;border-bottom:2px solid var(--border-strong);
+  position:sticky;top:0;z-index:5;
+}
+table.data thead th.num,table.data td.num{text-align:end;font-variant-numeric:tabular-nums}
+table.data td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.data tbody tr:hover{background:var(--row-hover)}
+table.data tbody tr:last-child td{border-bottom:none}
+table.data .code{font-weight:700;font-size:calc(var(--fs-table) - .5px)}
+table.data .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.check{width:34px}
+.check input{width:15px;height:15px;accent-color:var(--primary);cursor:pointer}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.badge .ic{width:12px;height:12px}
+.badge-success{background:var(--success-soft);color:var(--success-strong)}
+.badge-warn{background:var(--warning-soft);color:var(--warning-strong)}
+.badge-danger{background:var(--danger-soft);color:var(--danger-strong)}
+.badge-info{background:var(--primary-soft);color:var(--primary-strong)}
+.badge-muted{background:var(--surface-2);color:var(--muted)}
+.row-actions{display:flex;gap:2px;justify-content:flex-end}
+.ra{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;color:var(--muted);font-size:14px}
+.ra:hover{background:var(--surface-2);color:var(--text)}
+.ra.locked{color:var(--muted);opacity:.5;cursor:not-allowed;position:relative}
+.ra.locked:hover::after{content:attr(data-tip);position:absolute;top:-26px;inset-inline-end:0;background:#1f242b;color:#e8edf3;font-size:10.5px;padding:4px 8px;border-radius:5px;white-space:nowrap;z-index:50}
+.tfoot{padding:10px 12px;border-top:2px solid var(--border-strong);display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}
+.tfoot .sum b{font-size:13px}
+.pagination{display:flex;align-items:center;gap:4px}
+.pg{min-width:27px;height:27px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--muted);border:1px solid transparent}
+.pg:hover{border-color:var(--border);background:var(--surface-2)}
+.pg.cur{background:var(--primary);color:var(--on-primary);font-weight:800}
+.pg.dots{color:var(--muted)}
+.bulkbar{
+  display:none;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;border-radius:var(--r-md);
+  background:var(--primary-soft);border:1px solid var(--primary);color:var(--primary-strong);font-size:12.5px;font-weight:700;
+}
+.bulkbar.show{display:flex}
+
+/* ---- Empty state ---- */
+.empty{display:none;padding:44px 20px;text-align:center;color:var(--muted)}
+.empty.show{display:block}
+.empty .e-ic{width:52px;height:52px;margin:0 auto 12px;border-radius:16px;background:var(--surface-2);display:grid;place-items:center;font-size:24px;color:var(--muted)}
+.empty h3{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px}
+.empty p{font-size:12px;margin-bottom:12px}
+
+/* ---- Forms ---- */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.label{font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px}
+.label .req{color:var(--danger)}
+.hint{font-size:11px;color:var(--muted)}
+.hint.ok{color:var(--success-strong)}
+.error{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--danger);font-weight:600}
+.input,.select,.textarea{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:8px 11px;font-size:13px;width:100%;outline:none;transition:border-color .15s, box-shadow .15s;
+}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--focus-soft)}
+.input.invalid{border-color:var(--danger);background:var(--danger-soft)}
+.input.invalid:focus{box-shadow:0 0 0 3px var(--danger-soft);border-color:var(--danger)}
+.select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.field .unit-row{display:flex;align-items:center;gap:8px}
+.amount-box{position:relative;flex:1}
+.amount-box .input{padding-inline-start:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.unit-pill{font-size:11px;color:var(--muted);font-weight:700;background:var(--surface-2);border:1px solid var(--border);padding:6px 10px;border-radius:var(--r-sm);white-space:nowrap}
+.radio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.radio-card{
+  display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:var(--r-md);
+  padding:9px 11px;font-size:12.5px;font-weight:700;cursor:pointer;background:var(--surface);color:var(--muted);
+}
+.radio-card input{accent-color:var(--primary)}
+.radio-card.sel{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-strong)}
+.dropzone{
+  border:1.5px dashed var(--border-strong);border-radius:var(--r-md);padding:18px;text-align:center;
+  color:var(--muted);font-size:12.5px;background:var(--surface-2);
+}
+.dropzone .dz-ic{font-size:22px;color:var(--primary-strong);margin-bottom:6px;display:block}
+.file-list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.file-row{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 10px;font-size:12px}
+.file-row .ic{color:var(--muted)}
+.file-row .fname{font-weight:700;flex:1}
+.file-row .fsize{color:var(--muted);font-size:11px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.unsaved{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--warning-strong);font-weight:600}
+.side-layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+.sidecard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.sidecard .sc-head{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:7px}
+.entry{display:flex;gap:10px;padding:8px 14px;border-bottom:1px dashed var(--border);font-size:12.5px;align-items:baseline}
+.entry .e-code{font-weight:800;min-width:118px;font-variant-numeric:tabular-nums}
+.entry .e-name{color:var(--muted);flex:1;font-size:11.5px}
+.entry .e-amt{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.entry.dr .e-amt{color:var(--text)}
+.entry.cr .e-amt{color:var(--muted)}
+.sc-bal{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--success-soft);color:var(--success-strong);font-size:12px;font-weight:800}
+.lifecycle{display:flex;align-items:center;gap:4px;margin-bottom:14px;font-size:11px;font-weight:700;color:var(--muted);flex-wrap:wrap}
+.lifecycle .step{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}
+.lifecycle .step.cur{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+.lifecycle .step.done{color:var(--success-strong);background:var(--success-soft);border-color:transparent}
+.lifecycle .arr{color:var(--muted);font-size:10px}
+
+/* ---- Invoice ---- */
+.inv-head{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px}
+.inv-title{font-size:18px;font-weight:800}
+.inv-num{font-size:12.5px;color:var(--muted);margin-top:3px}
+.inv-doc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px}
+.inv-top{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;padding-bottom:14px;border-bottom:2px solid var(--border-strong);margin-bottom:14px}
+.inv-partner .p-name{font-size:15px;font-weight:800;margin-bottom:5px}
+.inv-meta{display:flex;flex-direction:column;gap:5px;font-size:12px}
+.inv-meta .m{display:flex;justify-content:space-between;gap:12px}
+.inv-meta .m b{font-weight:800}
+.inv-items{margin-bottom:14px}
+.inv-totals{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-size:12.5px}
+.inv-totals .t{display:flex;gap:24px;min-width:260px;justify-content:space-between}
+.inv-totals .t.grand{font-size:15px;font-weight:800;border-top:2px solid var(--border-strong);padding-top:7px;margin-top:3px}
+.inv-totals .t.due{color:var(--danger-strong);font-weight:800}
+.inv-notes{margin-top:14px;padding:10px 12px;background:var(--surface-2);border-radius:var(--r-sm);font-size:11.5px;color:var(--muted);line-height:1.7}
+.pay-history{margin-top:14px}
+.pay-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px}
+.pay-row .grow{flex:1}
+.pay-row b{font-variant-numeric:tabular-nums}
+.print-preview{display:none;margin-top:16px;background:#ecebe4;padding:22px;border-radius:var(--r-lg)}
+.print-preview.show{display:block}
+.paper{background:#fff;color:#1c2430;max-width:640px;margin:0 auto;padding:26px 28px;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:12px;line-height:1.7;direction:rtl}
+.paper .pp-head{display:flex;justify-content:space-between;gap:14px;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:14px}
+.paper .pp-brand{font-size:15px;font-weight:800}
+.paper .pp-title{font-size:17px;font-weight:800;text-align:left}
+.paper table{width:100%;border-collapse:collapse;margin:10px 0}
+.paper th{background:#f1f1ec;border:1px solid #d8d8cf;padding:6px 9px;font-size:11px;text-align:start}
+.paper td{border:1px solid #e3e3da;padding:6px 9px}
+.paper .pp-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px;margin-bottom:12px}
+.paper .pp-foot{display:flex;justify-content:space-between;border-top:1px solid #d8d8cf;margin-top:16px;padding-top:10px;font-size:11px;color:#555}
+
+/* ---- Toast ---- */
+.toast{
+  position:fixed;bottom:22px;inset-inline-start:50%;transform:translateX(-50%);z-index:300;
+  background:#1f242b;color:#eef2f6;font-size:12.5px;padding:9px 16px;border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.28);display:none;max-width:86vw;text-align:center;
+}
+
+/* ---- Bottom nav (mobile) ---- */
+.bottomnav{display:none}
+
+/* ===== Per-direction styling ===== */
+%%EXTRA_CSS%%
+
+/* ===== Responsive (container queries on .shell) ===== */
+@container (max-width: 900px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .side-layout{grid-template-columns:1fr}
+  .fdates input{width:90px}
+}
+@container (max-width: 680px){
+  .sidebar{display:none}
+  .main{margin-inline-start:0}
+  .topbar{padding:8px 12px;gap:7px}
+  .search{max-width:none}
+  .tb-period .tbp-txt{display:none}
+  .content{padding:14px 12px 76px}
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .kpi-value{font-size:16px}
+  .form-grid{grid-template-columns:1fr}
+  .radio-grid{grid-template-columns:1fr}
+  .inv-top{grid-template-columns:1fr}
+  .page-head .page-actions{width:100%}
+  /* table -> stacked cards */
+  table.data{min-width:0}
+  table.data thead{display:none}
+  table.data tbody tr{display:block;border-bottom:1px solid var(--border-strong);padding:6px 4px}
+  table.data td{display:flex;align-items:center;gap:10px;border:none;padding:5px 10px;text-align:start}
+  table.data td::before{content:attr(data-label);font-size:10.5px;font-weight:800;color:var(--muted);flex:0 0 92px;white-space:nowrap}
+  table.data td.num,table.data th.num{text-align:start}
+  table.data .check{display:none}
+  table.data .row-actions{justify-content:flex-start}
+  .filters{padding:8px}
+  .fselect{flex:1 1 46%}
+  .fselect select{max-width:130px}
+  .bottomnav{
+    display:flex;position:fixed;bottom:0;inset-inline:0;z-index:60;height:58px;
+    background:var(--surface);border-top:1px solid var(--border);
+  }
+  .bottomnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:var(--muted);padding-top:7px}
+  .bottomnav button .ic{width:18px;height:18px}
+  .bottomnav button.active{color:var(--primary-strong)}
+  .bottomnav button.active .ic{color:var(--primary)}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SVG icon set (single coherent set, no emoji) ===== -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M8 3l-5 5 5 5M3 8h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 21l5-5-5-5M21 16H3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 2v5h5M9 13h6M9 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 8h8M8 12h8M8 16h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20M6 15h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9.5" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M3 22h18M4 18h16M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 3l9 6H3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="7" y="12" width="3" height="6" rx=".6" fill="currentColor"/><rect x="12" y="8" width="3" height="10" rx=".6" fill="currentColor"/><rect x="17" y="5" width="3" height="13" rx=".6" fill="currentColor"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.3-4.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.7 21a2 2 0 0 1-3.4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.3 9a2.9 2.9 0 0 1 5.4 1.3c0 1.8-2.7 2.4-2.7 3.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 17.6v.1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.8M12 18.7v2.8M2.5 12h2.8M18.7 12h2.8M5.2 5.2l2 2M16.8 16.8l2 2M18.8 5.2l-2 2M7.2 16.8l-2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V7a4 4 0 0 1 8 0v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6.2 7.4V19l-3.6-1.8v-4.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 2.5v4M16 2.5v4M3 10h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M21.4 11.1l-8.6 8.6a5.6 5.6 0 0 1-8-8L13 4.1a3.6 3.6 0 0 1 5.1 5.1l-8.1 8.1a1.7 1.7 0 0 1-2.4-2.4l7.7-7.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24"><path d="M6 9V3h12v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><rect x="6" y="14" width="12" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1.5 12S6 5 12 5s10.5 7 10.5 7-4.5 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="19" cy="12" r="1.4" fill="currentColor"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 12.5l2.6 2.6L16 9.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5l10 17H2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.6v.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5M12 7.5v.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-trend-up" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 7h6v6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="M3 7l6 6 4-4 8 8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 17h-6v-6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 10.5h20M16 15h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3.2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 3.8v6.1c0 4.9-3.4 8.3-8 10.1-4.6-1.8-8-5.2-8-10.1V5.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 11.8l2.2 2.2L15.5 9.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3l4 4L8 20l-5 1 1-5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3.5 6h17M8 6V3.5h8V6M6 6l1 15h10l1-15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5.2" rx="8" ry="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 5.2v13.6c0 1.6 3.6 2.9 8 2.9s8-1.3 8-2.9V5.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 12c0 1.6 3.6 2.9 8 2.9s8-1.3 8-2.9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 17l5-5-5-5M21 12H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 21V4h12l-1.5 4L16 12H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><circle cx="15" cy="12" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="17" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M17 21v-8H7v8M7 3v5h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.1M3.5 12h.1M3.5 18h.1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ===== Harness ===== -->
+<div class="harness">
+  <div class="h-badge"><span class="dot"></span><span>%%DIRTITLE%%</span></div>
+  <span class="h-note">%%DIRTAG%%</span>
+  <span class="h-grow"></span>
+  <span class="pal" title="پالت رنگ (نشانهها)">%%PALETTE%%</span>
+  <span class="h-sep"></span>
+  <div class="h-group" role="group" aria-label="انتخاب صفحه">
+    <button class="h-btn" data-hscreen="dashboard" aria-pressed="true">داشبورد</button>
+    <button class="h-btn" data-hscreen="transactions" aria-pressed="false">تراکنشها</button>
+    <button class="h-btn" data-hscreen="expense" aria-pressed="false">ثبت هزینه</button>
+    <button class="h-btn" data-hscreen="invoice" aria-pressed="false">صورتحساب</button>
+  </div>
+  <span class="h-sep"></span>
+  <div class="h-group" role="group" aria-label="نمای دستگاه">
+    <button class="h-btn" data-device="desktop" aria-pressed="true">دسکتاپ</button>
+    <button class="h-btn" data-device="mobile" aria-pressed="false">موبایل</button>
+  </div>
+  <span class="h-sep"></span>
+  <div class="h-group" role="group" aria-label="پوسته">
+    <button class="h-btn" data-theme-btn="light" aria-pressed="true">روشن</button>
+    <button class="h-btn" data-theme-btn="dark" aria-pressed="false">تیره</button>
+  </div>
+</div>
+
+<!-- ===== App shell ===== -->
+<div class="stage">
+<div class="shell" id="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" aria-label="منوی اصلی">
+    <div class="brand">
+      <div class="brand-mark">آ</div>
+      <div>
+        <div class="brand-name">آریا تجارت</div>
+        <div class="brand-sub">سامانه حسابداری</div>
+      </div>
+    </div>
+    <span class="sb-fy">سال مالی ۱۴۰۵</span>
+    <nav class="nav">
+      <div class="nav-label">عملیات</div>
+      <button class="nav-item active" data-nav="dashboard"><svg class="ic"><use href="#i-grid"/></svg><span class="lbl">داشبورد</span></button>
+      <button class="nav-item" data-nav="transactions"><svg class="ic"><use href="#i-swap"/></svg><span class="lbl">تراکنشها</span></button>
+      <button class="nav-item" data-nav="expense"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">ثبت هزینه</span></button>
+      <button class="nav-item" data-nav="invoice"><svg class="ic"><use href="#i-file-text"/></svg><span class="lbl">صورتحسابها</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-receipt"/></svg><span class="lbl">فاکتور خرید</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-card"/></svg><span class="lbl">پرداختها</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-users"/></svg><span class="lbl">طرف حسابها</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-folder"/></svg><span class="lbl">پروژهها</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-landmark"/></svg><span class="lbl">تأمین مالی</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">گزارشها</span></button>
+      <button class="nav-item" data-soon><svg class="ic"><use href="#i-search"/></svg><span class="lbl">پرسوجو</span></button>
+      <div class="nav-label">مدیریت</div>
+      <button class="nav-item locked lock-tip" data-soon data-tip="فقط مدیر"><svg class="ic"><use href="#i-users"/></svg><span class="lbl">کاربران</span><svg class="ic" style="width:12px;height:12px"><use href="#i-lock"/></svg></button>
+      <button class="nav-item locked lock-tip" data-soon data-tip="فقط مدیر"><svg class="ic"><use href="#i-settings"/></svg><span class="lbl">تنظیمات</span><svg class="ic" style="width:12px;height:12px"><use href="#i-lock"/></svg></button>
+    </nav>
+    <div class="sb-foot">
+      <div class="user-chip">
+        <div class="avatar">نر</div>
+        <div style="flex:1;min-width:0">
+          <div class="user-name">نگار رضایی</div>
+          <div class="user-role">حسابدار</div>
+        </div>
+        <svg class="ic" style="width:14px;height:14px"><use href="#i-chev-down"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input type="search" placeholder="جستجوی تراکنش، طرف حساب، شماره سند…" aria-label="جستجو">
+        <span class="kbd">/</span>
+      </div>
+      <span class="tb-grow"></span>
+      <button class="tb-period"><svg class="ic" style="width:14px;height:14px"><use href="#i-calendar"/></svg><span class="tbp-txt">مرداد ۱۴۰۵</span><svg class="ic" style="width:12px;height:12px"><use href="#i-chev-down"/></svg></button>
+      <button class="icon-btn" aria-label="اعلانها"><svg class="ic"><use href="#i-bell"/></svg><span class="ndot"></span></button>
+      <button class="icon-btn" aria-label="راهنما"><svg class="ic"><use href="#i-help"/></svg></button>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="screen active" id="screen-dashboard" aria-label="داشبورد">
+        <div class="page-head">
+          <div>
+            <div class="page-title">داشبورد</div>
+            <div class="page-sub">نمای کلی مالی — ۱ فروردین تا ۲۲ مرداد ۱۴۰۵</div>
+          </div>
+          <div class="page-actions">
+            <div class="seg" role="group" aria-label="بازه زمانی">
+              <button>امروز</button><button>این ماه</button><button aria-pressed="true">سه ماه اخیر</button><button>سال جاری</button><button>سفارشی</button>
+            </div>
+            <button class="btn btn-primary" data-soon><svg class="ic"><use href="#i-plus"/></svg>ثبت هزینه جدید</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="k-top"><span class="kpi-label">موجودی نقد و بانک</span><span class="kpi-icon"><svg class="ic"><use href="#i-wallet"/></svg></span></div>
+            <div><span class="kpi-value">۱۸۴٬۶۲۰٬۰۰۰</span> <span class="kpi-unit">ریال</span></div>
+            <span class="kpi-delta up"><svg class="ic"><use href="#i-trend-up"/></svg>۴٬۲۱۰٬۰۰۰ نسبت به تیر</span>
+          </div>
+          <div class="kpi">
+            <div class="k-top"><span class="kpi-label">درآمد دوره</span><span class="kpi-icon"><svg class="ic"><use href="#i-trend-up"/></svg></span></div>
+            <div><span class="kpi-value">۹۶٬۸۵۰٬۰۰۰</span> <span class="kpi-unit">ریال</span></div>
+            <span class="kpi-delta up"><svg class="ic"><use href="#i-trend-up"/></svg>۱۲٪ نسبت به سه ماه قبل</span>
+          </div>
+          <div class="kpi">
+            <div class="k-top"><span class="kpi-label">هزینههای دوره</span><span class="kpi-icon"><svg class="ic"><use href="#i-trend-down"/></svg></span></div>
+            <div><span class="kpi-value">۶۱٬۳۴۰٬۰۰۰</span> <span class="kpi-unit">ریال</span></div>
+            <span class="kpi-delta up"><svg class="ic"><use href="#i-trend-down"/></svg>۳٪ کاهش نسبت به سه ماه قبل</span>
+          </div>
+          <div class="kpi">
+            <div class="k-top"><span class="kpi-label">نتیجه خالص</span><span class="kpi-icon"><svg class="ic"><use href="#i-check-circle"/></svg></span></div>
+            <div><span class="kpi-value">۳۵٬۵۱۰٬۰۰۰</span> <span class="kpi-unit">ریال</span></div>
+            <span class="kpi-delta up"><svg class="ic"><use href="#i-check"/></svg>سودآور</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><div class="card-title">روند درآمد و هزینه</div><div class="card-sub">میلیون ریال — پنج ماه گذشته</div></div>
+              <span class="grow"></span>
+              <button class="chart-table-toggle" data-alt-toggle="alt-income">جدول دادهها</button>
+            </div>
+            <div class="card-body">
+              <div class="chart-box">
+                <svg viewBox="0 0 480 210" role="img" aria-label="نمودار میله‌ای درآمد و هزینه از فروردین تا مرداد" style="width:100%;height:auto">
+                  <line x1="30" y1="10" x2="30" y2="172" stroke="var(--chart-grid)" stroke-width="1"/>
+                  <line x1="30" y1="172" x2="462" y2="172" stroke="var(--chart-grid)" stroke-width="1"/>
+                  <g font-size="9.5" fill="var(--chart-txt)">
+                    <text x="30" y="188" text-anchor="start">فروردین</text><text x="116" y="188" text-anchor="middle">اردیبهشت</text>
+                    <text x="202" y="188" text-anchor="middle">خرداد</text><text x="288" y="188" text-anchor="middle">تیر</text>
+                    <text x="374" y="188" text-anchor="middle">مرداد</text>
+                    <text x="22" y="14" text-anchor="end">۲۵</text><text x="22" y="48.2" text-anchor="end">۲۰</text>
+                    <text x="22" y="82.4" text-anchor="end">۱۵</text><text x="22" y="116.6" text-anchor="end">۱۰</text>
+                    <text x="22" y="150.8" text-anchor="end">۵</text><text x="22" y="174" text-anchor="end">۰</text>
+                  </g>
+                  <g stroke="var(--chart-grid)" stroke-width="1" stroke-dasharray="2 4">
+                    <line x1="30" y1="44" x2="462" y2="44"/><line x1="30" y1="78" x2="462" y2="78"/>
+                    <line x1="30" y1="112" x2="462" y2="112"/><line x1="30" y1="146" x2="462" y2="146"/>
+                  </g>
+                  <g>
+                    <rect x="39" y="81" width="28" height="91" rx="2.5" fill="var(--chart-1)" opacity=".92"/>
+                    <rect x="73" y="105.6" width="28" height="66.4" rx="2.5" fill="var(--chart-2)"/>
+                    <rect x="125" y="54" width="28" height="118" rx="2.5" fill="var(--chart-1)" opacity=".92"/>
+                    <rect x="159" y="77.6" width="28" height="94.4" rx="2.5" fill="var(--chart-2)"/>
+                    <rect x="211" y="37.6" width="28" height="134.4" rx="2.5" fill="var(--chart-1)" opacity=".92"/>
+                    <rect x="245" y="66.8" width="28" height="105.2" rx="2.5" fill="var(--chart-2)"/>
+                    <rect x="297" y="28.6" width="28" height="143.4" rx="2.5" fill="var(--chart-1)" opacity=".92"/>
+                    <rect x="331" y="63.2" width="28" height="108.8" rx="2.5" fill="var(--chart-2)"/>
+                    <rect x="383" y="39.5" width="28" height="132.5" rx="2.5" fill="var(--chart-1)" opacity=".92"/>
+                    <rect x="417" y="78.4" width="28" height="93.6" rx="2.5" fill="var(--chart-2)"/>
+                  </g>
+                </svg>
+                <div class="legend" style="margin-top:6px">
+                  <span><i style="background:var(--chart-1)"></i>درآمد</span>
+                  <span><i style="background:var(--chart-2)"></i>هزینه</span>
+                  <span><i style="background:var(--chart-3)"></i>جمع درآمد دوره: ۹۶٬۸۵۰٬۰۰۰ ریال</span>
+                </div>
+              </div>
+              <div class="data-table-alt" id="alt-income">
+                <table>
+                  <thead><tr><th>ماه</th><th>درآمد (میلیون ریال)</th><th>هزینه (میلیون ریال)</th></tr></thead>
+                  <tbody>
+                    <tr><td>فروردین</td><td>۱۴٫۲</td><td>۹٫۸</td></tr>
+                    <tr><td>اردیبهشت</td><td>۱۸٫۵</td><td>۱۲٫۱</td></tr>
+                    <tr><td>خرداد</td><td>۲۱٫۰</td><td>۱۳٫۶</td></tr>
+                    <tr><td>تیر</td><td>۲۲٫۴</td><td>۱۴٫۰</td></tr>
+                    <tr><td>مرداد</td><td>۲۰٫۷</td><td>۱۱٫۸</td></tr>
+                    <tr><td><b>جمع</b></td><td><b>۹۶٫۸</b></td><td><b>۶۱٫۳</b></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><div class="card-title">ترکیب تأمین مالی</div><div class="card-sub">سرمایه و منابع — سال ۱۴۰۵</div></div>
+              <span class="grow"></span>
+              <button class="chart-table-toggle" data-alt-toggle="alt-fund">جدول دادهها</button>
+            </div>
+            <div class="card-body">
+              <div class="chart-box" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+                <svg viewBox="0 0 140 140" width="132" height="132" role="img" aria-label="نمودار دایره‌ای ترکیب تأمین مالی">
+                  <circle cx="70" cy="70" r="54" fill="none" stroke="var(--surface-2)" stroke-width="22"/>
+                  <circle cx="70" cy="70" r="54" fill="none" stroke="var(--chart-1)" stroke-width="22" stroke-dasharray="135.7 339.3" stroke-dashoffset="25" transform="rotate(-90 70 70)"/>
+                  <circle cx="70" cy="70" r="54" fill="none" stroke="var(--chart-2)" stroke-width="22" stroke-dasharray="84.8 339.3" stroke-dashoffset="160.7" transform="rotate(-90 70 70)"/>
+                  <circle cx="70" cy="70" r="54" fill="none" stroke="var(--chart-3)" stroke-width="22" stroke-dasharray="118.7 339.3" stroke-dashoffset="245.5" transform="rotate(-90 70 70)"/>
+                  <text x="70" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="var(--text)">۱٬۰۰۰</text>
+                  <text x="70" y="81" text-anchor="middle" font-size="8.5" fill="var(--muted)">میلیون ریال</text>
+                </svg>
+                <div style="flex:1;min-width:180px">
+                  <div class="mini-list">
+                    <div class="mini-item">
+                      <span class="mini-ic info" style="background:var(--chart-1-soft);color:var(--chart-1)"><svg class="ic"><use href="#i-users"/></svg></span>
+                      <div class="mini-txt"><div class="mini-t">سرمایهگذاران</div><div class="mini-s">۴۰۰٬۰۰۰٬۰۰۰ ریال</div></div>
+                      <span class="mini-val">۴۰٪</span>
+                    </div>
+                    <div class="mini-item">
+                      <span class="mini-ic warn" style="background:var(--chart-2-soft);color:var(--chart-2)"><svg class="ic"><use href="#i-landmark"/></svg></span>
+                      <div class="mini-txt"><div class="mini-t">تسهیلات بانکی</div><div class="mini-s">۲۵۰٬۰۰۰٬۰۰۰ ریال</div></div>
+                      <span class="mini-val">۲۵٪</span>
+                    </div>
+                    <div class="mini-item">
+                      <span class="mini-ic neutral" style="background:var(--chart-3-soft);color:var(--chart-3)"><svg class="ic"><use href="#i-trend-up"/></svg></span>
+                      <div class="mini-txt"><div class="mini-t">درآمد عملیاتی</div><div class="mini-s">۳۵۰٬۰۰۰٬۰۰۰ ریال</div></div>
+                      <span class="mini-val">۳۵٪</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="data-table-alt" id="alt-fund">
+                <table>
+                  <thead><tr><th>منبع</th><th>مبلغ (ریال)</th><th>سهم</th></tr></thead>
+                  <tbody>
+                    <tr><td>سرمایهگذاران</td><td>۴۰۰٬۰۰۰٬۰۰۰</td><td>۴۰٪</td></tr>
+                    <tr><td>تسهیلات بانکی</td><td>۲۵۰٬۰۰۰٬۰۰۰</td><td>۲۵٪</td></tr>
+                    <tr><td>درآمد عملیاتی</td><td>۳۵۰٬۰۰۰٬۰۰۰</td><td>۳۵٪</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">بودجه پروژهها در برابر واقعی</div><div class="card-sub">تا ۲۲ مرداد ۱۴۰۵</div></div><span class="grow"></span><a class="link" href="#" data-soon>مشاهده همه</a></div>
+            <div class="card-body">
+              <div class="prog-row">
+                <div class="prog-info"><div class="prog-name">بازسازی انبار مرکزی</div><div class="prog-meta">۳۱۲٬۴۰۰٬۰۰۰ از ۵۰۰٬۰۰۰٬۰۰۰ ریال</div></div>
+                <div class="prog"><i style="width:62%"></i></div><span class="prog-pct">۶۲٪</span>
+              </div>
+              <div class="prog-row">
+                <div class="prog-info"><div class="prog-name">طراحی وبسایت فروشگاهی</div><div class="prog-meta">۷۶٬۲۰۰٬۰۰۰ از ۲۰۰٬۰۰۰٬۰۰۰ ریال</div></div>
+                <div class="prog"><i style="width:38%"></i></div><span class="prog-pct">۳۸٪</span>
+              </div>
+              <div class="prog-row">
+                <div class="prog-info"><div class="prog-name">توسعه صادرات</div><div class="prog-meta">۲۵۵٬۸۰۰٬۰۰۰ از ۳۰۰٬۰۰۰٬۰۰۰ ریال</div></div>
+                <div class="prog warn"><i style="width:85%"></i></div><span class="prog-pct">۸۵٪</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">نیاز به توجه</div><div class="card-sub">اقلام نیازمند اقدام</div></div><span class="grow"></span><a class="link" href="#" data-soon>مشاهده همه</a></div>
+            <div class="card-body">
+              <div class="mini-list">
+                <div class="mini-item">
+                  <span class="mini-ic danger"><svg class="ic"><use href="#i-alert"/></svg></span>
+                  <div class="mini-txt"><div class="mini-t">فاکتور فروش INV-1405-0041 سررسید گذشته</div><div class="mini-s">بازرگانی خلیجفارس — ۵ روز تأخیر</div></div>
+                  <span class="mini-val">۸٬۴۰۰٬۰۰۰</span>
+                </div>
+                <div class="mini-item">
+                  <span class="mini-ic warn"><svg class="ic"><use href="#i-clock"/></svg></span>
+                  <div class="mini-txt"><div class="mini-t">فاکتور خرید PR-1405-0112 نزدیک سررسید</div><div class="mini-s">سررسید ۲۵ مرداد — فولاد البرز</div></div>
+                  <span class="mini-val">۲۱٬۰۰۰٬۰۰۰</span>
+                </div>
+                <div class="mini-item">
+                  <span class="mini-ic info"><svg class="ic"><use href="#i-file"/></svg></span>
+                  <div class="mini-txt"><div class="mini-t">پیشنویس هزینه «خرید ملزومات اداری»</div><div class="mini-s">نیازمند ثبت — ایجادشده توسط سامان کریمی</div></div>
+                  <span class="mini-val">۱٬۸۵۰٬۰۰۰</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">دریافتنی و پرداختنی</div><div class="card-sub">به تفکیک معوق و جاری</div></div><span class="grow"></span></div>
+            <div class="card-body">
+              <div class="mini-list">
+                <div class="mini-item">
+                  <span class="mini-ic info"><svg class="ic"><use href="#i-file-text"/></svg></span>
+                  <div class="mini-txt"><div class="mini-t">دریافتنی از مشتریان</div><div class="mini-s">کل ۴۲٬۸۰۰٬۰۰۰ — معوق ۱۲٬۴۰۰٬۰۰۰ (۲ فاکتور)</div></div>
+                  <a class="link" href="#" data-soon>مشاهده</a>
+                </div>
+                <div class="mini-item">
+                  <span class="mini-ic warn"><svg class="ic"><use href="#i-receipt"/></svg></span>
+                  <div class="mini-txt"><div class="mini-t">پرداختنی به تأمینکنندگان</div><div class="mini-s">کل ۹۶٬۵۰۰٬۰۰۰ — معوق ۲۸٬۷۵۰٬۰۰۰ (۳ فاکتور)</div></div>
+                  <a class="link" href="#" data-soon>مشاهده</a>
+                </div>
+                <div class="mini-item">
+                  <span class="mini-ic neutral"><svg class="ic"><use href="#i-wallet"/></svg></span>
+                  <div class="mini-txt"><div class="mini-t">تسهیلات جاری</div><div class="mini-s">اصل و سود باقیمانده: ۲۳۰٬۰۰۰٬۰۰۰ ریال — سررسید آذر</div></div>
+                  <a class="link" href="#" data-soon>جزئیات</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">آخرین فعالیت</div><div class="card-sub">رویدادهای مالی اخیر در سامانه</div></div><span class="grow"></span><a class="link" href="#" data-soon>تاریخچه کامل</a></div>
+          <div class="card-body">
+            <div class="mini-list">
+              <div class="mini-item">
+                <span class="mini-ic info"><svg class="ic"><use href="#i-card"/></svg></span>
+                <div class="mini-txt"><div class="mini-t">ثبت پرداخت ۵۰٬۰۰۰٬۰۰۰ ریال به فاکتور INV-1405-0038</div><div class="mini-s">۲۲ مرداد، ۰۸:۴۱ — نگار رضایی</div></div>
+                <a class="link" href="#" data-soon>مشاهده</a>
+              </div>
+              <div class="mini-item">
+                <span class="mini-ic neutral"><svg class="ic"><use href="#i-plus"/></svg></span>
+                <div class="mini-txt"><div class="mini-t">ایجاد پیشنویس هزینه «سوخت کامیون»</div><div class="mini-s">۲۲ مرداد، ۰۷:۵۸ — سامان کریمی</div></div>
+                <a class="link" href="#" data-soon>مشاهده</a>
+              </div>
+              <div class="mini-item">
+                <span class="mini-ic info"><svg class="ic"><use href="#i-send"/></svg></span>
+                <div class="mini-txt"><div class="mini-t">صدور صورتحساب INV-1405-0042 به بازرگانی خلیجفارس</div><div class="mini-s">۲۱ مرداد، ۱۶:۱۲ — نگار رضایی</div></div>
+                <a class="link" href="#" data-soon>مشاهده</a>
+              </div>
+              <div class="mini-item">
+                <span class="mini-ic warn"><svg class="ic"><use href="#i-receipt"/></svg></span>
+                <div class="mini-txt"><div class="mini-t">ثبت هزینه «اجاره دفتر» به مبلغ ۲۸٬۰۰۰٬۰۰۰ ریال</div><div class="mini-s">۲۱ مرداد، ۱۱:۳۰ — امیر حسینی</div></div>
+                <a class="link" href="#" data-soon>مشاهده</a>
+              </div>
+              <div class="mini-item">
+                <span class="mini-ic neutral"><svg class="ic"><use href="#i-shield"/></svg></span>
+                <div class="mini-txt"><div class="mini-t">بستن دوره تیر ۱۴۰۵</div><div class="mini-s">۲۰ مرداد، ۱۴:۰۵ — سیستم</div></div>
+                <a class="link" href="#" data-soon>جزئیات</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TRANSACTIONS ============ -->
+      <section class="screen" id="screen-transactions" aria-label="تراکنشها">
+        <div class="page-head">
+          <div>
+            <div class="page-title">تراکنشها</div>
+            <div class="page-sub">۵۴ تراکنش در بازه ۱ فروردین تا ۲۲ مرداد ۱۴۰۵</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-ghost btn-sm" data-soon><svg class="ic"><use href="#i-save"/></svg>ذخیره نما</button>
+            <button class="btn btn-ghost btn-sm" data-soon><svg class="ic"><use href="#i-download"/></svg>خروجی</button>
+            <button class="btn btn-primary btn-sm" data-soon><svg class="ic"><use href="#i-plus"/></svg>تراکنش جدید</button>
+          </div>
+        </div>
+
+        <div class="bulkbar" id="bulkbar">
+          <svg class="ic"><use href="#i-check-circle"/></svg>
+          <span id="bulkcount">۱ مورد انتخاب شد</span>
+          <span style="flex:1"></span>
+          <button class="btn btn-sm" data-soon>برچسبگذاری</button>
+          <button class="btn btn-sm" data-soon>خروجی انتخابشده</button>
+        </div>
+
+        <div class="filters" role="search" aria-label="فیلتر تراکنشها">
+          <div class="fselect" style="flex:1;max-width:260px">
+            <svg class="ic" style="width:14px;height:14px"><use href="#i-search"/></svg>
+            <input type="search" placeholder="جستجو در تراکنشها…" style="border:none;background:none;outline:none;flex:1;font-size:12.5px;color:var(--text)">
+          </div>
+          <div class="fselect"><span class="lbl">وضعیت</span><select aria-label="وضعیت"><option>همه</option><option>پیشنویس</option><option>ثبتشده</option><option>پرداختشده</option><option>معوق</option></select></div>
+          <div class="fselect"><span class="lbl">نوع</span><select aria-label="نوع"><option>همه</option><option>هزینه</option><option>درآمد</option><option>پرداخت</option><option>انتقال</option></select></div>
+          <div class="fselect"><span class="lbl">پروژه</span><select aria-label="پروژه"><option>همه</option><option>بازسازی انبار</option><option>توسعه صادرات</option><option>وبسایت فروشگاهی</option><option>بدون پروژه</option></select></div>
+          <div class="fdates">
+            <input type="text" inputmode="numeric" placeholder="از ۱۴۰۵/۰۴/۰۱" aria-label="از تاریخ"><span class="sep">تا</span><input type="text" inputmode="numeric" placeholder="۱۴۰۵/۰۵/۲۲" aria-label="تا تاریخ">
+          </div>
+          <div class="fselect"><span class="lbl">مبلغ</span><select aria-label="مبلغ"><option>همه مبالغ</option><option>تا ۵ میلیون</option><option>۵ تا ۲۰ میلیون</option><option>بیش از ۲۰ میلیون</option></select></div>
+          <button class="btn btn-ghost btn-sm" id="demo-empty"><svg class="ic"><use href="#i-filter"/></svg>حالت خالی (دمو)</button>
+          <span class="f-grow"></span>
+          <a class="link" href="#" data-soon>پاک کردن</a>
+        </div>
+
+        <div class="fchips" id="chips">
+          <span class="chip-filter">همه وضعیتها <span class="x" role="button" tabindex="0" aria-label="حذف فیلتر">×</span></span>
+          <span class="chip-filter">بازه: ۱ تیر – ۲۲ مرداد <span class="x" role="button" tabindex="0" aria-label="حذف فیلتر">×</span></span>
+          <span class="chip-filter">پروژه: بازسازی انبار <span class="x" role="button" tabindex="0" aria-label="حذف فیلتر">×</span></span>
+        </div>
+
+        <div class="table-wrap" id="tx-table-wrap">
+          <div class="table-scroll">
+            <table class="data" id="tx-table">
+              <thead>
+                <tr>
+                  <th class="check" aria-label="انتخاب"><input type="checkbox" aria-label="انتخاب همه"></th>
+                  <th>تاریخ</th><th>شماره</th><th>طرف حساب</th><th>شرح</th><th>حساب</th><th>پروژه</th>
+                  <th class="num">مبلغ (ریال)</th><th>وضعیت</th><th style="text-align:end">عملیات</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۲۲ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">EX-1405-0231</span></td>
+                  <td data-label="طرف حساب">فولاد البرز</td>
+                  <td data-label="شرح">خرید ورق فولادی ۲ تن</td>
+                  <td data-label="حساب"><span class="ltr">۶۰۳</span> مواد اولیه</td>
+                  <td data-label="پروژه">بازسازی انبار</td>
+                  <td data-label="مبلغ" class="num">۴۸٬۵۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-success"><svg class="ic"><use href="#i-check-circle"/></svg>پرداختشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۲۲ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">INV-1405-0042</span></td>
+                  <td data-label="طرف حساب">بازرگانی خلیجفارس</td>
+                  <td data-label="شرح">فروش ۵۰ دستگاه — با پیشپرداخت</td>
+                  <td data-label="حساب"><span class="ltr">۴۰۱</span> درآمد فروش</td>
+                  <td data-label="پروژه">توسعه صادرات</td>
+                  <td data-label="مبلغ" class="num">۱۲۵٬۰۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-info"><svg class="ic"><use href="#i-file-text"/></svg>صادرشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۲۱ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">PY-1405-0098</span></td>
+                  <td data-label="طرف حساب">صندوق</td>
+                  <td data-label="شرح">پرداخت اجاره دفتر — تیر و مرداد</td>
+                  <td data-label="حساب"><span class="ltr">۶۰۱</span> اجاره</td>
+                  <td data-label="پروژه">بدون پروژه</td>
+                  <td data-label="مبلغ" class="num">۲۸٬۰۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-success"><svg class="ic"><use href="#i-check-circle"/></svg>پرداختشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۲۱ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">EX-1405-0230</span></td>
+                  <td data-label="طرف حساب">شرکت ارتباطات سپهر</td>
+                  <td data-label="شرح">اینترنت و تلفن اداری</td>
+                  <td data-label="حساب"><span class="ltr">۶۰۴</span> ارتباطات</td>
+                  <td data-label="پروژه">بدون پروژه</td>
+                  <td data-label="مبلغ" class="num">۲٬۴۵۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-success"><svg class="ic"><use href="#i-check-circle"/></svg>پرداختشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۲۰ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">EX-1405-0229</span></td>
+                  <td data-label="طرف حساب">پخش لوازم یدکی کاوه</td>
+                  <td data-label="شرح">قطعات خودرویی — سواری</td>
+                  <td data-label="حساب"><span class="ltr">۶۰۵</span> حمل و سوخت</td>
+                  <td data-label="پروژه">بدون پروژه</td>
+                  <td data-label="مبلغ" class="num">۳٬۸۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-info"><svg class="ic"><use href="#i-clock"/></svg>ثبتشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۱۹ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">INV-1405-0041</span></td>
+                  <td data-label="طرف حساب">بازرگانی خلیجفارس</td>
+                  <td data-label="شرح">فروش ۲۰۰ بسته — اعتباری</td>
+                  <td data-label="حساب"><span class="ltr">۴۰۱</span> درآمد فروش</td>
+                  <td data-label="پروژه">توسعه صادرات</td>
+                  <td data-label="مبلغ" class="num">۸٬۴۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-danger"><svg class="ic"><use href="#i-alert"/></svg>معوق</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۱۸ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">EX-1405-0228</span></td>
+                  <td data-label="طرف حساب">دفتر اسناد رسمی ۱۲</td>
+                  <td data-label="شرح">هزینه تنظیم قرارداد</td>
+                  <td data-label="حساب"><span class="ltr">۶۰۶</span> عمومی</td>
+                  <td data-label="پروژه">بدون پروژه</td>
+                  <td data-label="مبلغ" class="num">۱٬۲۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-muted"><svg class="ic"><use href="#i-file"/></svg>پیشنویس</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra locked" data-tip="فقط حسابدار میتواند ثبت نهایی کند" aria-label="ثبت نهایی — غیرمجاز"><svg class="ic"><use href="#i-lock"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۱۷ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">TR-1405-0012</span></td>
+                  <td data-label="طرف حساب">—</td>
+                  <td data-label="شرح">انتقال از حساب جاری به صندوق</td>
+                  <td data-label="حساب"><span class="ltr">۱۰۲/۱۰۱</span></td>
+                  <td data-label="پروژه">بدون پروژه</td>
+                  <td data-label="مبلغ" class="num">۱۰٬۰۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-info"><svg class="ic"><use href="#i-clock"/></svg>ثبتشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۱۵ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">EX-1405-0227</span></td>
+                  <td data-label="طرف حساب">ابزار صنعتی پارس</td>
+                  <td data-label="شرح">خرید ابزار برقی — ۲ عدد</td>
+                  <td data-label="حساب"><span class="ltr">۶۰۳</span> مواد اولیه</td>
+                  <td data-label="پروژه">بازسازی انبار</td>
+                  <td data-label="مبلغ" class="num">۶٬۹۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-success"><svg class="ic"><use href="#i-check-circle"/></svg>پرداختشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+                <tr>
+                  <td class="check"><input type="checkbox" class="row-check" aria-label="انتخاب ردیف"></td>
+                  <td data-label="تاریخ">۱۲ مرداد</td>
+                  <td data-label="شماره"><span class="code ltr">SR-1405-0024</span></td>
+                  <td data-label="طرف حساب">شرکت دانشبنیان فراز</td>
+                  <td data-label="شرح">درآمد خدمات مشاوره</td>
+                  <td data-label="حساب"><span class="ltr">۴۰۲</span> درآمد خدمات</td>
+                  <td data-label="پروژه">بدون پروژه</td>
+                  <td data-label="مبلغ" class="num">۱۵٬۰۰۰٬۰۰۰</td>
+                  <td data-label="وضعیت"><span class="badge badge-success"><svg class="ic"><use href="#i-check-circle"/></svg>پرداختشده</span></td>
+                  <td data-label="عملیات"><div class="row-actions"><button class="ra" aria-label="مشاهده"><svg class="ic"><use href="#i-eye"/></svg></button><button class="ra" aria-label="بیشتر"><svg class="ic"><use href="#i-dots"/></svg></button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="empty" id="tx-empty">
+            <div class="e-ic"><svg class="ic"><use href="#i-search"/></svg></div>
+            <h3>تراکنشی با این فیلترها یافت نشد</h3>
+            <p>فیلترها یا عبارت جستجو را تغییر دهید.</p>
+            <button class="btn btn-ghost btn-sm" id="empty-clear"><svg class="ic"><use href="#i-refresh"/></svg>پاک کردن فیلترها</button>
+          </div>
+          <div class="tfoot">
+            <span>نمایش ۱–۱۰ از ۵۴ تراکنش — <span class="sum">جمع مبلغ: <b>۲۴۹٬۲۵۰٬۰۰۰</b> ریال</span></span>
+            <div class="pagination" aria-label="صفحهبندی">
+              <button class="pg" aria-label="صفحه قبل"><svg class="ic" style="width:13px;height:13px"><use href="#i-chev-right"/></svg></button>
+              <button class="pg cur" aria-current="page">۱</button><button class="pg">۲</button><button class="pg">۳</button><span class="pg dots">…</span><button class="pg">۶</button>
+              <button class="pg" aria-label="صفحه بعد"><svg class="ic" style="width:13px;height:13px"><use href="#i-chev-left"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ADD EXPENSE ============ -->
+      <section class="screen" id="screen-expense" aria-label="ثبت هزینه">
+        <div class="page-head">
+          <div>
+            <div class="page-title">ثبت هزینه</div>
+            <div class="page-sub">هزینهها / ثبت جدید — کلیه مبالغ به ریال در دفتر ثبت میشود</div>
+          </div>
+        </div>
+
+        <div class="lifecycle" aria-label="چرخه هزینه">
+          <span class="step done"><svg class="ic" style="width:11px;height:11px"><use href="#i-check"/></svg>پیشنویس</span><span class="arr"><svg class="ic" style="width:11px;height:11px"><use href="#i-chev-left"/></svg></span>
+          <span class="step cur">ثبت نهایی</span><span class="arr"><svg class="ic" style="width:11px;height:11px"><use href="#i-chev-left"/></svg></span>
+          <span class="step">پرداخت</span>
+        </div>
+
+        <div class="side-layout">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-body">
+              <form novalidate onsubmit="return false">
+                <div class="form-grid">
+                  <div class="field">
+                    <label class="label" for="ex-date">تاریخ وقوع <span class="req">*</span></label>
+                    <div class="unit-row">
+                      <div class="amount-box"><input class="input" id="ex-date" type="text" value="۲۲ مرداد ۱۴۰۵" aria-describedby="ex-date-hint"></div>
+                      <button type="button" class="unit-pill" data-soon><svg class="ic" style="width:13px;height:13px"><use href="#i-calendar"/></svg></button>
+                    </div>
+                    <span class="hint" id="ex-date-hint">نمایش بر اساس تقویم شمسی؛ ذخیره بهصورت استاندارد (UTC)</span>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="ex-time">زمان (اختیاری)</label>
+                    <div class="unit-row">
+                      <div class="amount-box"><input class="input" id="ex-time" type="text" placeholder="—"></div>
+                    </div>
+                    <span class="hint">برای هزینههای دارای تاریخ سند، میتوانید خالی بگذارید</span>
+                  </div>
+                  <div class="field full">
+                    <label class="label" for="ex-amt">مبلغ <span class="req">*</span></label>
+                    <div class="unit-row">
+                      <div class="amount-box">
+                        <input class="input invalid" id="ex-amt" type="text" inputmode="numeric" placeholder="مثلاً ۴۸٬۵۰۰٬۰۰۰" aria-invalid="true" aria-describedby="ex-amt-err ex-amt-conv">
+                      </div>
+                      <div class="seg" role="group" aria-label="واحد ورود مبلغ">
+                        <button data-unit="rial" aria-pressed="true">ریال</button>
+                        <button data-unit="toman" aria-pressed="false">تومان</button>
+                      </div>
+                    </div>
+                    <div class="error" id="ex-amt-err"><svg class="ic" style="width:12px;height:12px"><use href="#i-alert"/></svg>مبلغ الزامی است</div>
+                    <span class="hint" id="ex-amt-conv">تبدیل صریح و دقیق: ۱ تومان = ۱۰ ریال؛ مبلغ همواره به ریال در دفتر ثبت میشود</span>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="ex-payee">طرف حساب (پرداخت به) <span class="req">*</span></label>
+                    <select class="select" id="ex-payee">
+                      <option value="">انتخاب کنید…</option>
+                      <option>فولاد البرز</option><option>بازرگانی خلیجفارس</option><option>شرکت ارتباطات سپهر</option><option>دفتر اسناد رسمی ۱۲</option><option>ابزار صنعتی پارس</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="ex-cat">دسته / حساب <span class="req">*</span></label>
+                    <select class="select" id="ex-cat">
+                      <option value="">انتخاب کنید…</option>
+                      <option><span class="ltr">۶۰۱</span> اجاره و مکان</option><option><span class="ltr">۶۰۲</span> حقوق و دستمزد</option>
+                      <option><span class="ltr">۶۰۳</span> مواد اولیه و کالا</option><option><span class="ltr">۶۰۴</span> ارتباطات و اینترنت</option>
+                      <option><span class="ltr">۶۰۵</span> حمل و سوخت</option><option><span class="ltr">۶۰۶</span> هزینههای عمومی</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="ex-proj">پروژه</label>
+                    <select class="select" id="ex-proj">
+                      <option>بدون پروژه (هزینه شرکت)</option><option>بازسازی انبار مرکزی</option><option>طراحی وبسایت فروشگاهی</option><option>توسعه صادرات</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="ex-ref">شماره پیگیری / مرجع</label>
+                    <input class="input" id="ex-ref" type="text" placeholder="مثلاً رسید ۸۸۷۷۱۲" dir="ltr">
+                  </div>
+                  <div class="field full">
+                    <span class="label">روش پرداخت <span class="req">*</span></span>
+                    <div class="radio-grid" role="radiogroup" aria-label="روش پرداخت">
+                      <label class="radio-card"><input type="radio" name="pay-method" value="cash"><svg class="ic"><use href="#i-wallet"/></svg>نقدی</label>
+                      <label class="radio-card sel"><input type="radio" name="pay-method" value="bank" checked><svg class="ic"><use href="#i-landmark"/></svg>انتقال بانکی</label>
+                      <label class="radio-card"><input type="radio" name="pay-method" value="online"><svg class="ic"><use href="#i-card"/></svg>درگاه آنلاین</label>
+                    </div>
+                    <span class="hint" style="margin-top:6px" id="pay-method-hint">از حساب: <b dir="ltr">۶۰۳۷-۲۹۹۱-۱۲۳۴-۵۶۷۸</b> (حساب جاری — بانک ملت)</span>
+                  </div>
+                  <div class="field full">
+                    <span class="label">پیوست (تصویر یا PDF فاکتور)</span>
+                    <div class="dropzone" id="dz" tabindex="0" role="button" aria-label="بارگذاری پیوست">
+                      <span class="dz-ic"><svg class="ic"><use href="#i-upload"/></svg></span>
+                      فاکتور یا رسید را اینجا بکشید یا کلیک کنید
+                      <div style="font-size:11px;margin-top:4px">فقط تصویر (JPG/PNG) یا PDF تا ۵ مگابایت</div>
+                    </div>
+                    <div class="file-list">
+                      <div class="file-row"><svg class="ic"><use href="#i-file"/></svg><span class="fname ltr">faktor-foolad-1405-0512.pdf</span><span class="fsize">۱٫۲ مگابایت</span><button class="ra" aria-label="حذف پیوست" data-soon><svg class="ic"><use href="#i-trash"/></svg></button></div>
+                    </div>
+                  </div>
+                  <div class="field full">
+                    <label class="label" for="ex-desc">شرح / توضیحات</label>
+                    <textarea class="textarea" id="ex-desc" rows="2" placeholder="هدف و جزئیات هزینه…"></textarea>
+                  </div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px">
+                  <button class="btn btn-primary" data-soon><svg class="ic"><use href="#i-check-circle"/></svg>ثبت و پرداخت</button>
+                  <button class="btn btn-ghost" data-soon><svg class="ic"><use href="#i-save"/></svg>ذخیره بهعنوان پیشنویس</button>
+                  <button class="btn btn-danger-ghost" data-soon><svg class="ic"><use href="#i-x"/></svg>انصراف</button>
+                  <span class="unsaved"><svg class="ic" style="width:12px;height:12px"><use href="#i-alert"/></svg>تغییرات ذخیرهنشده دارید</span>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <aside class="sidecard" aria-label="اثر حسابداری">
+            <div class="sc-head"><svg class="ic" style="width:14px;height:14px"><use href="#i-database"/></svg>اثر حسابداری (سند پیشنهادی)</div>
+            <div style="padding:10px 0">
+              <div class="entry dr"><span class="e-code ltr">۶۰۳</span><span class="e-name">مواد اولیه و کالا</span><span class="e-amt">۴۸٬۵۰۰٬۰۰۰</span></div>
+              <div class="entry cr"><span class="e-code ltr">۱۰۲</span><span class="e-name">بانک — حساب جاری</span><span class="e-amt">۴۸٬۵۰۰٬۰۰۰</span></div>
+            </div>
+            <div class="sc-bal"><svg class="ic" style="width:13px;height:13px"><use href="#i-check-circle"/></svg>سند تراز است — بدهکار = بستانکار</div>
+            <div style="padding:9px 14px;font-size:11px;color:var(--muted);line-height:1.8">
+              ورود مبلغ به تومان: ۴٬۸۵۰٬۰۰۰ تومان = ۴۸٬۵۰۰٬۰۰۰ ریال.<br>
+              پس از ثبت، سند قابل ویرایش نیست؛ اصلاح فقط با سند برگشتی.
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ INVOICE ============ -->
+      <section class="screen" id="screen-invoice" aria-label="صورتحساب">
+        <div class="page-head">
+          <div>
+            <div class="page-title">صورتحساب فروش</div>
+            <div class="page-sub"><span class="code ltr" style="font-weight:800">INV-1405-0042</span> — صادرشده در ۲۱ مرداد ۱۴۰۵</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-ghost btn-sm" data-soon><svg class="ic"><use href="#i-edit"/></svg>ویرایش</button>
+            <button class="btn btn-ghost btn-sm" id="print-toggle"><svg class="ic"><use href="#i-printer"/></svg>پیشنمایش چاپ / PDF</button>
+            <button class="btn btn-primary btn-sm" data-soon><svg class="ic"><use href="#i-card"/></svg>ثبت پرداخت</button>
+          </div>
+        </div>
+
+        <div class="inv-head">
+          <span class="badge badge-info" style="font-size:12px"><svg class="ic"><use href="#i-file-text"/></svg>جزیی پرداختشده</span>
+          <span class="badge badge-muted" style="font-size:12px"><svg class="ic"><use href="#i-clock"/></svg>سررسید: ۱۸ شهریور ۱۴۰۵ (۳۰ روز)</span>
+        </div>
+
+        <div class="inv-doc">
+          <div class="inv-top">
+            <div class="inv-partner">
+              <div class="p-name">بازرگانی خلیجفارس</div>
+              <div style="font-size:11.5px;color:var(--muted);line-height:1.9">
+                شناسه ملی: <span class="ltr">۱۴۰۰۵۴۷۲۱۳۰</span><br>
+                تهران، خیابان ولیعصر، کوچه سرو، پلاک ۱۲<br>
+                تلفن: <span class="ltr">۰۲۱-۸۸۷۶۵۴۳۲</span>
+              </div>
+            </div>
+            <div class="inv-meta">
+              <div class="m"><span>تاریخ صدور</span><b>۱۹ مرداد ۱۴۰۵</b></div>
+              <div class="m"><span>سررسید</span><b>۱۸ شهریور ۱۴۰۵</b></div>
+              <div class="m"><span>پروژه</span><b>توسعه صادرات</b></div>
+              <div class="m"><span>واحد پول</span><b>ریال</b></div>
+            </div>
+          </div>
+
+          <div class="inv-items">
+            <table class="data" style="min-width:560px">
+              <thead>
+                <tr><th>شرح کالا / خدمت</th><th>تعداد</th><th>واحد</th><th class="num">قیمت واحد (ریال)</th><th class="num">تخفیف</th><th class="num">مبلغ (ریال)</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-label="شرح">دستگاه خنککننده صنعتی مدل C-200</td><td data-label="تعداد">۵۰</td><td data-label="واحد">عدد</td>
+                  <td data-label="قیمت واحد" class="num">۲٬۵۰۰٬۰۰۰</td><td data-label="تخفیف" class="num">—</td><td data-label="مبلغ" class="num">۱۲۵٬۰۰۰٬۰۰۰</td>
+                </tr>
+                <tr>
+                  <td data-label="شرح">خدمات نصب و راهاندازی</td><td data-label="تعداد">۱</td><td data-label="واحد">خدمت</td>
+                  <td data-label="قیمت واحد" class="num">۱۵٬۰۰۰٬۰۰۰</td><td data-label="تخفیف" class="num">—</td><td data-label="مبلغ" class="num">۱۵٬۰۰۰٬۰۰۰</td>
+                </tr>
+                <tr>
+                  <td data-label="شرح">تخفیف ویژه (۵٪)</td><td data-label="تعداد">—</td><td data-label="واحد">—</td>
+                  <td data-label="قیمت واحد" class="num">—</td><td data-label="تخفیف" class="num">۷٬۰۰۰٬۰۰۰</td><td data-label="مبلغ" class="num">−۷٬۰۰۰٬۰۰۰</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start" class="inv-bottom">
+            <div>
+              <div class="inv-notes">
+                <b>دستور پرداخت:</b> انتقال به شماره حساب <span class="ltr">۶۰۳۷-۲۹۹۱-۱۲۳۴-۵۶۷۸</span> نزد بانک ملت به نام شرکت آریا تجارت.<br>
+                <b>شرایط:</b> مهلت پرداخت ۳۰ روز از تاریخ صدور. مالیات بر ارزش افزوده در این نسخه منظور نشده است.
+              </div>
+              <div class="pay-history">
+                <div class="card-title" style="margin-bottom:4px">تاریخچه پرداخت</div>
+                <div class="pay-row">
+                  <span class="badge badge-success"><svg class="ic"><use href="#i-check-circle"/></svg>دریافتی</span>
+                  <span class="grow">انتقال بانکی — پیگیری <span class="ltr">۸۸۷۷۱۲</span> — ۲۲ مرداد</span>
+                  <b>۵۰٬۰۰۰٬۰۰۰</b><span style="color:var(--muted);font-size:11px">ریال</span>
+                </div>
+              </div>
+            </div>
+            <div class="inv-totals">
+              <div class="t"><span>جمع جزء</span><b>۱۴۰٬۰۰۰٬۰۰۰</b></div>
+              <div class="t"><span>تخفیف</span><b>۷٬۰۰۰٬۰۰۰</b></div>
+              <div class="t grand"><span>جمع کل</span><b>۱۳۳٬۰۰۰٬۰۰۰</b></div>
+              <div class="t"><span>پیشپرداخت (۲۲ مرداد)</span><b>۵۰٬۰۰۰٬۰۰۰</b></div>
+              <div class="t due"><span>مانده قابل پرداخت</span><b>۸۳٬۰۰۰٬۰۰۰</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="print-preview" id="print-preview">
+          <div class="paper">
+            <div class="pp-head">
+              <div><div class="pp-brand">شرکت آریا تجارت</div><div style="font-size:10.5px;color:#666">شناسه ملی: ۱۰۱۰۴۲۶۸۷۵ — تهران</div></div>
+              <div class="pp-title">صورتحساب فروش</div>
+            </div>
+            <div class="pp-meta">
+              <div>شماره: <b class="ltr">INV-1405-0042</b></div><div>تاریخ صدور: <b>۱۹ مرداد ۱۴۰۵</b></div>
+              <div>مشتری: <b>بازرگانی خلیجفارس</b></div><div>سررسید: <b>۱۸ شهریور ۱۴۰۵</b></div>
+            </div>
+            <table>
+              <thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>مبلغ (ریال)</th></tr></thead>
+              <tbody>
+                <tr><td>دستگاه خنککننده C-200</td><td>۵۰</td><td>۲٬۵۰۰٬۰۰۰</td><td>۱۲۵٬۰۰۰٬۰۰۰</td></tr>
+                <tr><td>خدمات نصب و راهاندازی</td><td>۱</td><td>۱۵٬۰۰۰٬۰۰۰</td><td>۱۵٬۰۰۰٬۰۰۰</td></tr>
+                <tr><td>تخفیف ویژه (۵٪)</td><td>—</td><td>—</td><td>−۷٬۰۰۰٬۰۰۰</td></tr>
+                <tr><td colspan="3" style="text-align:end"><b>جمع کل</b></td><td><b>۱۳۳٬۰۰۰٬۰۰۰</b></td></tr>
+              </tbody>
+            </table>
+            <div class="pp-foot">
+              <span>با تشکر از خرید شما</span>
+              <span>شرکت آریا تجارت — سامانه حسابداری</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="bottomnav" aria-label="ناوبری موبایل">
+    <button data-nav="dashboard" class="active"><svg class="ic"><use href="#i-grid"/></svg>داشبورد</button>
+    <button data-nav="transactions"><svg class="ic"><use href="#i-swap"/></svg>تراکنشها</button>
+    <button data-nav="expense"><svg class="ic"><use href="#i-plus"/></svg>ثبت هزینه</button>
+    <button data-nav="invoice"><svg class="ic"><use href="#i-file-text"/></svg>صورتحساب</button>
+  </nav>
+</div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  var FA='۰۱۲۳۴۵۶۷۸۹';
+  function faDigits(s){ return String(s).replace(/[0-9]/g,function(d){return FA[d];}); }
+  function group(n){ var s=String(Math.round(n)); var out=''; while(s.length>3){ out=','+s.slice(-3)+out; s=s.slice(0,-3);} return (s+out).replace(/,/g,'٬'); }
+  function fmt(n){ return faDigits(group(n)); }
+
+  var shell=document.getElementById('shell');
+  var toast=document.getElementById('toast');
+  var tTimer=null;
+  function showToast(msg){ toast.textContent=msg; toast.style.display='block'; clearTimeout(tTimer); tTimer=setTimeout(function(){toast.style.display='none';},2600); }
+
+  /* screens */
+  var screens={dashboard:document.getElementById('screen-dashboard'),transactions:document.getElementById('screen-transactions'),expense:document.getElementById('screen-expense'),invoice:document.getElementById('screen-invoice')};
+  function setScreen(name){
+    Object.keys(screens).forEach(function(k){ screens[k].classList.toggle('active', k===name); });
+    document.querySelectorAll('[data-hscreen]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-hscreen')===name)); });
+    document.querySelectorAll('.nav-item[data-nav]').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-nav')===name); });
+    document.querySelectorAll('.bottomnav button[data-nav]').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-nav')===name); });
+  }
+  document.querySelectorAll('[data-hscreen]').forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-hscreen')); }); });
+  document.querySelectorAll('[data-nav]').forEach(function(b){ b.addEventListener('click', function(){ setScreen(b.getAttribute('data-nav')); }); });
+
+  /* device */
+  document.querySelectorAll('[data-device]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var mode=b.getAttribute('data-device');
+      document.querySelectorAll('[data-device]').forEach(function(x){ x.setAttribute('aria-pressed', String(x===b)); });
+      shell.classList.toggle('is-mobile', mode==='mobile');
+      try{ localStorage.setItem('demo-device', mode); }catch(e){}
+    });
+  });
+
+  /* theme */
+  function setTheme(mode){
+    document.documentElement.setAttribute('data-theme', mode);
+    document.querySelectorAll('[data-theme-btn]').forEach(function(x){ x.setAttribute('aria-pressed', String(x.getAttribute('data-theme-btn')===mode)); });
+    try{ localStorage.setItem('demo-theme', mode); }catch(e){}
+  }
+  document.querySelectorAll('[data-theme-btn]').forEach(function(b){ b.addEventListener('click', function(){ setTheme(b.getAttribute('data-theme-btn')); }); });
+  try{
+    var savedTheme=localStorage.getItem('demo-theme'); if(savedTheme==='dark'||savedTheme==='light') setTheme(savedTheme);
+    var savedDev=localStorage.getItem('demo-device'); if(savedDev==='mobile'){ shell.classList.add('is-mobile'); document.querySelectorAll('[data-device]').forEach(function(x){ x.setAttribute('aria-pressed', String(x.getAttribute('data-device')===savedDev)); }); }
+  }catch(e){}
+
+  /* chart alt tables */
+  document.querySelectorAll('[data-alt-toggle]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var t=document.getElementById(b.getAttribute('data-alt-toggle'));
+      if(t){ var show=t.style.display!=='block'; t.style.display=show?'block':'none'; b.setAttribute('aria-expanded', String(show)); }
+    });
+  });
+
+  /* filter chips remove */
+  document.querySelectorAll('.chip-filter .x').forEach(function(x){
+    x.addEventListener('click', function(){ var c=x.closest('.chip-filter'); c.parentNode.removeChild(c); });
+    x.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); x.click(); } });
+  });
+
+  /* bulk bar */
+  function updateBulk(){
+    var checked=document.querySelectorAll('.row-check:checked').length;
+    var bar=document.getElementById('bulkbar');
+    if(checked>0){ bar.classList.add('show'); document.getElementById('bulkcount').textContent=fmt(checked)+' مورد انتخاب شد'; }
+    else{ bar.classList.remove('show'); }
+  }
+  document.querySelectorAll('.row-check').forEach(function(c){ c.addEventListener('change', updateBulk); });
+  document.querySelectorAll('.check input[type=checkbox]').forEach(function(h){ h.addEventListener('change', function(){ document.querySelectorAll('.row-check').forEach(function(c){ c.checked=h.checked; }); updateBulk(); }); });
+
+  /* empty-state demo */
+  var emptyBtn=document.getElementById('demo-empty');
+  if(emptyBtn){ emptyBtn.addEventListener('click', function(){
+    var t=document.getElementById('tx-table'), e=document.getElementById('tx-empty'), w=document.getElementById('tx-table-wrap');
+    if(t.style.display!=='none'){ t.style.display='none'; e.classList.add('show'); emptyBtn.textContent='بازگشت به فهرست'; }
+    else{ t.style.display=''; e.classList.remove('show'); emptyBtn.textContent='حالت خالی (دمو)'; }
+  }); }
+  var ec=document.getElementById('empty-clear');
+  if(ec){ ec.addEventListener('click', function(){ var t=document.getElementById('tx-table'), e=document.getElementById('tx-empty'); t.style.display=''; e.classList.remove('show'); document.getElementById('demo-empty').textContent='حالت خالی (دمو)'; }); }
+
+  /* expense unit conversion */
+  var amt=document.getElementById('ex-amt');
+  var unitBtns=document.querySelectorAll('[data-unit]');
+  var conv=document.getElementById('ex-amt-conv');
+  function updateConv(){
+    var raw=(amt.value||'').replace(/[٬,۰-۹]/g, function(ch){ return ch==='٬'||ch===','?'':String('۰۱۲۳۴۵۶۷۸۹'.indexOf(ch)); });
+    var n=parseInt(raw,10); if(!isFinite(n)||n<=0){ conv.textContent='تبدیل صریح و دقیق: ۱ تومان = ۱۰ ریال؛ مبلغ همواره به ریال در دفتر ثبت میشود'; return; }
+    var curUnit='rial'; unitBtns.forEach(function(b){ if(b.getAttribute('aria-pressed')==='true') curUnit=b.getAttribute('data-unit'); });
+    var rial = curUnit==='toman' ? n*10 : n;
+    conv.textContent='معادل: '+fmt(rial)+' ریال در دفتر ثبت خواهد شد (۱ تومان = ۱۰ ریال)';
+  }
+  unitBtns.forEach(function(b){ b.addEventListener('click', function(){
+    unitBtns.forEach(function(x){ x.setAttribute('aria-pressed', String(x===b)); });
+    updateConv();
+  }); });
+  if(amt) amt.addEventListener('input', updateConv);
+
+  /* payment method hint */
+  document.querySelectorAll('.radio-card input[name=pay-method]').forEach(function(r){
+    r.addEventListener('change', function(){
+      document.querySelectorAll('.radio-card').forEach(function(c){ c.classList.toggle('sel', c.querySelector('input').checked); });
+      var hint=document.getElementById('pay-method-hint');
+      var v=document.querySelector('input[name=pay-method]:checked').value;
+      hint.innerHTML = v==='cash' ? 'از صندوق (۱۰۱) — هزینه نقدی' :
+        (v==='bank' ? 'از حساب: <b dir="ltr">۶۰۳۷-۲۹۹۱-۱۲۳۴-۵۶۷۸</b> (حساب جاری — بانک ملت)' :
+         'درگاه آنلاین — در نسخه نمایشی فعال نیست؛ رابط آماده برای درگاه قانونی ایرانی');
+    });
+  });
+
+  /* print preview */
+  var pt=document.getElementById('print-toggle');
+  if(pt){ pt.addEventListener('click', function(){
+    var p=document.getElementById('print-preview');
+    p.classList.toggle('show'); pt.setAttribute('aria-pressed', String(p.classList.contains('show')));
+  }); }
+
+  /* soon buttons */
+  document.querySelectorAll('[data-soon]').forEach(function(b){
+    b.addEventListener('click', function(e){ e.preventDefault(); showToast('این عملیات در نسخه نمایشی طراحی فعال نیست — در نسخه اصلی پیادهسازی میشود.'); });
+  });
+})();
+</script>
+</body>
+</html>
