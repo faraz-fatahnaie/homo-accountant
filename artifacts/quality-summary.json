@@ -41,7 +41,7 @@
     },
     "frontend_vitest": {
       "status": "pass",
-      "passed": 21,
+      "passed": 26,
       "failed": 0
     },
     "frontend_build": {
@@ -50,9 +50,9 @@
     },
     "e2e_playwright": {
       "status": "pass",
-      "passed": 22,
+      "passed": 30,
       "failed": 0,
-      "note": "real PostgreSQL+API+browser; roles × desktop/mobile; RBAC; theme; ledger create→post→void journey; period RBAC"
+      "note": "real stack; roles × desktop/mobile; RBAC; themes; ledger journey; per-role user guide"
     },
     "docker_build": {
       "status": "not_run",

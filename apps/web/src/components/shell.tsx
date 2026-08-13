@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/invoices", label: "صورتحسابها", icon: "M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zM14 2v5h5", available: false },
   { href: "/contacts", label: "طرف حسابها", icon: "M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", available: false },
   { href: "/reports", label: "گزارشها", icon: "M3 3v18h18M7 14l4-4 3 3 5-6", available: false },
+  { href: "/guide", label: "راهنمای استفاده", icon: "M12 3.5l10 17H2zM12 10v4.5M12 17.6v.2", available: true },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -174,17 +175,21 @@ export default function Shell({ children }: { children: ReactNode }) {
         <main className="mx-auto max-w-6xl px-4 py-5 pb-24 lg:px-6 lg:pb-10">{children}</main>
       </div>
 
-      {/* Bottom nav (mobile) */}
-      <nav className="fixed bottom-0 right-0 left-0 z-30 flex h-14 border-t border-border bg-surface lg:hidden" aria-label="ناوبری موبایل">
-        {visible.slice(0, 4).map((item) => {
+      {/* Bottom nav (mobile) — shows all available items (scrollable row) */}
+      <nav className="fixed bottom-0 right-0 left-0 z-30 flex h-14 overflow-x-auto border-t border-border bg-surface lg:hidden" aria-label="ناوبری موبایل">
+        {visible.map((item) => {
           const active = pathname.startsWith(item.href);
           return item.available ? (
-            <Link key={item.href} href={item.href} className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold ${active ? "text-primary-strong" : "text-muted"}`}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex min-w-[72px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold ${active ? "text-primary-strong" : "text-muted"}`}
+            >
               <Icon d={item.icon} className="h-5 w-5" />
               {item.label}
             </Link>
           ) : (
-            <span key={item.href} className="flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold text-muted opacity-60" title="در نسخههای بعدی">
+            <span key={item.href} className="flex min-w-[72px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold text-muted opacity-60" title="در نسخههای بعدی">
               <Icon d={item.icon} className="h-5 w-5" />
               {item.label}
             </span>

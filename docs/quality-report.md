@@ -21,9 +21,9 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 | Migrations | ✅ pass | upgrade on dev+test; downgrade→upgrade exercised in tests |
 | Frontend ESLint | ✅ pass | 0 errors / 0 warnings |
 | Frontend typecheck | ✅ pass | `tsc --noEmit`, strict options on |
-| Frontend Vitest | ✅ 21/21 | API client, login, Solar Hijri formatter, transactions page |
+| Frontend Vitest | ✅ 26/26 | API client, login, Solar Hijri formatter, transactions, user guide |
 | Frontend build | ✅ pass | `next build` (standalone) |
-| Playwright E2E | ✅ 22/22 | real stack; 4 roles × desktop+mobile; RBAC direct-API; themes; ledger create→post journey |
+| Playwright E2E | ✅ 30/30 | real stack; 4 roles × desktop+mobile; RBAC direct-API; themes; ledger journey; per-role user guide |
 | Docker builds | ⛔ not run | no docker in sandbox — authored; runs in `docker.yml` |
 | Security scans | ⛔ not run | wired in `security.yml` (pip-audit, npm audit, trufflehog, CodeQL, trivy) |
 

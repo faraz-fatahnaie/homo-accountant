@@ -41,6 +41,12 @@
       transition-duration: 0.01ms !important;
     }
   }
+  /* Hide the Next.js dev-tools floating button: on small screens it overlaps
+     the bottom navigation and intercepts taps (dev-only element, absent in
+     production builds). */
+  nextjs-portal {
+    display: none !important;
+  }
 }
 
 @layer components {
