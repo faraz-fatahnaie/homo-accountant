@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": "arya-tejarat-accounting",
   "generated_at_utc": "2026-08-13T08:35:00Z",
-  "verified_commit_sha": "bfc2c46",
+  "verified_commit_sha": "edacf72",
   "environment": {
     "os": "Debian 13 (sandbox)",
     "python": "3.13.14",

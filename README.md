@@ -14,7 +14,7 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 [![Security](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/security.yml?label=Security)](https://github.com/OWNER/REPO/actions/workflows/security.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/docker.yml?label=Docker)](https://github.com/OWNER/REPO/actions/workflows/docker.yml)
 
-> **Last verified:** commit `bfc2c46` · 2026-08-13T08:35:00Z · Debian 13 sandbox, Python 3.13,
+> **Last verified:** commit `edacf72` · 2026-08-13T08:35:00Z · Debian 13 sandbox, Python 3.13,
 > Node 20, PostgreSQL 17 (local), Chromium (Playwright). **All locally runnable checks pass** —
 > full matrix below; `docs/quality-report.md` + `artifacts/quality-summary.json` hold the
 > machine-readable snapshot. Docker builds and security scans are wired in CI and were **not**

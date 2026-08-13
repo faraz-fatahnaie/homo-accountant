@@ -5,7 +5,7 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 
 ## Last verified
 
-- **Commit:** `bfc2c46` (`feat(slice1): frontend shell, infra, CI/CD, docs`)
+- **Commit:** `edacf72` (`feat(slice1): frontend shell, infra, CI/CD, docs`)
 - **UTC:** 2026-08-13T08:35:00Z
 - **Environment:** Debian 13 sandbox · Python 3.13.14 · Node 20.20.2 · PostgreSQL 17.10
   (local) · Chromium 151 (Playwright)
