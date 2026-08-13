@@ -59,3 +59,8 @@ Thumbs.db
 # --- Tool caches ---
 .config/
 .npm/
+
+# --- Publish artifacts (workspace only, not in repo) ---
+arya-history.bundle
+arya-source.zip
+PUBLISH.md
