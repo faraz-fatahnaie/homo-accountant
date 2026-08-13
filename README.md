@@ -6,13 +6,13 @@ projects, budgets, funding, and a double-entry ledger that is the source of trut
 
 ## کیفیت و وضعیت تست — Quality and test status
 
-**Workflow badges** (live after the repository is published to GitHub — replace `OWNER/REPO` in the
+**Workflow badges** (live after the repository is published to GitHub — replace `faraz-fatahnaie/homo-accountant` in the
 URLs; a badge is always the live source for the branch, the prose below is a dated snapshot):
 
-[![CI](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/ci.yml?label=CI)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
-[![E2E](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/e2e.yml?label=E2E)](https://github.com/OWNER/REPO/actions/workflows/e2e.yml)
-[![Security](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/security.yml?label=Security)](https://github.com/OWNER/REPO/actions/workflows/security.yml)
-[![Docker](https://img.shields.io/github/actions/workflow/status/OWNER/REPO/docker.yml?label=Docker)](https://github.com/OWNER/REPO/actions/workflows/docker.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/ci.yml?label=CI)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/ci.yml)
+[![E2E](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/e2e.yml?label=E2E)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/e2e.yml)
+[![Security](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/security.yml?label=Security)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/security.yml)
+[![Docker](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/docker.yml?label=Docker)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/docker.yml)
 
 > **Last verified:** commit `76d5bd2` · 2026-08-13T08:35:00Z · Debian 13 sandbox, Python 3.13,
 > Node 20, PostgreSQL 17 (local), Chromium (Playwright). **All locally runnable checks pass** —
