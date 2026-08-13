@@ -78,7 +78,24 @@ deployment-engineer (containers/CI/deployment), project-manager (slice tracking)
 
 - [x] Skills installed (15) — see `skills/README.md`
 - [x] Foundation docs (this plan, AGENTS.md, README, .gitignore)
-- [x] **Design checkpoint** — three directions produced in `design/` (`direction-classic.html`,
-      `direction-modern.html`, `direction-dense.html`), QA'd via headless-Chromium screenshots +
-      interaction smoke test, presented for approval
-- [ ] Design approval → tokens + ADR → Slices 1–9
+- [x] **Design checkpoint** — three directions produced and approved («کلاسیک» → ADR-0001, rial-only)
+- [x] **Slice 1 — Foundation**: repo, local env (Docker compose dev), identity + RBAC
+      (owner/accountant/staff/viewer), auth (JWT + rotated refresh, rate-limit), RTL Persian shell,
+      light/dark themes, Vazirmatn font, login + app shell + dashboard scaffold
+      (verified: 39 backend tests, 8 frontend, 16 E2E)
+- [x] **Slice 2 — Ledger core**: chart of accounts (5 types + starter chart), journal entries/lines,
+      posting service (balanced double-entry, immutable posted entries, reversal/void, idempotency,
+      race-safe per-period references), accounting periods (close/reopen, owner-only reopen),
+      exact money (int rial, toman⇄rial), Solar Hijri calendar + Tehran timezone
+      (verified: 114 backend tests incl. ledger invariants; 29 frontend; 30 E2E)
+- [x] **UX additions (after slice 2)**: real cash & bank balance on dashboard from ledger,
+      account balances API, amount-input parsing fix (Persian digits), **user guide page
+      «راهنمای استفاده»** (learning tab) with quick start/roles/journeys/FAQ/roadmap
+- [ ] **Slice 3 — Contacts, projects, expenses, attachments, approval config**
+- [ ] **Slice 4 — Customer invoices, receivables, incoming payments, PDF invoices**
+- [ ] **Slice 5 — Supplier bills, payables, outgoing payments**
+- [ ] **Slice 6 — Funding events (investment/loan/grant/revenue) + ledger mappings**
+- [ ] **Slice 7 — Excel-like tables, saved views, CSV/XLSX/PDF exports, safe no-code query builder**
+- [ ] **Slice 8 — Real dashboard KPIs, financial reports, drill-downs, reconciliation**
+- [ ] **Slice 9 — Hardening: security, a11y, responsive QA, backups, prod deployment assets**
+- [ ] Full-system QA + final quality snapshot + deployment handoff
