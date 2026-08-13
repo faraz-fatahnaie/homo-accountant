@@ -21,14 +21,15 @@
     },
     "backend_pytest": {
       "status": "pass",
-      "passed": 182,
+      "passed": 195,
       "failed": 0,
-      "coverage_pct": 94.0,
+      "coverage_pct": 95.0,
       "coverage_floor": 80,
       "ledger_service_coverage_pct": 99,
       "expenses_service_coverage_pct": 92,
       "invoices_service_coverage_pct": 93,
-      "bills_service_coverage_pct": 95
+      "bills_service_coverage_pct": 95,
+      "funding_service_coverage_pct": 93
     },
     "migrations": {
       "status": "pass",
@@ -44,7 +45,7 @@
     },
     "frontend_vitest": {
       "status": "pass",
-      "passed": 37,
+      "passed": 41,
       "failed": 0
     },
     "frontend_build": {
@@ -53,9 +54,9 @@
     },
     "e2e_playwright": {
       "status": "pass",
-      "passed": 46,
+      "passed": 50,
       "failed": 0,
-      "note": "ledger+expense+invoice+bill journeys; RBAC; per-role guide; PDF download"
+      "note": "ledger+expense+invoice+bill+funding journeys; RBAC; per-role guide"
     },
     "docker_build": {
       "status": "not_run",

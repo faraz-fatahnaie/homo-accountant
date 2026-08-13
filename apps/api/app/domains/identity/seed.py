@@ -97,11 +97,13 @@ def seed_dev_data(db: Session) -> dict[str, int]:
     if settings.is_production:
         raise RuntimeError("refusing to seed dev data in production")
 
+    from app.domains.funding.service import ensure_default_mappings
     from app.domains.ledger.service import get_period, seed_chart_of_accounts
 
     company = ensure_default_company(db)
     users = seed_demo_users(db)
     chart = seed_chart_of_accounts(db, company.id)
+    funding = ensure_default_mappings(db, company.id)
     periods = 0
     for month in range(1, 13):
         get_period(db, company.id, _FISCAL_YEAR, month)
@@ -112,6 +114,7 @@ def seed_dev_data(db: Session) -> dict[str, int]:
         "users": users,
         "chart_accounts": chart,
         "periods": periods,
+        "funding_mappings": funding,
         "contacts": contacts,
         "projects": projects,
     }

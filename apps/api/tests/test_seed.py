@@ -48,6 +48,7 @@ def test_seed_dev_data_full_bootstrap(db) -> None:
     assert first["periods"] == 12
     assert first["contacts"] == 4
     assert first["projects"] == 3
+    assert first["funding_mappings"] == 4
 
     # idempotent
     again = seed_dev_data(db)
@@ -56,5 +57,5 @@ def test_seed_dev_data_full_bootstrap(db) -> None:
     assert again["contacts"] == 0
     assert again["projects"] == 0
 
-    assert len(list(db.scalars(select(Account)))) == 13
+    assert len(list(db.scalars(select(Account)))) == 15  # 13 starter + 205 وام + 403 کمک
     assert len(list(db.scalars(select(AccountingPeriod)))) == 12

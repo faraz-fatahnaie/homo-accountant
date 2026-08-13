@@ -417,6 +417,48 @@ export const billsApi = {
   voidEntry: (id: number) => api<BillOut>(`/bills/${id}/void`, { method: "POST" }),
 };
 
+/* ---------------- funding ---------------- */
+
+export type FundingType = "investment" | "loan" | "grant" | "revenue";
+
+export interface FundingEventOut {
+  id: number;
+  number: string | null;
+  funding_type: FundingType;
+  contact_id: number | null;
+  contact_name: string;
+  project_id: number | null;
+  event_date: string;
+  amount: number;
+  method: PaymentMethod;
+  agreement_ref: string | null;
+  maturity_date: string | null;
+  notes: string | null;
+  status: string;
+  journal_entry_id: number | null;
+  created_at: string;
+}
+
+export const FUNDING_TYPE_LABELS: Record<FundingType, string> = {
+  investment: "سرمایهگذاری",
+  loan: "وام",
+  grant: "کمک بلاعوض",
+  revenue: "درآمد",
+};
+
+export interface FundingMappingOut {
+  funding_type: FundingType;
+  account_code: string;
+}
+
+export const fundingApi = {
+  list: () => api<FundingEventOut[]>("/funding"),
+  create: (body: object) => api<FundingEventOut>("/funding", { method: "POST", body }),
+  mappings: () => api<FundingMappingOut[]>("/funding/mappings"),
+  updateMapping: (fundingType: FundingType, accountCode: string) =>
+    api<FundingMappingOut>(`/funding/mappings/${fundingType}`, { method: "PUT", body: { account_code: accountCode } }),
+};
+
 export const invoicesApi = {
   list: () => api<InvoiceOut[]>("/invoices"),
   detail: (id: number) => api<InvoiceOut>(`/invoices/${id}`),
