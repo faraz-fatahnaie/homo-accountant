@@ -47,6 +47,7 @@ def clean_db(migrated_db: None) -> None:
                 "invoice_payments, invoice_items, invoices, "
                 "bill_payments, bills, "
                 "funding_events, funding_account_mappings, "
+                "saved_queries, "
                 "refresh_tokens, users, companies RESTART IDENTITY CASCADE"
             )
         )

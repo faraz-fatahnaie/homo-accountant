@@ -399,7 +399,7 @@ export default function GuidePage() {
           <li>✓ فاکتور خرید و پرداختنی‌ها</li>
           <li>✓ تأمین مالی (سرمایه، وام، کمک، درآمد)</li>
           <li>• گزارش‌ها (تراز، سود و زیان، …) — بعدی</li>
-          <li>• خروجی CSV/Excel و جستجوی پیشرفته — بعدی</li>
+          <li>✓ پرسوجوی فارسی امن و خروجی CSV/Excel</li>
         </ul>
       </SectionCard>
     </div>

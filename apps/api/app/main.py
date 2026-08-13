@@ -22,6 +22,7 @@ from app.domains.funding import routes as funding_routes
 from app.domains.invoices import routes as invoices_routes
 from app.domains.ledger import routes as ledger_routes
 from app.domains.projects import routes as projects_routes
+from app.domains.queries import routes as queries_routes
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -112,6 +113,7 @@ app.include_router(expenses_routes.router, prefix=settings.api_prefix)
 app.include_router(invoices_routes.router, prefix=settings.api_prefix)
 app.include_router(bills_routes.router, prefix=settings.api_prefix)
 app.include_router(funding_routes.router, prefix=settings.api_prefix)
+app.include_router(queries_routes.router, prefix=settings.api_prefix)
 
 register_error_handlers(app)
 

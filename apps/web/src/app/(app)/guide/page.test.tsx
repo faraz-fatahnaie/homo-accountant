@@ -59,6 +59,6 @@ describe("guide page", () => {
   it("lists honest future features", () => {
     render(<GuidePage />);
     expect(screen.getAllByText(textIncludes("گزارشها (تراز، سود و زیان")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(textIncludes("خروجی CSV/Excel و جستجوی پیشرفته")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(textIncludes("پرسوجوی فارسی امن و خروجی CSV/Excel")).length).toBeGreaterThan(0);
   });
 });

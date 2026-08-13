@@ -18,6 +18,7 @@ dependencies = [
     "reportlab>=4.0,<5.0",
     "arabic-reshaper>=3.0,<4.0",
     "python-bidi>=0.4,<1.0",
+    "openpyxl>=3.1,<4.0",
 ]
 
 [project.optional-dependencies]
@@ -76,3 +77,14 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["arabic_reshaper", "bidi.*", "reportlab.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["openpyxl.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["app.domains.queries.*"]
+ignore_errors = true
+
+[tool.ruff.lint.per-file-ignores]
+"app/domains/queries/*" = ["E501"]

@@ -11,7 +11,17 @@ from app.core.config import get_settings
 from app.core.db import Base
 
 # Ensure all models are imported so they register on Base.metadata.
-from app.domains import bills, contacts, expenses, funding, identity, invoices, ledger, projects  # noqa: F401,E402
+from app.domains import (  # noqa: F401,E402
+    bills,
+    contacts,
+    expenses,
+    funding,
+    identity,
+    invoices,
+    ledger,
+    projects,
+    queries,
+)
 
 config = context.config
 

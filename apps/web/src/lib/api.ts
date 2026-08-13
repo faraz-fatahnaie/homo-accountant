@@ -459,6 +459,82 @@ export const fundingApi = {
     api<FundingMappingOut>(`/funding/mappings/${fundingType}`, { method: "PUT", body: { account_code: accountCode } }),
 };
 
+/* ---------------- query builder ---------------- */
+
+export interface QueryColumnMeta {
+  field: string;
+  label: string;
+  type: "string" | "date" | "amount" | "enum" | "bool";
+  enum_options?: string[];
+  amount?: boolean;
+}
+
+export interface QueryDataset {
+  id: string;
+  label: string;
+  columns: QueryColumnMeta[];
+}
+
+export interface QueryTemplate {
+  id: string;
+  name: string;
+  description: string;
+  ast: object;
+}
+
+export interface QueryResult {
+  columns: QueryColumnMeta[];
+  rows: unknown[][];
+  total: number;
+  page: number;
+  page_size: number;
+  has_more: boolean;
+  aggregated: boolean;
+}
+
+export interface SavedQueryOut {
+  id: number;
+  name: string;
+  dataset: string;
+  ast?: object;
+  summary: string;
+  created_at: string;
+}
+
+export const queryBuilderApi = {
+  datasets: () => api<QueryDataset[]>("/query-builder/datasets"),
+  templates: () => api<QueryTemplate[]>("/query-builder/templates"),
+  run: (ast: object) => api<QueryResult>("/query-builder/run", { method: "POST", body: ast }),
+  summarize: (ast: object) => api<{ summary: string }>("/query-builder/summarize", { method: "POST", body: ast }),
+  saved: () => api<SavedQueryOut[]>("/query-builder/saved"),
+  save: (name: string, dataset: string, ast: object) =>
+    api<{ id: number; name: string }>("/query-builder/saved", { method: "POST", body: { name, dataset, ast } }),
+  duplicate: (id: number) =>
+    api<{ id: number; name: string }>(`/query-builder/saved/${id}/duplicate`, { method: "POST" }),
+  remove: (id: number) => api<null>(`/query-builder/saved/${id}`, { method: "DELETE" }),
+  async exportFile(format: "csv" | "xlsx", ast: object, filename = `query.${format}`) {
+    const { access } = getTokens();
+    const response = await fetch(`${API_BASE}/query-builder/export?format=${format}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(access ? { Authorization: `Bearer ${access}` } : {}),
+      },
+      body: JSON.stringify(ast),
+    });
+    if (!response.ok) throw new ApiError(response.status, null);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  },
+};
+
 export const invoicesApi = {
   list: () => api<InvoiceOut[]>("/invoices"),
   detail: (id: number) => api<InvoiceOut>(`/invoices/${id}`),
