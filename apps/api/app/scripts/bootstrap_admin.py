@@ -4,7 +4,7 @@ Usage (inside the api container):
     python -m app.scripts.bootstrap_admin
 
 Environment:
-    ARYA_ADMIN_BOOTSTRAP_EMAIL, ARYA_ADMIN_BOOTSTRAP_PASSWORD
+    HOMO_ADMIN_BOOTSTRAP_EMAIL, HOMO_ADMIN_BOOTSTRAP_PASSWORD
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ def main() -> int:
 
     if not email or not password:
         print(
-            "bootstrap_admin: ARYA_ADMIN_BOOTSTRAP_EMAIL / ARYA_ADMIN_BOOTSTRAP_PASSWORD "
+            "bootstrap_admin: HOMO_ADMIN_BOOTSTRAP_EMAIL / HOMO_ADMIN_BOOTSTRAP_PASSWORD "
             "must be set (or pass email/password interactively next).",
             file=sys.stderr,
         )

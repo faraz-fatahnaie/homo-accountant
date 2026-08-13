@@ -6,12 +6,12 @@
 - **How:** `./infra/backup/backup.sh /mnt/backups` (retention: 14 daily, 8 weekly archives).
 - **Schedule (cron):**
   ```cron
-  0 2 * * *  /opt/arya/infra/backup/backup.sh /mnt/backups >> /var/log/arya-backup.log 2>&1
+  0 2 * * *  /opt/homo-accountant/infra/backup/backup.sh /mnt/backups >> /var/log/homo-accountant-backup.log 2>&1
   ```
 - **Offsite:** copy `/mnt/backups` off-server daily (rclone to object storage / scp to another
   host). A local-only backup is not a backup.
 - **Verify:** monthly restore rehearsal onto a scratch database:
-  `./infra/backup/restore.sh /mnt/backups/arya-<ts>/db.dump.gz` (confirm prompt), then check
+  `./infra/backup/restore.sh /mnt/backups/homo-accountant-<ts>/db.dump.gz` (confirm prompt), then check
   a few records and `health/ready`.
 
 ## Restore
@@ -19,7 +19,7 @@
 1. Stop writes: `docker compose -f compose.prod.yaml stop api web` (keep db running).
 2. `./infra/backup/restore.sh /path/to/db.dump.gz` (type `restore` at the prompt).
 3. Start: `docker compose -f compose.prod.yaml up -d api web` and verify totals/health.
-4. Restore MinIO objects if needed (`mc mirror --overwrite <backup> local/arya-attachments`).
+4. Restore MinIO objects if needed (`mc mirror --overwrite <backup> local/homo-accountant-attachments`).
 
 ## Monitoring
 
@@ -41,6 +41,6 @@
 
 ## Access & secrets
 
-- Secrets live only in `.env` on the VPS (never in git). Rotate `ARYA_JWT_SECRET` and DB
+- Secrets live only in `.env` on the VPS (never in git). Rotate `HOMO_JWT_SECRET` and DB
   passwords on suspicion of compromise (token refresh will force re-login).
 - Least-privilege: application DB role has no superuser; admin accounts via bootstrap only.

@@ -1,5 +1,5 @@
 # ============================================================
-# Arya Tejarat — developer commands (source of truth; see AGENTS.md)
+# Homo Accountant — developer commands (source of truth; see AGENTS.md)
 # ============================================================
 SHELL := /bin/bash
 API := apps/api
@@ -23,8 +23,8 @@ dev: ## run the full dev stack (db, minio, api, web)
 	$(COMPOSE_DEV) up --build
 
 api: ## run the API locally (expects db on localhost)
-	cd $(API) && ARYA_DATABASE_URL="$${ARYA_DATABASE_URL:-postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_dev}" \
-	  alembic upgrade head && ARYA_SEED_DEMO_USERS=true uvicorn app.main:app --reload --port 8000
+	cd $(API) && HOMO_DATABASE_URL="$${HOMO_DATABASE_URL:-postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_dev}" \
+	  alembic upgrade head && HOMO_SEED_DEMO_USERS=true uvicorn app.main:app --reload --port 8000
 
 web: ## run the web app locally
 	cd $(WEB) && npm run dev
@@ -33,7 +33,7 @@ migrate: ## apply migrations
 	cd $(API) && alembic upgrade head
 
 seed: ## seed demo users (dev only)
-	cd $(API) && ARYA_SEED_DEMO_USERS=true python -c "from app.core.db import SessionLocal; from app.domains.identity.seed import seed_demo_users; db=SessionLocal(); print('seeded:', seed_demo_users(db)); db.close()"
+	cd $(API) && HOMO_SEED_DEMO_USERS=true python -c "from app.core.db import SessionLocal; from app.domains.identity.seed import seed_demo_users; db=SessionLocal(); print('seeded:', seed_demo_users(db)); db.close()"
 
 # ---------- quality gates ----------
 format: ## format backend + frontend
@@ -49,11 +49,11 @@ typecheck: ## strict type checks
 	cd $(WEB) && npx tsc --noEmit
 
 test: ## backend + frontend unit/component tests
-	cd $(API) && ARYA_DATABASE_URL="$${TEST_DATABASE_URL:-postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test}" python -m pytest tests/ --cov=app --cov-report=term-missing
+	cd $(API) && HOMO_DATABASE_URL="$${TEST_DATABASE_URL:-postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test}" python -m pytest tests/ --cov=app --cov-report=term-missing
 	cd $(WEB) && npx vitest run
 
 test-api: ## backend tests only
-	cd $(API) && ARYA_DATABASE_URL="$${TEST_DATABASE_URL:-postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test}" python -m pytest tests/ --cov=app
+	cd $(API) && HOMO_DATABASE_URL="$${TEST_DATABASE_URL:-postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test}" python -m pytest tests/ --cov=app
 
 test-web: ## frontend tests only
 	cd $(WEB) && npx vitest run

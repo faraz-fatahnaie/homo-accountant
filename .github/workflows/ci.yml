@@ -28,9 +28,9 @@ jobs:
           --health-cmd "pg_isready -U arya -d arya_test"
           --health-interval 5s --health-timeout 3s --health-retries 12
     env:
-      ARYA_DATABASE_URL: postgresql+psycopg://arya:test_pw@127.0.0.1:5432/arya_test
-      ARYA_JWT_SECRET: ci-secret-not-for-prod-0123456789
-      ARYA_ENVIRONMENT: test
+      HOMO_DATABASE_URL: postgresql+psycopg://arya:test_pw@127.0.0.1:5432/arya_test
+      HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
+      HOMO_ENVIRONMENT: test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

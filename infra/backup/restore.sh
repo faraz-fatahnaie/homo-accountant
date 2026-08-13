@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================
 # Restore PostgreSQL dump produced by backup.sh.
-# Usage: ./infra/backup/restore.sh /path/to/arya-<ts>/db.dump.gz
+# Usage: ./infra/backup/restore.sh /path/to/homo-accountant-<ts>/db.dump.gz
 # DANGER: overwrites the current database. Test on a scratch DB first.
 # ============================================================
 set -euo pipefail

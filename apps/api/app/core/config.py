@@ -1,4 +1,4 @@
-"""Application configuration via environment variables (prefix ARYA_)."""
+"""Application configuration via environment variables (prefix HOMO_)."""
 
 from functools import lru_cache
 
@@ -8,14 +8,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="ARYA_",
+        env_prefix="HOMO_",
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
     # --- Core ---
-    app_name: str = "Arya Tejarat API"
+    app_name: str = "Homo Accountant API"
     environment: str = "development"  # development | test | production
     debug: bool = False
     api_prefix: str = "/api/v1"

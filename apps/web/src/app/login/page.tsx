@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { ApiError, authApi, storeTokens } from "@/lib/api";
 
 const DEMO_USERS = [
-  { role: "مدیر", email: "owner@example.com", password: "owner-arya-1405" },
-  { role: "حسابدار", email: "accountant@example.com", password: "acct-arya-1405" },
+  { role: "مدیر", email: "owner@example.com", password: "owner-homo-1405" },
+  { role: "حسابدار", email: "accountant@example.com", password: "acct-homo-1405" },
 ];
 
 export default function LoginPage() {

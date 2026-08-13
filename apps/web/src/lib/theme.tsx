@@ -15,7 +15,7 @@ import {
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "arya-theme";
+const STORAGE_KEY = "homo-accountant-theme";
 
 const ThemeContext = createContext<{ theme: Theme; toggleTheme: () => void } | null>(null);
 

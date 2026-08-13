@@ -1,5 +1,5 @@
 /**
- * Typed API client for the Arya API.
+ * Typed API client for the Homo Accountant API.
  *
  * Slice 1: hand-written fetch wrapper around the OpenAPI contract. From slice 2
  * onwards this file is replaced by the generated client in packages/api-client
@@ -9,8 +9,8 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
-export const TOKEN_KEY = "arya-access-token";
-export const REFRESH_KEY = "arya-refresh-token";
+export const TOKEN_KEY = "homo-accountant-access-token";
+export const REFRESH_KEY = "homo-accountant-refresh-token";
 
 export interface ApiErrorBody {
   error: { code: string; message: string; details?: Record<string, string> | null };

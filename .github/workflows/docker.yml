@@ -27,7 +27,7 @@ jobs:
           docker compose -f compose.prod.yaml build api web
           docker compose -f compose.prod.yaml build
         env:
-          ARYA_JWT_SECRET: ci-secret-not-for-prod-0123456789
+          HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
       - name: Start production-like stack
         run: |
           # nginx TLS needs certs; smoke the core services directly (documented limitation)
@@ -41,7 +41,7 @@ jobs:
       - name: Image scan (trivy)
         uses: aquasecurity/trivy-action@0.30.0
         with:
-          image-ref: arya/api:latest
+          image-ref: homo-accountant/api:latest
           format: sarif
           output: trivy-api.sarif
           severity: CRITICAL,HIGH

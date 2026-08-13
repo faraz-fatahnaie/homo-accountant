@@ -1,5 +1,5 @@
 {
-  "name": "@arya/api-client",
+  "name": "@homo-accountant/api-client",
   "version": "0.1.0",
   "private": true,
   "description": "Typed API client generated from the FastAPI OpenAPI contract",

@@ -1,4 +1,4 @@
-"""Test fixtures: real PostgreSQL (aryas_test), migrations applied, per-test cleanup.
+"""Test fixtures: real PostgreSQL (arya_test), migrations applied, per-test cleanup.
 
 Environment variables are set BEFORE importing app modules so the cached settings
 and engine bind to the test database.
@@ -9,11 +9,11 @@ from __future__ import annotations
 import os
 
 os.environ.setdefault(
-    "ARYA_DATABASE_URL", "postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test"
+    "HOMO_DATABASE_URL", "postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test"
 )
-os.environ.setdefault("ARYA_JWT_SECRET", "test-only-secret-0123456789abcdef")
-os.environ.setdefault("ARYA_LOGIN_RATE_LIMIT_PER_MINUTE", "1000")
-os.environ.setdefault("ARYA_ENVIRONMENT", "test")
+os.environ.setdefault("HOMO_JWT_SECRET", "test-only-secret-0123456789abcdef")
+os.environ.setdefault("HOMO_LOGIN_RATE_LIMIT_PER_MINUTE", "1000")
+os.environ.setdefault("HOMO_ENVIRONMENT", "test")
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402

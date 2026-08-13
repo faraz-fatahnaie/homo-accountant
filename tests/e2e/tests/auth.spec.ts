@@ -3,10 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 const API = process.env.E2E_API_URL ?? "http://localhost:8000/api/v1";
 
 const USERS = [
-  { role: "مدیر", email: "owner@example.com", password: "owner-arya-1405", label: "مدیر" },
-  { role: "حسابدار", email: "accountant@example.com", password: "acct-arya-1405", label: "حسابدار" },
-  { role: "کارمند", email: "staff@example.com", password: "staff-arya-1405", label: "کارمند" },
-  { role: "بیننده", email: "viewer@example.com", password: "viewer-arya-1405", label: "بیننده" },
+  { role: "مدیر", email: "owner@example.com", password: "owner-homo-1405", label: "مدیر" },
+  { role: "حسابدار", email: "accountant@example.com", password: "acct-homo-1405", label: "حسابدار" },
+  { role: "کارمند", email: "staff@example.com", password: "staff-homo-1405", label: "کارمند" },
+  { role: "بیننده", email: "viewer@example.com", password: "viewer-homo-1405", label: "بیننده" },
 ] as const;
 
 async function login(page: Page, email: string, password: string) {
@@ -58,7 +58,7 @@ test.describe("authentication", () => {
 test.describe("RBAC is enforced by the API (direct calls without UI)", () => {
   test("accountant cannot list users (403)", async ({ request }) => {
     const login = await request.post(`${API}/auth/login`, {
-      data: { email: "accountant@example.com", password: "acct-arya-1405" },
+      data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
     expect(login.ok()).toBeTruthy();
     const { access_token } = await login.json();
@@ -70,7 +70,7 @@ test.describe("RBAC is enforced by the API (direct calls without UI)", () => {
 
   test("owner can list users (200)", async ({ request }) => {
     const login = await request.post(`${API}/auth/login`, {
-      data: { email: "owner@example.com", password: "owner-arya-1405" },
+      data: { email: "owner@example.com", password: "owner-homo-1405" },
     });
     const { access_token } = await login.json();
     const users = await request.get(`${API}/users`, {

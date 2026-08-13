@@ -14,14 +14,14 @@ sudo apt update && sudo apt install -y docker.io docker-compose-plugin
 sudo systemctl enable --now docker
 
 # checkout the release
-git clone <your-repo-url> /opt/arya && cd /opt/arya
+git clone <your-repo-url> /opt/homo-accountant && cd /opt/homo-accountant
 git checkout <release-tag-or-sha>
 
 cp .env.example .env
-# EDIT .env: strong ARYA_JWT_SECRET (openssl rand -hex 32),
+# EDIT .env: strong HOMO_JWT_SECRET (openssl rand -hex 32),
 #           POSTGRES_PASSWORD, MINIO_* secrets,
-#           ARYA_ADMIN_BOOTSTRAP_EMAIL / ARYA_ADMIN_BOOTSTRAP_PASSWORD,
-#           ARYA_CORS_ORIGINS=https://your.domain
+#           HOMO_ADMIN_BOOTSTRAP_EMAIL / HOMO_ADMIN_BOOTSTRAP_PASSWORD,
+#           HOMO_CORS_ORIGINS=https://your.domain
 
 # TLS certificates (choose one):
 #  a) certbot:   sudo apt install -y certbot && sudo certbot certonly --nginx -d your.domain
@@ -41,7 +41,7 @@ curl -sf https://your.domain/login && echo OK
 
 ```bash
 docker compose -f compose.prod.yaml exec api python -m app.scripts.bootstrap_admin
-# -> creates the OWNER from ARYA_ADMIN_BOOTSTRAP_EMAIL/PASSWORD
+# -> creates the OWNER from HOMO_ADMIN_BOOTSTRAP_EMAIL/PASSWORD
 # then immediately rotate the password via the UI/user management.
 ```
 
@@ -68,7 +68,7 @@ offsite copy mandatory).
 | nginx won't start | missing TLS certs → provide certs or disable 443 block |
 | API unhealthy | DB not ready / migrations failed → `docker compose -f compose.prod.yaml logs api` |
 | 502 on /api/ | api container restarting → check `health/ready` + logs |
-| Uploads fail | MinIO bucket not created → create `arya-attachments` bucket once |
+| Uploads fail | MinIO bucket not created → create `homo-accountant-attachments` bucket once |
 | 429 on login | rate limit — expected; check for brute-force attempts in logs |
 
 ## 7. Publishing images / CI deployment

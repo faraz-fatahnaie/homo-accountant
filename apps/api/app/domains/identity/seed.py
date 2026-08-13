@@ -1,6 +1,6 @@
 """Development seeding: one company and one user per role.
 
-Never run with production credentials; guarded by ARYA_SEED_DEMO_USERS=true
+Never run with production credentials; guarded by HOMO_SEED_DEMO_USERS=true
 and refused in production environments.
 """
 
@@ -17,10 +17,10 @@ from app.domains.identity.service import create_user, ensure_default_company
 logger = logging.getLogger(__name__)
 
 DEMO_USERS: list[tuple[str, str, str, Role]] = [
-    ("owner@example.com", "مدیر سامانه", "owner-arya-1405", Role.OWNER),
-    ("accountant@example.com", "نگار رضایی", "acct-arya-1405", Role.ACCOUNTANT),
-    ("staff@example.com", "سامان کریمی", "staff-arya-1405", Role.STAFF),
-    ("viewer@example.com", "مهمان بیننده", "viewer-arya-1405", Role.VIEWER),
+    ("owner@example.com", "مدیر سامانه", "owner-homo-1405", Role.OWNER),
+    ("accountant@example.com", "نگار رضایی", "acct-homo-1405", Role.ACCOUNTANT),
+    ("staff@example.com", "سامان کریمی", "staff-homo-1405", Role.STAFF),
+    ("viewer@example.com", "مهمان بیننده", "viewer-homo-1405", Role.VIEWER),
 ]
 
 

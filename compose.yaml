@@ -1,7 +1,7 @@
 # ============================================================
 # Development stack — docker compose up
 # ============================================================
-name: arya-dev
+name: homo-accountant-dev
 
 services:
   db:
@@ -42,11 +42,11 @@ services:
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     environment:
       ARYA_DATABASE_URL: postgresql+psycopg://arya:${POSTGRES_PASSWORD:-arya_dev_pw}@db:5432/arya_dev
-      ARYA_ENVIRONMENT: development
-      ARYA_JWT_SECRET: ${ARYA_JWT_SECRET:-dev-only-jwt-secret-change-me}
-      ARYA_CORS_ORIGINS: http://localhost:3000
-      ARYA_SEED_DEMO_USERS: "true"
-      ARYA_LOGIN_RATE_LIMIT_PER_MINUTE: 100  # higher in dev so E2E suites can run; prod uses 10
+      HOMO_ENVIRONMENT: development
+      HOMO_JWT_SECRET: ${HOMO_JWT_SECRET:-dev-only-jwt-secret-change-me}
+      HOMO_CORS_ORIGINS: http://localhost:3000
+      HOMO_SEED_DEMO_USERS: "true"
+      HOMO_LOGIN_RATE_LIMIT_PER_MINUTE: 100  # higher in dev so E2E suites can run; prod uses 10
     ports:
       - "8000:8000"
     volumes:

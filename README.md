@@ -1,4 +1,4 @@
-# آریا تجارت — حسابداری فارسی (Arya Tejarat · Persian Accounting)
+# Homo Accountant — سامانه حسابداری فارسی (Persian Accounting)
 
 Production-ready MVP of a Persian-first (Solar Hijri, RTL, rial) accrual accounting web app for a
 small Iranian company (~3–4 users): expenses, supplier bills, customer invoices, payments,
@@ -79,9 +79,9 @@ cp .env.example .env            # adjust as needed
 make dev                        # full stack at http://localhost:3000
 ```
 
-Demo users (dev only, seeded automatically): `owner@example.com / owner-arya-1405`,
-`accountant@example.com / acct-arya-1405`, `staff@example.com / staff-arya-1405`,
-`viewer@example.com / viewer-arya-1405`.
+Demo users (dev only, seeded automatically): `owner@example.com / owner-homo-1405`,
+`accountant@example.com / acct-homo-1405`, `staff@example.com / staff-homo-1405`,
+`viewer@example.com / viewer-homo-1405`.
 
 ## Repository map
 

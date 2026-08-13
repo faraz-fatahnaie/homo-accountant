@@ -1,4 +1,4 @@
-# @arya/api-client — typed API client
+# @homo-accountant/api-client — typed API client
 
 Generated from the FastAPI **OpenAPI** contract so the frontend can never drift from the
 backend. Strategy:

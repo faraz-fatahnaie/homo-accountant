@@ -60,7 +60,7 @@ describe("login page", () => {
     fireEvent.change(screen.getByLabelText("رمز عبور"), { target: { value: "correct-pass-1" } });
     fireEvent.click(screen.getByRole("button", { name: "ورود" }));
     await vi.waitFor(() => {
-      expect(window.localStorage.getItem("arya-access-token")).toBe("acc");
+      expect(window.localStorage.getItem("homo-accountant-access-token")).toBe("acc");
       expect(push).toHaveBeenCalledWith("/dashboard");
     });
   });

@@ -17,7 +17,7 @@ describe("api client", () => {
   });
 
   it("attaches bearer token when present", async () => {
-    window.localStorage.setItem("arya-access-token", "tok-123");
+    window.localStorage.setItem("homo-accountant-access-token", "tok-123");
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({}), { status: 200 }),
     );
@@ -49,7 +49,7 @@ describe("api client", () => {
   });
 
   it("does not send auth header for login", async () => {
-    window.localStorage.setItem("arya-access-token", "tok-123");
+    window.localStorage.setItem("homo-accountant-access-token", "tok-123");
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ access_token: "a", refresh_token: "b", token_type: "bearer", expires_in: 1800 }), { status: 200 }),
     );

@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      ARYA_JWT_SECRET: ci-secret-not-for-prod-0123456789
+      HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
       POSTGRES_USER: arya
       POSTGRES_PASSWORD: e2e_pw
       POSTGRES_DB: arya_dev

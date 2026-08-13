@@ -1,7 +1,7 @@
 [project]
-name = "arya-api"
+name = "homo-accountant-api"
 version = "0.1.0"
-description = "Arya Tejarat accounting API — FastAPI backend"
+description = "Homo Accountant accounting API — FastAPI backend"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115,<1.0",
