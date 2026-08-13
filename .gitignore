@@ -51,3 +51,7 @@ uploads/
 *.swp
 .DS_Store
 Thumbs.db
+
+# --- Local tool caches ---
+.cache/
+.sudo_as_admin_successful
