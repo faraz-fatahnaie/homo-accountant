@@ -226,3 +226,27 @@ class TestPeriodsApi:
         period = periods[0]
         resp = client.post(f"/api/v1/periods/{period['id']}/close", headers=staff_headers)
         assert resp.status_code == 403
+
+
+class TestBalancesApi:
+    def test_balances_endpoint_readable_by_viewer(
+        self, client: TestClient, db, auth_headers
+    ) -> None:
+        _seed(client, db)
+        acct_headers, _ = auth_headers(Role.ACCOUNTANT)
+        created = _create_entry(client, acct_headers)
+        client.post(f"/api/v1/journal-entries/{created.json()['id']}/post", headers=acct_headers)
+        viewer_headers, _ = auth_headers(Role.VIEWER)
+        resp = client.get("/api/v1/accounts/balances", headers=viewer_headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data, list)
+        b102 = next(b for b in data if b["code"] == "102")
+        assert b102["balance"] == -48_500_000
+        b603 = next(b for b in data if b["code"] == "603")
+        assert b603["balance"] == 48_500_000
+
+    def test_balances_anonymous_401(self, client: TestClient, db) -> None:
+        _seed(client, db)
+        resp = client.get("/api/v1/accounts/balances")
+        assert resp.status_code == 401

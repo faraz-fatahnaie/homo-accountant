@@ -129,6 +129,15 @@ export interface AccountOut {
   is_system: boolean;
 }
 
+export interface AccountBalanceOut {
+  code: string;
+  name: string;
+  type: AccountType;
+  debit_total: number;
+  credit_total: number;
+  balance: number;
+}
+
 export interface JournalLineOut {
   id: number;
   account_code: string;
@@ -179,6 +188,7 @@ export const accountsApi = {
   list: () => api<AccountOut[]>("/accounts"),
   create: (body: { code: string; name: string; type: AccountType; parent_code?: string }) =>
     api<AccountOut>("/accounts", { method: "POST", body }),
+  balances: () => api<AccountBalanceOut[]>("/accounts/balances"),
 };
 
 export const entriesApi = {

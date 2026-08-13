@@ -21,10 +21,11 @@ test.describe("ledger user journey (real API + DB)", () => {
     await page.fill("#entry-memo", memo);
 
     // line 1: 603 debit; line 2: 102 credit
+    // (Persian digits + separator — verifies the amount-parsing fix)
     await page.locator('select[aria-label="حساب"]').nth(0).selectOption("603");
-    await page.locator('input[aria-label="بدهکار"]').nth(0).fill("1000000");
+    await page.locator('input[aria-label="بدهکار"]').nth(0).fill("۱٬۰۰۰٬۰۰۰");
     await page.locator('select[aria-label="حساب"]').nth(1).selectOption("102");
-    await page.locator('input[aria-label="بستانکار"]').nth(1).fill("1000000");
+    await page.locator('input[aria-label="بستانکار"]').nth(1).fill("۱٬۰۰۰٬۰۰۰");
 
     // balanced indicator
     await expect(page.getByText("سند متوازن است")).toBeVisible();

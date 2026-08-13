@@ -6,8 +6,32 @@ import {
   formatRials,
   gregorianToJalali,
   jalaliToGregorian,
+  normalizeAmountInput,
+  parseAmount,
   parseJalaliInput,
 } from "./format";
+
+describe("amount parsing (Persian digits + separators)", () => {
+  it("normalizes Persian digits and separators", () => {
+    expect(normalizeAmountInput("۴۸٬۵۰۰٬۰۰۰")).toBe("48500000");
+    expect(normalizeAmountInput("۴۸۵۰۰۰۰۰")).toBe("48500000");
+    expect(normalizeAmountInput("48,500,000")).toBe("48500000");
+    expect(normalizeAmountInput("48 500 000")).toBe("48500000");
+    expect(normalizeAmountInput("٤٨٥٠٠٠٠٠")).toBe("48500000"); // Arabic-Indic digits
+  });
+
+  it("parses into an integer", () => {
+    expect(parseAmount("۴۸٬۵۰۰٬۰۰۰")).toBe(48_500_000);
+    expect(parseAmount("48500000")).toBe(48_500_000);
+    expect(parseAmount("0")).toBe(0);
+  });
+
+  it("rejects invalid input", () => {
+    expect(Number.isNaN(parseAmount(""))).toBe(true);
+    expect(Number.isNaN(parseAmount("abc"))).toBe(true);
+    expect(Number.isNaN(parseAmount("12a3"))).toBe(true);
+  });
+});
 
 describe("Persian formatting", () => {
   it("converts digits to Persian", () => {

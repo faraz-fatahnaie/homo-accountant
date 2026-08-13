@@ -1,24 +1,62 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { entriesApi } from "@/lib/api";
+import { accountsApi, entriesApi, type AccountBalanceOut } from "@/lib/api";
 import { formatJalaliLong, formatRials } from "@/lib/format";
 import { StatusBadge } from "@/components/ui";
 
-const KPIS = [
-  { label: "موجودی نقد و بانک", value: "۱۸۴٬۶۲۰٬۰۰۰", delta: "+۴٬۲۱۰٬۰۰۰ نسبت به تیر" },
-  { label: "درآمد دوره", value: "۹۶٬۸۵۰٬۰۰۰", delta: "۱۲٪ نسبت به سه ماه قبل" },
-  { label: "هزینههای دوره", value: "۶۱٬۳۴۰٬۰۰۰", delta: "۳٪ کاهش نسبت به سه ماه قبل" },
-  { label: "نتیجه خالص", value: "۳۵٬۵۱۰٬۰۰۰", delta: "سودآور" },
+/** KPI cards that are still design samples (become real in slice 8). */
+const SAMPLE_KPIS = [
+  { label: "درآمد دوره", value: "۹۶٬۸۵۰٬۰۰۰", delta: "۱۲٪ نسبت به سه ماه قبل (نمونه)" },
+  { label: "هزینههای دوره", value: "۶۱٬۳۴۰٬۰۰۰", delta: "۳٪ کاهش (نمونه)" },
+  { label: "نتیجه خالص", value: "۳۵٬۵۱۰٬۰۰۰", delta: "سودآور (نمونه)" },
 ];
 
+function BalanceRow({ b }: { b: AccountBalanceOut }) {
+  return (
+    <div className="flex items-center gap-2 py-2 text-sm">
+      <span className="font-bold tabular-nums" dir="ltr">{b.code}</span>
+      <span className="min-w-0 flex-1 truncate">{b.name}</span>
+      <span className={`font-bold tabular-nums ${b.balance < 0 ? "text-danger-strong" : ""}`}>
+        {formatRials(b.balance)}
+      </span>
+      <span className="text-[11px] text-muted">ریال</span>
+    </div>
+  );
+}
+
 export default function DashboardClient() {
-  const { data: entries, isLoading } = useQuery({
+  const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: ["entries", "recent"],
     queryFn: () => entriesApi.list(),
   });
+  const { data: balances, isLoading: balancesLoading } = useQuery({
+    queryKey: ["balances"],
+    queryFn: accountsApi.balances,
+  });
+
   const recent = (entries ?? []).slice(0, 5);
+
+  // موجودی نقد و بانک = مانده حسابهای ۱۰۱ (صندوق) + ۱۰۲ (بانک) — از دفتر کل
+  const cashAndBank = useMemo(
+    () =>
+      (balances ?? [])
+        .filter((b) => b.code === "101" || b.code === "102")
+        .reduce((s, b) => s + b.balance, 0),
+    [balances],
+  );
+
+  // مهمترین حسابهای دارای مانده (مرتب بر اساس قدرمطلق مانده)
+  const keyAccounts = useMemo(
+    () =>
+      (balances ?? [])
+        .filter((b) => b.balance !== 0 && ["101", "102", "203", "204", "301", "401", "402"].includes(b.code))
+        .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance))
+        .slice(0, 6),
+    [balances],
+  );
 
   return (
     <div>
@@ -32,8 +70,20 @@ export default function DashboardClient() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {KPIS.map((kpi) => (
+      {/* Cash & bank — real, computed from the posted ledger */}
+      <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <div className="card relative overflow-hidden border-2 border-primary p-4 lg:col-span-1">
+          <span className="absolute inset-y-3 right-0 w-1 rounded bg-primary" aria-hidden="true" />
+          <div className="text-xs font-semibold text-muted">موجودی نقد و بانک</div>
+          <div className="mt-2 text-xl font-extrabold tabular-nums">
+            {balancesLoading ? "…" : formatRials(cashAndBank)}
+            <span className="mr-1 text-[11px] font-semibold text-muted">ریال</span>
+          </div>
+          <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-bold text-primary-strong">
+            از دفتر کل (حسابهای ۱۰۱ و ۱۰۲)
+          </div>
+        </div>
+        {SAMPLE_KPIS.map((kpi) => (
           <div key={kpi.label} className="card relative overflow-hidden p-4">
             <span className="absolute inset-y-3 right-0 w-0.5 rounded bg-primary" aria-hidden="true" />
             <div className="text-xs font-semibold text-muted">{kpi.label}</div>
@@ -41,7 +91,7 @@ export default function DashboardClient() {
               {kpi.value}
               <span className="mr-1 text-[11px] font-semibold text-muted">ریال</span>
             </div>
-            <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-border bg-success-soft px-2 py-0.5 text-[11px] font-bold text-success-strong">
+            <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-bold text-muted">
               {kpi.delta}
             </div>
           </div>
@@ -58,7 +108,7 @@ export default function DashboardClient() {
               </Link>
             </span>
           </div>
-          {isLoading ? (
+          {entriesLoading ? (
             <div className="px-4 py-6 text-sm text-muted">در حال بارگذاری…</div>
           ) : recent.length === 0 ? (
             <div className="px-4 py-6 text-sm text-muted">
@@ -92,29 +142,34 @@ export default function DashboardClient() {
 
         <section className="card">
           <div className="card-head">
-            <h2 className="text-sm font-extrabold">دسترسی سریع</h2>
+            <h2 className="text-sm font-extrabold">مانده حسابهای کلیدی</h2>
+            <span className="text-[11px] text-muted">از دفتر کل (سندهای ثبتشده)</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 p-4 text-sm">
-            <Link href="/transactions" className="rounded-md border border-border bg-surface-2 px-3 py-2.5 font-bold hover:bg-surface">
-              سندها و تراکنشها
+          {balancesLoading ? (
+            <div className="px-4 py-6 text-sm text-muted">در حال بارگذاری…</div>
+          ) : keyAccounts.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-muted">
+              هنوز سند ثبتشدهای نیست. با «سند افتتاحیه» شروع کنید (راهنمای استفاده).
+            </div>
+          ) : (
+            <div className="divide-y divide-dashed divide-border px-4">
+              {keyAccounts.map((b) => (
+                <BalanceRow key={b.code} b={b} />
+              ))}
+            </div>
+          )}
+          <div className="border-t border-border px-4 py-2">
+            <Link href="/guide#journey-entry" className="text-[11px] font-bold text-primary-strong underline">
+              راهنمای ثبت سند
             </Link>
-            <Link href="/accounts" className="rounded-md border border-border bg-surface-2 px-3 py-2.5 font-bold hover:bg-surface">
-              حسابها (کدینگ)
-            </Link>
-            <Link href="/periods" className="rounded-md border border-border bg-surface-2 px-3 py-2.5 font-bold hover:bg-surface">
-              دورههای حسابداری
-            </Link>
-            <span className="cursor-not-allowed rounded-md border border-dashed border-border px-3 py-2.5 font-bold text-muted opacity-70" title="در نسخههای بعدی">
-              گزارشها
-            </span>
           </div>
         </section>
       </div>
 
       <p className="mt-6 rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-        <b className="text-text">یادداشت:</b> کارتهای بالا (موجودی، درآمد، هزینه، نتیجه) نمونه طراحی
-        هستند و از اسلایس ۸ (گزارشها) مستقیماً از دفتر کل محاسبه میشوند. فهرست «آخرین اسناد» از داده
-        واقعی سامانه است.
+        <b className="text-text">یادداشت:</b> «موجودی نقد و بانک» و «مانده حسابهای کلیدی» مستقیماً از
+        دفتر کل محاسبه میشوند. کارتهای درآمد/هزینه/نتیجه هنوز نمونه طراحی هستند و از اسلایس ۸
+        (گزارشها) واقعی میشوند.
       </p>
     </div>
   );

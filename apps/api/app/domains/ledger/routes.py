@@ -12,6 +12,7 @@ from app.core.db import get_db
 from app.domains.identity.models import Role, User
 from app.domains.ledger.models import Account, AccountingPeriod, JournalEntry
 from app.domains.ledger.schemas import (
+    AccountBalanceOut,
     AccountCreate,
     AccountOut,
     AccountUpdate,
@@ -22,6 +23,7 @@ from app.domains.ledger.schemas import (
 )
 from app.domains.ledger.service import (
     LedgerError,
+    account_balances,
     close_period,
     create_account,
     create_draft_entry,
@@ -98,6 +100,14 @@ def accounts_create(
         return _ledger_error_handler(exc)
     db.commit()
     return account
+
+
+@router.get("/accounts/balances", response_model=list[AccountBalanceOut])
+def accounts_balances(
+    _: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[dict[str, object]]:
+    return account_balances(db, _.company_id)
 
 
 @router.patch("/accounts/{account_id}", response_model=AccountOut)

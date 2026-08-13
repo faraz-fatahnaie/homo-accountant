@@ -14,7 +14,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.jalali import entry_period, jalali_to_gregorian
@@ -82,6 +82,59 @@ def list_accounts(db: Session, company_id: int) -> list[Account]:
     return list(
         db.scalars(select(Account).where(Account.company_id == company_id).order_by(Account.code))
     )
+
+
+def account_balances(db: Session, company_id: int) -> list[dict[str, object]]:
+    """Signed balances per account from POSTED journal lines only.
+
+    Sign convention: assets & expenses carry a positive balance on the debit
+    side; liabilities, equity & revenue on the credit side. Drafts are never
+    included — balances always reconcile to the posted ledger.
+    """
+    rows = db.execute(
+        select(
+            Account.code,
+            Account.name,
+            Account.type,
+            func.coalesce(func.sum(JournalLine.debit), 0).label("debits"),
+            func.coalesce(func.sum(JournalLine.credit), 0).label("credits"),
+        )
+        .join(JournalLine, JournalLine.account_id == Account.id)
+        .join(JournalEntry, JournalEntry.id == JournalLine.entry_id)
+        .where(
+            JournalEntry.company_id == company_id,
+            JournalEntry.status == JournalStatus.POSTED,
+        )
+        .group_by(Account.id, Account.code, Account.name, Account.type)
+        .order_by(Account.code)
+    ).all()
+
+    result: list[dict[str, object]] = []
+    for code, name, atype, debits, credits in rows:
+        if atype in (AccountType.ASSET, AccountType.EXPENSE):
+            balance = int(debits) - int(credits)
+        else:
+            balance = int(credits) - int(debits)
+        result.append(
+            {
+                "code": code,
+                "name": name,
+                "type": atype.value,
+                "debit_total": int(debits),
+                "credit_total": int(credits),
+                "balance": balance,
+            }
+        )
+    return result
+
+
+def cash_and_bank_balance(db: Session, company_id: int) -> int:
+    """موجودی نقد و بانک = مانده حساب‌های ۱۰۱ (صندوق) و ۱۰۲ (بانک)."""
+    total = 0
+    for b in account_balances(db, company_id):
+        if b["code"] in {"101", "102"} and isinstance(b["balance"], int):
+            total += b["balance"]
+    return total
 
 
 def get_account(db: Session, company_id: int, code: str) -> Account | None:

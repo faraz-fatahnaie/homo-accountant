@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { accountsApi, ApiError, entriesApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { formatJalali, parseJalaliInput, todayJalali } from "@/lib/format";
+import { formatJalali, parseAmount, parseJalaliInput, todayJalali } from "@/lib/format";
 
 interface Line {
   key: number;
@@ -48,8 +48,8 @@ export default function NewEntryPage() {
   );
 
   const totals = useMemo(() => {
-    const debit = lines.reduce((s, l) => s + (Number(l.debit) || 0), 0);
-    const credit = lines.reduce((s, l) => s + (Number(l.credit) || 0), 0);
+    const debit = lines.reduce((s, l) => s + (parseAmount(l.debit) || 0), 0);
+    const credit = lines.reduce((s, l) => s + (parseAmount(l.credit) || 0), 0);
     return { debit, credit, balanced: debit > 0 && debit === credit };
   }, [lines]);
 
@@ -69,21 +69,42 @@ export default function NewEntryPage() {
     mutationFn: async () => {
       const date = parseJalaliInput(dateInput);
       if (!date) throw new ApiError(422, { error: { code: "invalid_date", message: "تاریخ شمسی نامعتبر است" } });
+      // Build a local YYYY-MM-DD (NOT toISOString, which shifts the day in
+      // timezones west of UTC).
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const entryDate = `${y}-${m}-${d}`;
+      // parseAmount returns NaN for empty input; coalesce to 0 so the JSON
+      // body carries integers (NaN would serialize as null and be rejected).
+      const amt = (s: string) => {
+        const v = parseAmount(s);
+        return Number.isNaN(v) ? 0 : v;
+      };
+      const parsed = lines
+        .filter((l) => l.accountCode.trim() !== "")
+        .map((l) => ({
+          account_code: l.accountCode,
+          debit: amt(l.debit),
+          credit: amt(l.credit),
+        }));
+      const withAmount = parsed.filter((l) => l.debit > 0 || l.credit > 0);
+      if (withAmount.length === 0) {
+        throw new ApiError(422, {
+          error: { code: "no_amount", message: "حداقل یک ردیف با حساب و مبلغ وارد کنید" },
+        });
+      }
+      if (withAmount.some((l) => l.debit > 0 && l.credit > 0)) {
+        throw new ApiError(422, {
+          error: { code: "line_invalid", message: "در هر ردیف فقط یک سمت (بدهکار یا بستانکار) را پر کنید" },
+        });
+      }
       const body = {
-        entry_date: date.toISOString().slice(0, 10),
+        entry_date: entryDate,
         memo: memo.trim(),
-        lines: lines
-          .filter((l) => l.accountCode && (Number(l.debit) > 0 || Number(l.credit) > 0))
-          .map((l) => ({
-            account_code: l.accountCode,
-            debit: Number(l.debit) || 0,
-            credit: Number(l.credit) || 0,
-          })),
+        lines: withAmount,
         idempotency_key: `ui-${Date.now()}`,
       };
-      if (body.lines.length === 0) {
-        throw new ApiError(422, { error: { code: "no_lines", message: "حداقل یک ردیف با مبلغ وارد کنید" } });
-      }
       const entry = await entriesApi.create(body);
       if (postAfter) {
         return entriesApi.post(entry.id);

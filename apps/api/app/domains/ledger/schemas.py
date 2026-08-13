@@ -39,6 +39,15 @@ class AccountOut(BaseModel):
     is_system: bool
 
 
+class AccountBalanceOut(BaseModel):
+    code: str
+    name: str
+    type: AccountType
+    debit_total: int
+    credit_total: int
+    balance: int
+
+
 class JournalLineIn(BaseModel):
     account_code: str = Field(min_length=1, max_length=20)
     debit: int = Field(default=0, ge=0)

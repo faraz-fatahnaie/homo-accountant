@@ -349,3 +349,49 @@ class TestCoverageGaps:
 
         entry = _draft(db, company, actor)
         assert entry_totals(entry) == (48_500_000, 48_500_000)
+
+
+class TestAccountBalances:
+    def test_balances_from_posted_entries(
+        self, db: Session, company: int, actor: int, chart: None
+    ) -> None:
+        from app.domains.ledger.service import account_balances
+
+        # expense paid from bank: Dr 603 48.5M / Cr 102 48.5M
+        post_entry(db, _draft(db, company, actor).id, actor)
+        # cash sale: Dr 101 5M / Cr 401 5M
+        post_entry(
+            db,
+            _draft(
+                db,
+                company,
+                actor,
+                memo="فروش نقدی",
+                lines=[("101", 5_000_000, 0), ("401", 0, 5_000_000)],
+            ).id,
+            actor,
+        )
+        db.commit()
+        balances = {b["code"]: b for b in account_balances(db, company)}
+        assert balances["101"]["balance"] == 5_000_000
+        assert balances["102"]["balance"] == -48_500_000
+        assert balances["401"]["balance"] == 5_000_000
+        assert balances["603"]["balance"] == 48_500_000
+        # cash & bank = 101 + 102
+        from app.domains.ledger.service import cash_and_bank_balance
+
+        assert cash_and_bank_balance(db, company) == -43_500_000
+
+    def test_drafts_are_excluded(self, db: Session, company: int, actor: int, chart: None) -> None:
+        from app.domains.ledger.service import account_balances
+
+        post_entry(db, _draft(db, company, actor).id, actor)
+        _draft(db, company, actor)  # draft, never posted
+        db.commit()
+        balances = {b["code"]: b for b in account_balances(db, company)}
+        assert balances["102"]["balance"] == -48_500_000  # draft not counted
+
+    def test_balances_empty(self, db: Session, company: int) -> None:
+        from app.domains.ledger.service import account_balances
+
+        assert account_balances(db, company) == []

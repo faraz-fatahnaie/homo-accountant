@@ -24,6 +24,29 @@ export function formatRials(amount: number): string {
   return faDigits(grouped);
 }
 
+const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+/**
+ * Normalize a user-entered amount: Persian/Arabic digits → ASCII, and strip
+ * thousands separators (٬ , _) and spaces. "۴۸٬۵۰۰٬۰۰۰" → "48500000".
+ */
+export function normalizeAmountInput(value: string): string {
+  return value
+    .replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(ARABIC_DIGITS.indexOf(d)))
+    .replace(/[٬,\s_]/g, "");
+}
+
+/**
+ * Parse a user-entered amount into an integer. Accepts Persian or ASCII
+ * digits, with or without separators. Returns NaN for invalid input.
+ */
+export function parseAmount(value: string): number {
+  const cleaned = normalizeAmountInput(value);
+  if (!/^\d+$/.test(cleaned)) return NaN;
+  return Number(cleaned);
+}
+
 export function gregorianToJalali(d: Date): [number, number, number] {
   let gy = d.getFullYear();
   const gm = d.getMonth() + 1;
