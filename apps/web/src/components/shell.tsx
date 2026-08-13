@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
-import { authApi, clearTokens, getTokens, type UserOut } from "@/lib/api";
+import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
+import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 
 interface NavItem {
@@ -11,14 +11,28 @@ interface NavItem {
   label: string;
   icon: string;
   available: boolean;
+  writerOnly?: boolean;
+  ownerOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "داشبورد", icon: "M4 5h16l-6.2 7.4V19l-3.6-1.8v-4.8z", available: true },
-  { href: "/transactions", label: "تراکنشها", icon: "M8 3l-5 5 5 5M3 8h18M16 21l5-5-5-5M21 16H3", available: false },
+  { href: "/transactions", label: "سندها و تراکنشها", icon: "M8 3l-5 5 5 5M3 8h18M16 21l5-5-5-5M21 16H3", available: true },
+  { href: "/journal-entries/new", label: "سند جدید", icon: "M12 5v14M5 12h14", available: true, writerOnly: true },
+  { href: "/accounts", label: "حسابها (کدینگ)", icon: "M3 3v18h18M7 9h4M7 13h8M7 17h10", available: true },
+  { href: "/periods", label: "دورههای حسابداری", icon: "M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2z", available: true },
   { href: "/expenses/new", label: "ثبت هزینه", icon: "M12 5v14M5 12h14", available: false },
   { href: "/invoices", label: "صورتحسابها", icon: "M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zM14 2v5h5", available: false },
+  { href: "/contacts", label: "طرف حسابها", icon: "M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", available: false },
+  { href: "/reports", label: "گزارشها", icon: "M3 3v18h18M7 14l4-4 3 3 5-6", available: false },
 ];
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: "مدیر",
+  accountant: "حسابدار",
+  staff: "کارمند",
+  viewer: "بیننده",
+};
 
 function Icon({ d, className }: { d: string; className?: string }) {
   return (
@@ -39,32 +53,14 @@ function Icon({ d, className }: { d: string; className?: string }) {
 
 export default function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const [user, setUser] = useState<UserOut | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const { user, loading, logout } = useAuth();
 
-  useEffect(() => {
-    setMounted(true);
-    if (!getTokens().access) {
-      router.replace("/login");
-      return;
-    }
-    authApi
-      .me()
-      .then(setUser)
-      .catch(() => {
-        clearTokens();
-        router.replace("/login");
-      });
-  }, [router]);
-
-  function logout() {
-    const { refresh } = getTokens();
-    if (refresh) void authApi.logout(refresh).catch(() => undefined);
-    clearTokens();
-    router.replace("/login");
-  }
+  const visible = NAV_ITEMS.filter((item) => {
+    if (item.writerOnly && !(user?.role === "accountant" || user?.role === "owner")) return false;
+    if (item.ownerOnly && user?.role !== "owner") return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen" dir="rtl">
@@ -80,7 +76,7 @@ export default function Shell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
-          {NAV_ITEMS.map((item) => {
+          {visible.map((item) => {
             const active = pathname.startsWith(item.href);
             return item.available ? (
               <Link
@@ -120,7 +116,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             <div className="min-w-0 flex-1">
               <div className="truncate text-xs font-bold">{user?.full_name ?? "…"}</div>
               <div className="text-[10px] text-[var(--sb-muted)]">
-                {mounted ? (user ? roleLabel(user.role) : "در حال بارگذاری") : ""}
+                {loading ? "در حال بارگذاری" : user ? ROLE_LABELS[user.role] ?? user.role : ""}
               </div>
             </div>
             <button onClick={logout} aria-label="خروج از حساب" className="text-[var(--sb-muted)] hover:text-white">
@@ -143,7 +139,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             </svg>
             <input
               type="search"
-              placeholder="جستجوی تراکنش، طرف حساب، شماره سند…"
+              placeholder="جستجوی سند، طرف حساب، شماره…"
               aria-label="جستجو"
               className="w-full bg-transparent text-sm outline-none"
             />
@@ -157,10 +153,12 @@ export default function Shell({ children }: { children: ReactNode }) {
             <div className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[10px] font-bold text-on-primary">
               {user ? user.full_name.slice(0, 2) : "—"}
             </div>
-            <span className="text-[11px] font-bold">{mounted && user ? roleLabel(user.role) : ""}</span>
+            <span className="text-[11px] font-bold">
+              {loading ? "" : user ? ROLE_LABELS[user.role] ?? user.role : ""}
+            </span>
           </div>
           <button onClick={toggleTheme} aria-label={theme === "dark" ? "حالت روشن" : "حالت تیره"} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-text">
-            {mounted && theme === "dark" ? (
+            {theme === "dark" ? (
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8}>
                 <circle cx="12" cy="12" r="4.2" />
                 <path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" strokeLinecap="round" />
@@ -178,7 +176,7 @@ export default function Shell({ children }: { children: ReactNode }) {
 
       {/* Bottom nav (mobile) */}
       <nav className="fixed bottom-0 right-0 left-0 z-30 flex h-14 border-t border-border bg-surface lg:hidden" aria-label="ناوبری موبایل">
-        {NAV_ITEMS.map((item) => {
+        {visible.slice(0, 4).map((item) => {
           const active = pathname.startsWith(item.href);
           return item.available ? (
             <Link key={item.href} href={item.href} className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold ${active ? "text-primary-strong" : "text-muted"}`}>
@@ -195,14 +193,4 @@ export default function Shell({ children }: { children: ReactNode }) {
       </nav>
     </div>
   );
-}
-
-function roleLabel(role: UserOut["role"]): string {
-  const map: Record<UserOut["role"], string> = {
-    owner: "مدیر",
-    accountant: "حسابدار",
-    staff: "کارمند",
-    viewer: "بیننده",
-  };
-  return map[role] ?? role;
 }

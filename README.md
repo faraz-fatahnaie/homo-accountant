@@ -29,11 +29,11 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 | Lint / format | Ruff | ✅ | `ruff check` + `ruff format --check` |
 | Types | mypy (strict) | ✅ | 18 source files clean |
 | Migrations | Alembic | ✅ | upgrade head; downgrade→upgrade exercised in tests |
-| Frontend unit/component | Vitest + Testing Library | ✅ 8 passed | API client + login states |
+| Frontend unit/component | Vitest + Testing Library | ✅ 21 passed | API client, login, Solar Hijri formatter, transactions page |
 | Frontend lint | ESLint | ✅ | 0 errors/warnings |
 | Frontend types | tsc strict | ✅ | `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
 | Frontend build | next build | ✅ | standalone output |
-| Browser journeys | Playwright | ✅ 16 passed | real stack; 4 roles × desktop/mobile; RBAC via direct API; themes |
+| Browser journeys | Playwright | ✅ 22 passed | real stack; 4 roles × desktop/mobile; RBAC direct-API; themes; ledger create→post journey |
 | Accessibility lint | axe | ⏳ slice 3+ | wired with UI slices; manual WCAG checks in design mockups |
 | Docker builds/smoke | compose.prod + trivy | ⏳ CI only | authored; runs in `docker.yml` |
 | Security scans | pip-audit/npm audit/trufflehog/CodeQL | ⏳ CI only | wired in `security.yml` |

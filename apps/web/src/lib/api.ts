@@ -117,10 +117,86 @@ export interface UserOut {
   last_login_at: string | null;
 }
 
+export type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense";
+
+export interface AccountOut {
+  id: number;
+  code: string;
+  name: string;
+  type: AccountType;
+  parent_id: number | null;
+  is_active: boolean;
+  is_system: boolean;
+}
+
+export interface JournalLineOut {
+  id: number;
+  account_code: string;
+  account_name: string;
+  debit: number;
+  credit: number;
+}
+
+export type JournalStatus = "draft" | "posted";
+
+export interface JournalEntryOut {
+  id: number;
+  entry_date: string;
+  reference: string | null;
+  memo: string;
+  status: JournalStatus;
+  reversal_of_id: number | null;
+  created_at: string;
+  posted_at: string | null;
+  lines: JournalLineOut[];
+}
+
+export interface PeriodOut {
+  id: number;
+  year: number;
+  month: number;
+  status: "open" | "closed";
+  closed_at: string | null;
+  reopened_at: string | null;
+}
+
+function queryString(params: Record<string, string | number | undefined>): string {
+  const parts = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`);
+  return parts.length ? `?${parts.join("&")}` : "";
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     api<TokenPair>("/auth/login", { method: "POST", auth: false, body: { email, password } }),
   logout: (refresh_token: string) =>
     api<{ status: string }>("/auth/logout", { method: "POST", auth: false, body: { refresh_token } }),
   me: () => api<UserOut>("/users/me"),
+};
+
+export const accountsApi = {
+  list: () => api<AccountOut[]>("/accounts"),
+  create: (body: { code: string; name: string; type: AccountType; parent_code?: string }) =>
+    api<AccountOut>("/accounts", { method: "POST", body }),
+};
+
+export const entriesApi = {
+  list: (params?: { period_year?: number; period_month?: number }) =>
+    api<JournalEntryOut[]>(`/journal-entries${queryString(params ?? {})}`),
+  detail: (id: number) => api<JournalEntryOut>(`/journal-entries/${id}`),
+  create: (body: {
+    entry_date: string;
+    memo: string;
+    lines: { account_code: string; debit: number; credit: number }[];
+    idempotency_key?: string;
+  }) => api<JournalEntryOut>("/journal-entries", { method: "POST", body }),
+  post: (id: number) => api<JournalEntryOut>(`/journal-entries/${id}/post`, { method: "POST" }),
+  voidEntry: (id: number) => api<JournalEntryOut>(`/journal-entries/${id}/void`, { method: "POST" }),
+};
+
+export const periodsApi = {
+  list: () => api<PeriodOut[]>("/periods"),
+  close: (id: number) => api<PeriodOut>(`/periods/${id}/close`, { method: "POST" }),
+  reopen: (id: number) => api<PeriodOut>(`/periods/${id}/reopen`, { method: "POST" }),
 };
