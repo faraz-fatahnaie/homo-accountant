@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project": "homo-accountant",
   "generated_at_utc": "2026-08-13T08:35:00Z",
-  "verified_commit_sha": "edacf72",
+  "verified_commit_sha": "76d5bd2",
   "environment": {
     "os": "Debian 13 (sandbox)",
     "python": "3.13.14",
