@@ -32,7 +32,7 @@ services:
     volumes:
       - miniodata:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -41,7 +41,7 @@ services:
     build: ./apps/api
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     environment:
-      ARYA_DATABASE_URL: postgresql+psycopg://arya:${POSTGRES_PASSWORD:-arya_dev_pw}@db:5432/arya_dev
+      HOMO_DATABASE_URL: postgresql+psycopg://arya:${POSTGRES_PASSWORD:-arya_dev_pw}@db:5432/arya_dev
       HOMO_ENVIRONMENT: development
       HOMO_JWT_SECRET: ${HOMO_JWT_SECRET:-dev-only-jwt-secret-change-me}
       HOMO_CORS_ORIGINS: http://localhost:3000
@@ -61,7 +61,9 @@ services:
       retries: 12
 
   web:
-    build: ./apps/web
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.dev
     command: npm run dev
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
@@ -69,11 +71,11 @@ services:
       - "3000:3000"
     volumes:
       - ./apps/web:/app
-      - web_node_modules:/app/node_modules
+      # anonymous volume: node_modules always fresh from the dev image
+      - /app/node_modules
     depends_on:
       - api
 
 volumes:
   pgdata:
   miniodata:
-  web_node_modules:

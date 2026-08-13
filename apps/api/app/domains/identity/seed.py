@@ -1,7 +1,8 @@
-"""Development seeding: one company and one user per role.
+"""Development seeding: one company, demo users, chart of accounts, periods.
 
-Never run with production credentials; guarded by HOMO_SEED_DEMO_USERS=true
-and refused in production environments.
+Never run with production credentials; guarded by HOMO_SEED_DEMO_USERS=true and
+refused in production environments. `seed_dev_data` is called on API startup in
+dev so `docker compose up` works out of the box.
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ DEMO_USERS: list[tuple[str, str, str, Role]] = [
     ("viewer@example.com", "مهمان بیننده", "viewer-homo-1405", Role.VIEWER),
 ]
 
+_FISCAL_YEAR = 1405
+
 
 def seed_demo_users(db: Session) -> int:
     settings = get_settings()
@@ -38,3 +41,22 @@ def seed_demo_users(db: Session) -> int:
             db.rollback()
     db.commit()
     return created
+
+
+def seed_dev_data(db: Session) -> dict[str, int]:
+    """Idempotent full dev bootstrap: company + demo users + chart + periods."""
+    settings = get_settings()
+    if settings.is_production:
+        raise RuntimeError("refusing to seed dev data in production")
+
+    from app.domains.ledger.service import get_period, seed_chart_of_accounts
+
+    company = ensure_default_company(db)
+    users = seed_demo_users(db)
+    chart = seed_chart_of_accounts(db, company.id)
+    periods = 0
+    for month in range(1, 13):
+        get_period(db, company.id, _FISCAL_YEAR, month)
+        periods += 1
+    db.commit()
+    return {"users": users, "chart_accounts": chart, "periods": periods}

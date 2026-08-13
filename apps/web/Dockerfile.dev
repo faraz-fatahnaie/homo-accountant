@@ -1,0 +1,13 @@
+# ============================================================
+# Development image for the web app.
+# The prod Dockerfile is multi-stage and its final stage has no
+# node_modules / `next` binary, so `npm run dev` cannot run from
+# it. This dev image installs all deps and runs the dev server.
+# ============================================================
+FROM node:20-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]

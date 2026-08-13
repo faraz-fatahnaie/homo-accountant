@@ -33,3 +33,24 @@ def test_seed_refuses_production(monkeypatch) -> None:
 
     with pytest.raises(RuntimeError):
         seed_demo_users(db=None)  # type: ignore[arg-type]
+
+
+def test_seed_dev_data_full_bootstrap(db) -> None:
+    """seed_dev_data creates users + chart + periods and is idempotent."""
+    from sqlalchemy import select
+
+    from app.domains.identity.seed import seed_dev_data
+    from app.domains.ledger.models import Account, AccountingPeriod
+
+    first = seed_dev_data(db)
+    assert first["users"] == 4
+    assert first["chart_accounts"] == 13
+    assert first["periods"] == 12
+
+    # idempotent
+    again = seed_dev_data(db)
+    assert again["users"] == 0
+    assert again["chart_accounts"] == 0
+
+    assert len(list(db.scalars(select(Account)))) == 13
+    assert len(list(db.scalars(select(AccountingPeriod)))) == 12

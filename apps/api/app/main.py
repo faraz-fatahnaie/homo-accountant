@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,12 +22,37 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
+
+def _maybe_seed_dev_data() -> None:
+    """Dev convenience: seed demo users + chart + periods when enabled."""
+    if settings.seed_demo_users and not settings.is_production:
+        from app.core.db import SessionLocal
+        from app.domains.identity.seed import seed_dev_data
+
+        db = SessionLocal()
+        try:
+            result = seed_dev_data(db)
+            if any(result.values()):
+                logger.info("dev data seeded on startup", extra=result)
+        except Exception:  # noqa: BLE001 — never block startup on seeding
+            logger.exception("dev data seeding failed; continuing startup")
+        finally:
+            db.close()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    _maybe_seed_dev_data()
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
     docs_url="/docs" if not settings.is_production else None,
     redoc_url=None,
     openapi_url="/openapi.json" if not settings.is_production else None,
+    lifespan=lifespan,
 )
 
 # --- CORS (narrow allowlist) ---
