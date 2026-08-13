@@ -95,7 +95,8 @@ deployment-engineer (containers/CI/deployment), project-manager (slice tracking)
       (verified: 144 backend tests 94% cov; 29 frontend; 32 E2E)
 - [x] **Slice 4 — Customer invoices, receivables, incoming payments, PDF invoices**
       (verified: 164 backend 94% cov · 33 frontend · 42 E2E)
-- [ ] **Slice 5 — Supplier bills, payables, outgoing payments**
+- [x] **Slice 5 — Supplier bills, payables, outgoing payments**
+      (verified: 182 backend 94% cov · 37 frontend · 46 E2E)
 - [ ] **Slice 6 — Funding events (investment/loan/grant/revenue) + ledger mappings**
 - [ ] **Slice 7 — Excel-like tables, saved views, CSV/XLSX/PDF exports, safe no-code query builder**
 - [ ] **Slice 8 — Real dashboard KPIs, financial reports, drill-downs, reconciliation**

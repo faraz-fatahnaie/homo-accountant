@@ -363,6 +363,60 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   void: "باطلشده",
 };
 
+/* ---------------- bills (payables) ---------------- */
+
+export type BillStatus = "draft" | "open" | "partially_paid" | "paid" | "void";
+
+export interface BillPaymentOut {
+  id: number;
+  amount: number;
+  paid_at: string;
+  method: PaymentMethod;
+  reference: string | null;
+  journal_entry_id: number | null;
+  created_at: string;
+}
+
+export interface BillOut {
+  id: number;
+  number: string | null;
+  vendor_id: number;
+  vendor_name: string;
+  project_id: number | null;
+  account_code: string;
+  account_name: string;
+  issue_date: string;
+  due_date: string;
+  bill_number: string | null;
+  status: BillStatus;
+  memo: string;
+  total: number;
+  paid_total: number;
+  balance: number;
+  is_overdue: boolean;
+  journal_entry_id: number | null;
+  created_at: string;
+  payments: BillPaymentOut[];
+}
+
+export const BILL_STATUS_LABELS: Record<BillStatus, string> = {
+  draft: "پیشنویس",
+  open: "باز (ثبتشده)",
+  partially_paid: "جزیی پرداختشده",
+  paid: "پرداختشده",
+  void: "باطلشده",
+};
+
+export const billsApi = {
+  list: () => api<BillOut[]>("/bills"),
+  detail: (id: number) => api<BillOut>(`/bills/${id}`),
+  create: (body: object) => api<BillOut>("/bills", { method: "POST", body }),
+  post: (id: number) => api<BillOut>(`/bills/${id}/post`, { method: "POST" }),
+  pay: (id: number, body: { amount: number; paid_at: string; method: PaymentMethod; reference?: string }) =>
+    api<BillPaymentOut>(`/bills/${id}/payments`, { method: "POST", body }),
+  voidEntry: (id: number) => api<BillOut>(`/bills/${id}/void`, { method: "POST" }),
+};
+
 export const invoicesApi = {
   list: () => api<InvoiceOut[]>("/invoices"),
   detail: (id: number) => api<InvoiceOut>(`/invoices/${id}`),

@@ -15,6 +15,7 @@ from app.api.errors import register_error_handlers
 from app.api.routes import auth, health, users
 from app.core.config import get_settings
 from app.core.logging import setup_logging
+from app.domains.bills import routes as bills_routes
 from app.domains.contacts import routes as contacts_routes
 from app.domains.expenses import routes as expenses_routes
 from app.domains.invoices import routes as invoices_routes
@@ -108,6 +109,7 @@ app.include_router(contacts_routes.router, prefix=settings.api_prefix)
 app.include_router(projects_routes.router, prefix=settings.api_prefix)
 app.include_router(expenses_routes.router, prefix=settings.api_prefix)
 app.include_router(invoices_routes.router, prefix=settings.api_prefix)
+app.include_router(bills_routes.router, prefix=settings.api_prefix)
 
 register_error_handlers(app)
 
