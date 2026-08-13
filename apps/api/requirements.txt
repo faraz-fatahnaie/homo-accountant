@@ -12,6 +12,7 @@ greenlet==3.5.5
 h11==0.16.0
 httpcore==1.0.9
 idna==3.18
+jdatetime==6.1.0
 Mako==1.4.1
 MarkupSafe==3.0.3
 psycopg-binary==3.3.4

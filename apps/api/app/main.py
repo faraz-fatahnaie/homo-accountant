@@ -14,6 +14,7 @@ from app.api.errors import register_error_handlers
 from app.api.routes import auth, health, users
 from app.core.config import get_settings
 from app.core.logging import setup_logging
+from app.domains.ledger import routes as ledger_routes
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -72,6 +73,7 @@ async def security_and_trace(
 app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(users.router, prefix=settings.api_prefix)
+app.include_router(ledger_routes.router, prefix=settings.api_prefix)
 
 register_error_handlers(app)
 
