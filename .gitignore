@@ -61,6 +61,6 @@ Thumbs.db
 .npm/
 
 # --- Publish artifacts (workspace only, not in repo) ---
-arya-history.bundle
-arya-source.zip
+homo-accountant-history.bundle
+homo-accountant-source.zip
 PUBLISH.md
