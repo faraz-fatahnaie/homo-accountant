@@ -311,6 +311,86 @@ export const expensesApi = {
   },
 };
 
+/* ---------------- invoices ---------------- */
+
+export type InvoiceStatus = "draft" | "issued" | "partially_paid" | "paid" | "void";
+
+export interface InvoiceItemOut {
+  id: number;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  discount: number;
+  line_total: number;
+}
+
+export interface InvoicePaymentOut {
+  id: number;
+  amount: number;
+  paid_at: string;
+  method: PaymentMethod;
+  reference: string | null;
+  journal_entry_id: number | null;
+  created_at: string;
+}
+
+export interface InvoiceOut {
+  id: number;
+  number: string | null;
+  customer_id: number;
+  customer_name: string;
+  project_id: number | null;
+  issue_date: string;
+  due_date: string;
+  status: InvoiceStatus;
+  notes: string | null;
+  payment_instructions: string | null;
+  total: number;
+  paid_total: number;
+  balance: number;
+  is_overdue: boolean;
+  journal_entry_id: number | null;
+  created_at: string;
+  items: InvoiceItemOut[];
+  payments: InvoicePaymentOut[];
+}
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: "پیشنویس",
+  issued: "صادرشده",
+  partially_paid: "جزیی پرداختشده",
+  paid: "پرداختشده",
+  void: "باطلشده",
+};
+
+export const invoicesApi = {
+  list: () => api<InvoiceOut[]>("/invoices"),
+  detail: (id: number) => api<InvoiceOut>(`/invoices/${id}`),
+  create: (body: object) => api<InvoiceOut>("/invoices", { method: "POST", body }),
+  issue: (id: number) => api<InvoiceOut>(`/invoices/${id}/issue`, { method: "POST" }),
+  pay: (id: number, body: { amount: number; paid_at: string; method: PaymentMethod; reference?: string }) =>
+    api<InvoicePaymentOut>(`/invoices/${id}/payments`, { method: "POST", body }),
+  voidEntry: (id: number) => api<InvoiceOut>(`/invoices/${id}/void`, { method: "POST" }),
+  /** Download the PDF via an authenticated fetch → blob (a plain <a href>
+   *  cannot carry the Authorization header). */
+  async downloadPdf(id: number, fallbackName = `invoice-${id}.pdf`) {
+    const { access } = getTokens();
+    const response = await fetch(`${API_BASE}/invoices/${id}/pdf`, {
+      headers: access ? { Authorization: `Bearer ${access}` } : {},
+    });
+    if (!response.ok) throw new ApiError(response.status, null);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fallbackName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  },
+};
+
 export const entriesApi = {
   list: (params?: { period_year?: number; period_month?: number }) =>
     api<JournalEntryOut[]>(`/journal-entries${queryString(params ?? {})}`),

@@ -44,6 +44,7 @@ def clean_db(migrated_db: None) -> None:
         conn.execute(
             text(
                 "TRUNCATE TABLE attachments, expenses, projects, contacts, "
+                "invoice_payments, invoice_items, invoices, "
                 "refresh_tokens, users, companies RESTART IDENTITY CASCADE"
             )
         )

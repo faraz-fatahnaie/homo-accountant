@@ -88,7 +88,7 @@ export default function NewExpensePage() {
       if (postAfter) {
         await expensesApi.post(expense.id);
       }
-      void queryClient.invalidateQueries({ queryKey: ["expenses", "entries", "balances"] });
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] }); void queryClient.invalidateQueries({ queryKey: ["entries"] }); void queryClient.invalidateQueries({ queryKey: ["balances"] });
       router.push("/expenses");
     },
     onError: (err) => setError(err instanceof ApiError ? err.message : "خطای ناشناخته"),

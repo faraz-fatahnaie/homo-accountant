@@ -24,7 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/expenses", label: "هزینهها", icon: "M12 5v14M5 12h14", available: true },
   { href: "/contacts", label: "طرف حسابها", icon: "M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", available: true },
   { href: "/projects", label: "پروژهها", icon: "M3 7h18M3 12h12M3 17h8", available: true },
-  { href: "/invoices", label: "صورتحسابها", icon: "M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zM14 2v5h5", available: false },
+  { href: "/invoices", label: "صورتحسابها", icon: "M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zM14 2v5h5", available: true },
   { href: "/reports", label: "گزارشها", icon: "M3 3v18h18M7 14l4-4 3 3 5-6", available: false },
   { href: "/guide", label: "راهنمای استفاده", icon: "M12 3.5l10 17H2zM12 10v4.5M12 17.6v.2", available: true },
 ];

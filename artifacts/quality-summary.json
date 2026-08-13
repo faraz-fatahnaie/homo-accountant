@@ -21,12 +21,13 @@
     },
     "backend_pytest": {
       "status": "pass",
-      "passed": 144,
+      "passed": 164,
       "failed": 0,
       "coverage_pct": 94.0,
       "coverage_floor": 80,
       "ledger_service_coverage_pct": 99,
-      "expenses_service_coverage_pct": 92
+      "expenses_service_coverage_pct": 92,
+      "invoices_service_coverage_pct": 93
     },
     "migrations": {
       "status": "pass",
@@ -42,7 +43,7 @@
     },
     "frontend_vitest": {
       "status": "pass",
-      "passed": 29,
+      "passed": 33,
       "failed": 0
     },
     "frontend_build": {
@@ -51,9 +52,9 @@
     },
     "e2e_playwright": {
       "status": "pass",
-      "passed": 32,
+      "passed": 42,
       "failed": 0,
-      "note": "roles × desktop/mobile; RBAC; ledger + expense journeys (contact→expense→post); per-role guide"
+      "note": "real stack; ledger+expense+invoice journeys; RBAC; per-role guide; PDF download"
     },
     "docker_build": {
       "status": "not_run",

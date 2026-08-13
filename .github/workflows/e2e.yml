@@ -36,6 +36,13 @@ jobs:
           done
           curl -sf http://localhost:8000/api/v1/health/ready
           curl -sf -o /dev/null http://localhost:3000/login
+      - name: Pre-warm Next.js dev routes (avoid first-compile stalls)
+        run: |
+          for path in /login /dashboard /transactions /journal-entries/new /accounts \
+                      /periods /expenses /expenses/new /contacts /projects \
+                      /invoices /invoices/new /invoices/1 /guide; do
+            curl -sf -o /dev/null "http://localhost:3000$path" || true
+          done
       - name: Install Playwright
         working-directory: tests/e2e
         run: |

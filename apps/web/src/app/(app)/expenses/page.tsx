@@ -50,11 +50,19 @@ export default function ExpensesPage() {
 
   const postMutation = useMutation({
     mutationFn: (id: number) => expensesApi.post(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["expenses", "entries", "balances"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      void queryClient.invalidateQueries({ queryKey: ["entries"] });
+      void queryClient.invalidateQueries({ queryKey: ["balances"] });
+    },
   });
   const voidMutation = useMutation({
     mutationFn: (id: number) => expensesApi.voidEntry(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["expenses", "entries", "balances"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      void queryClient.invalidateQueries({ queryKey: ["entries"] });
+      void queryClient.invalidateQueries({ queryKey: ["balances"] });
+    },
   });
 
   return (

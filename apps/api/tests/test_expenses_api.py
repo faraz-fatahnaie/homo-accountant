@@ -240,7 +240,9 @@ class TestExpenseErrorPaths:
             headers=headers,
         ).json()
         assert created["code"] == "607"
-        client.patch(f"/api/v1/accounts/{created['id']}", json={"is_active": False}, headers=headers)
+        client.patch(
+            f"/api/v1/accounts/{created['id']}", json={"is_active": False}, headers=headers
+        )
         resp = client.post(
             "/api/v1/expenses", json=_expense_payload(account_code="607"), headers=headers
         )

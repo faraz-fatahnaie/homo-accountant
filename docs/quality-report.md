@@ -23,7 +23,7 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 | Frontend typecheck | ✅ pass | `tsc --noEmit`, strict options on |
 | Frontend Vitest | ✅ 26/26 | API client, login, Solar Hijri formatter, transactions, user guide |
 | Frontend build | ✅ pass | `next build` (standalone) |
-| Playwright E2E | ✅ 32/32 | real stack; ledger + expense journeys; RBAC; per-role guide |
+| Playwright E2E | ✅ 42/42 | real stack; ledger + expense + invoice journeys; PDF download |
 | Docker builds | ⛔ not run | no docker in sandbox — authored; runs in `docker.yml` |
 | Security scans | ⛔ not run | wired in `security.yml` (pip-audit, npm audit, trufflehog, CodeQL, trivy) |
 
