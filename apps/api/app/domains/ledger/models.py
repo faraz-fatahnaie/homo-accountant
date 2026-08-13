@@ -185,12 +185,15 @@ class PeriodSequence(Base):
     """Per-period counters used to generate safe sequential references."""
 
     __tablename__ = "period_sequences"
-    __table_args__ = (UniqueConstraint("company_id", "year", "month", name="uq_seq_company_ym"),)
+    __table_args__ = (
+        UniqueConstraint("company_id", "year", "month", "kind", name="uq_seq_company_ym_kind"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)
     year: Mapped[int] = mapped_column(Integer, nullable=False)
     month: Mapped[int] = mapped_column(Integer, nullable=False)
+    kind: Mapped[str] = mapped_column(String(10), nullable=False, default="J")
     last_number: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 

@@ -15,7 +15,10 @@ from app.api.errors import register_error_handlers
 from app.api.routes import auth, health, users
 from app.core.config import get_settings
 from app.core.logging import setup_logging
+from app.domains.contacts import routes as contacts_routes
+from app.domains.expenses import routes as expenses_routes
 from app.domains.ledger import routes as ledger_routes
+from app.domains.projects import routes as projects_routes
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -100,6 +103,9 @@ app.include_router(health.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(users.router, prefix=settings.api_prefix)
 app.include_router(ledger_routes.router, prefix=settings.api_prefix)
+app.include_router(contacts_routes.router, prefix=settings.api_prefix)
+app.include_router(projects_routes.router, prefix=settings.api_prefix)
+app.include_router(expenses_routes.router, prefix=settings.api_prefix)
 
 register_error_handlers(app)
 

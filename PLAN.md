@@ -91,7 +91,8 @@ deployment-engineer (containers/CI/deployment), project-manager (slice tracking)
 - [x] **UX additions (after slice 2)**: real cash & bank balance on dashboard from ledger,
       account balances API, amount-input parsing fix (Persian digits), **user guide page
       «راهنمای استفاده»** (learning tab) with quick start/roles/journeys/FAQ/roadmap
-- [ ] **Slice 3 — Contacts, projects, expenses, attachments, approval config**
+- [x] **Slice 3 — Contacts, projects, expenses, attachments**
+      (verified: 144 backend tests 94% cov; 29 frontend; 32 E2E)
 - [ ] **Slice 4 — Customer invoices, receivables, incoming payments, PDF invoices**
 - [ ] **Slice 5 — Supplier bills, payables, outgoing payments**
 - [ ] **Slice 6 — Funding events (investment/loan/grant/revenue) + ledger mappings**

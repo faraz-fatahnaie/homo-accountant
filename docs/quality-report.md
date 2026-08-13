@@ -17,13 +17,13 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 | Backend Ruff | ✅ pass | `ruff check` + `ruff format --check` clean |
 | Backend mypy | ✅ pass | strict, 18 source files, 0 issues |
 | Backend pytest | ✅ 108/108 | real PostgreSQL (`arya_test`), migrations applied |
-| Backend coverage | ✅ 93% | floor 80%; ledger domain service 99% (floor 90%) |
+| Backend coverage | ✅ 94% | floor 80%; ledger 99%, expenses 92% (floor 90% accounting) |
 | Migrations | ✅ pass | upgrade on dev+test; downgrade→upgrade exercised in tests |
 | Frontend ESLint | ✅ pass | 0 errors / 0 warnings |
 | Frontend typecheck | ✅ pass | `tsc --noEmit`, strict options on |
 | Frontend Vitest | ✅ 26/26 | API client, login, Solar Hijri formatter, transactions, user guide |
 | Frontend build | ✅ pass | `next build` (standalone) |
-| Playwright E2E | ✅ 30/30 | real stack; 4 roles × desktop+mobile; RBAC direct-API; themes; ledger journey; per-role user guide |
+| Playwright E2E | ✅ 32/32 | real stack; ledger + expense journeys; RBAC; per-role guide |
 | Docker builds | ⛔ not run | no docker in sandbox — authored; runs in `docker.yml` |
 | Security scans | ⛔ not run | wired in `security.yml` (pip-audit, npm audit, trufflehog, CodeQL, trivy) |
 

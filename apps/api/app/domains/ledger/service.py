@@ -269,24 +269,32 @@ def create_draft_entry(
     return entry
 
 
-def _next_reference(db: Session, company_id: int, year: int, month: int) -> str:
-    """Race-safe sequential reference per (company, jalali year, month)."""
+def _next_reference(db: Session, company_id: int, year: int, month: int, kind: str = "J") -> str:
+    """Race-safe sequential reference per (company, jalali year, month, kind)."""
     seq = db.scalar(
         select(PeriodSequence).where(
             PeriodSequence.company_id == company_id,
             PeriodSequence.year == year,
             PeriodSequence.month == month,
+            PeriodSequence.kind == kind,
         )
     )
     if seq is None:
-        seq = PeriodSequence(company_id=company_id, year=year, month=month, last_number=0)
+        seq = PeriodSequence(
+            company_id=company_id, year=year, month=month, kind=kind, last_number=0
+        )
         db.add(seq)
         db.flush()
     # Lock the row for the remainder of the transaction (safe sequencing).
     db.execute(select(PeriodSequence.id).where(PeriodSequence.id == seq.id).with_for_update())
     seq.last_number += 1
     db.flush()
-    return f"J-{year}-{seq.last_number:04d}"
+    return f"{kind}-{year}-{seq.last_number:04d}"
+
+
+def next_reference(db: Session, company_id: int, year: int, month: int, kind: str) -> str:
+    """Public helper for operational domains (EXP/INV/BIL/PAY/FDG…)."""
+    return _next_reference(db, company_id, year, month, kind)
 
 
 def _assert_balanced(lines: list[JournalLine]) -> tuple[int, int]:

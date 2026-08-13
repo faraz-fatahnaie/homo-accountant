@@ -42,7 +42,10 @@ def clean_db(migrated_db: None) -> None:
     """Truncate all tables (except alembic_version) before each test."""
     with engine.begin() as conn:
         conn.execute(
-            text("TRUNCATE TABLE refresh_tokens, users, companies RESTART IDENTITY CASCADE")
+            text(
+                "TRUNCATE TABLE attachments, expenses, projects, contacts, "
+                "refresh_tokens, users, companies RESTART IDENTITY CASCADE"
+            )
         )
     yield
 

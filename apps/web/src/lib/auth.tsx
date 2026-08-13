@@ -20,6 +20,7 @@ interface AuthState {
   loading: boolean;
   isWriter: boolean; // accountant or owner (can post/close)
   isOwner: boolean;
+  canDraft: boolean; // owner | accountant | staff (can create expense drafts)
   refetch: () => Promise<void>;
   logout: () => void;
 }
@@ -63,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     isWriter: user?.role === "owner" || user?.role === "accountant",
     isOwner: user?.role === "owner",
+    canDraft:
+      user?.role === "owner" || user?.role === "accountant" || user?.role === "staff",
     refetch: load,
     logout,
   };

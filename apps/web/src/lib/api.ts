@@ -72,7 +72,8 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     Accept: "application/json",
     ...headers,
   };
-  if (body !== undefined) requestHeaders["Content-Type"] = "application/json";
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  if (body !== undefined && !isFormData) requestHeaders["Content-Type"] = "application/json";
   if (auth) {
     const { access } = getTokens();
     if (access) requestHeaders.Authorization = `Bearer ${access}`;
@@ -80,7 +81,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 
   const init: RequestInit = { method, headers: requestHeaders, credentials: "omit" };
   if (body !== undefined) {
-    init.body = JSON.stringify(body);
+    init.body = isFormData ? (body as FormData) : JSON.stringify(body);
   }
   const response = await fetch(`${API_BASE}${path}`, init);
 
@@ -189,6 +190,125 @@ export const accountsApi = {
   create: (body: { code: string; name: string; type: AccountType; parent_code?: string }) =>
     api<AccountOut>("/accounts", { method: "POST", body }),
   balances: () => api<AccountBalanceOut[]>("/accounts/balances"),
+};
+
+/* ---------------- contacts ---------------- */
+
+export interface ContactOut {
+  id: number;
+  name: string;
+  roles: string[];
+  phone: string | null;
+  email: string | null;
+  national_id: string | null;
+  address: string | null;
+  payment_terms_days: number;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export type ContactRole =
+  | "customer" | "vendor" | "employee" | "investor" | "lender" | "grantor" | "other";
+
+export const CONTACT_ROLE_LABELS: Record<ContactRole, string> = {
+  customer: "مشتری",
+  vendor: "تأمینکننده",
+  employee: "کارمند",
+  investor: "سرمایهگذار",
+  lender: "وامدهنده (بانک)",
+  grantor: "کمککننده",
+  other: "سایر",
+};
+
+export const contactsApi = {
+  list: (activeOnly = false) =>
+    api<ContactOut[]>(`/contacts${activeOnly ? "?active_only=true" : ""}`),
+  create: (body: Partial<ContactOut>) => api<ContactOut>("/contacts", { method: "POST", body }),
+};
+
+/* ---------------- projects ---------------- */
+
+export type ProjectStatus = "active" | "completed" | "on_hold";
+
+export interface ProjectOut {
+  id: number;
+  name: string;
+  status: ProjectStatus;
+  description: string | null;
+  responsible_person: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  budget: number;
+  created_at: string;
+}
+
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  active: "فعال",
+  completed: "تکمیلشده",
+  on_hold: "معلق",
+};
+
+export const projectsApi = {
+  list: (activeOnly = false) =>
+    api<ProjectOut[]>(`/projects${activeOnly ? "?active_only=true" : ""}`),
+  create: (body: Partial<ProjectOut>) => api<ProjectOut>("/projects", { method: "POST", body }),
+};
+
+/* ---------------- expenses ---------------- */
+
+export type PaymentMethod = "cash" | "bank" | "online";
+export type ExpenseStatus = "draft" | "posted" | "voided";
+
+export interface AttachmentOut {
+  id: number;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+}
+
+export interface ExpenseOut {
+  id: number;
+  number: string | null;
+  entry_date: string;
+  contact_id: number | null;
+  project_id: number | null;
+  account_code: string;
+  account_name: string;
+  amount: number;
+  payment_method: PaymentMethod;
+  reference: string | null;
+  description: string;
+  notes: string | null;
+  status: ExpenseStatus;
+  journal_entry_id: number | null;
+  created_at: string;
+  posted_at: string | null;
+  attachments: AttachmentOut[];
+}
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "نقدی",
+  bank: "انتقال بانکی",
+  online: "درگاه آنلاین",
+};
+
+export const expensesApi = {
+  list: () => api<ExpenseOut[]>("/expenses"),
+  detail: (id: number) => api<ExpenseOut>(`/expenses/${id}`),
+  create: (body: object) => api<ExpenseOut>("/expenses", { method: "POST", body }),
+  post: (id: number) => api<ExpenseOut>(`/expenses/${id}/post`, { method: "POST" }),
+  voidEntry: (id: number) => api<ExpenseOut>(`/expenses/${id}/void`, { method: "POST" }),
+  uploadAttachment: (expenseId: number, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return api<AttachmentOut>(`/expenses/${expenseId}/attachments`, {
+      method: "POST",
+      auth: true,
+      body: form,
+    });
+  },
 };
 
 export const entriesApi = {

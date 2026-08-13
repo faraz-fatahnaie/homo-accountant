@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     admin_bootstrap_email: str = ""
     admin_bootstrap_password: str = ""
 
+    # --- Files / attachments ---
+    media_dir: str = "media"  # local disk root for uploads (dev); S3 in prod slice
+    max_upload_bytes: int = 5 * 1024 * 1024
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
