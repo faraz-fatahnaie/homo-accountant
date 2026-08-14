@@ -55,6 +55,7 @@ jobs:
           format: sarif
           output: trivy-api.sarif
           severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
           # Fail only on FIXABLE high/critical findings. Base images are
           # pinned to digests — bump them deliberately (Dockerfile "bump:"
           # comments) rather than chasing moving tags.
@@ -68,6 +69,7 @@ jobs:
           format: sarif
           output: trivy-web.sarif
           severity: CRITICAL,HIGH
+          limit-severities-for-sarif: true
           ignore-unfixed: true
           trivyignores: .trivyignore
           exit-code: "1"
