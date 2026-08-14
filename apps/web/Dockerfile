@@ -23,7 +23,15 @@ RUN npm run build
 FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
-RUN addgroup -S app && adduser -S app -G app
+# Runtime needs Node only. Upgrade Alpine security fixes and remove npm/corepack
+# so build tooling and its dependency tree are not shipped in production.
+RUN apk upgrade --no-cache \
+ && rm -rf /usr/local/lib/node_modules \
+            /usr/local/bin/npm /usr/local/bin/npx \
+            /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx \
+            /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+ && addgroup -S app \
+ && adduser -S app -G app
 COPY --from=build /app/public ./public
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
