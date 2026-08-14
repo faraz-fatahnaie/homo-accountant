@@ -1,0 +1,13 @@
+# Trivy ignore list (docker.yml scans api/web images).
+#
+# Rule: only add an entry here for a specific, reviewed, accepted finding,
+# with the advisory ID and a reason. NEVER add broad patterns or the whole
+# file — the point of the gate is to fail on new fixable HIGH/CRITICALs.
+#
+# Format (see trivy docs):
+#   CVE-2025-XXXXX   # reason, tracked in docs/security.md
+#
+# Currently empty — all fixable HIGH/CRITICAL findings must be fixed by
+# bumping a base-image digest (see Dockerfiles "bump:" comments) or a
+# dependency pin. Unfixable findings are already filtered by
+# ignore-unfixed: true in the workflow.

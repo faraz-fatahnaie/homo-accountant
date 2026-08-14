@@ -6,7 +6,7 @@ name: homo-accountant-prod
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:44c4ee9810eff91f7eab4d822642e01115b1a9eccce4bcbdde7604752d68eac6
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -21,7 +21,7 @@ services:
       retries: 12
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -84,7 +84,7 @@ services:
       start_period: 20s
 
   nginx:
-    image: nginx:1.27-alpine
+    image: nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
     restart: unless-stopped
     ports:
       - "80:80"

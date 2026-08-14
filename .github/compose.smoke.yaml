@@ -2,8 +2,9 @@
 # compose.prod.yaml intentionally publishes ONLY nginx (80/443) — the api and
 # web services are expose-only. This override publishes their ports on the
 # runner host so docker.yml can smoke-test them without TLS certs.
-name: homo-accountant-prod-smoke
-
+# NOTE: do NOT set a top-level `name:` here — it would override the project
+# name from compose.prod.yaml and make later `docker compose -f compose.prod.yaml
+# ps/logs` commands target a different (empty) project.
 services:
   api:
     ports:

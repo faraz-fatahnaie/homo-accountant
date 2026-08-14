@@ -89,11 +89,15 @@
     },
     "workflows": {
       "status": "pass",
-      "note": "ci/security/docker/e2e reviewed & fixed: py312 lockfile, vitest coverage provider, api-client generate script, docker.yml env + smoke override + trivy v0.36.0, trufflehog v3.88.25, strict npm audit; all YAML validated"
+      "note": "ci/security/docker/e2e reviewed & fixed: py312 lockfile, vitest coverage provider, api-client generate script, docker.yml env + smoke override (project-name bug fixed: override no longer overrides compose name) + trivy v0.36.0 ignore-unfixed + .trivyignore, base images pinned to digests (python:3.12-slim, node:20-alpine, postgres:16-alpine, minio, nginx), trufflehog v3.88.25, strict npm audit; all YAML validated"
     },
     "scripts": {
       "status": "pass",
       "note": "scripts/run-local.sh + scripts/deploy.sh: bash -n + shellcheck clean; run-local.sh --bare smoke-tested end-to-end (migrate, seed, API+web healthy, login OK, clean shutdown)"
+    },
+    "docker_base_pins": {
+      "status": "pass",
+      "note": "base images pinned to immutable digests (python:3.12-slim, node:20-alpine, postgres:16-alpine, minio, nginx); bump process documented in Dockerfile #bump comments"
     }
   },
   "known_limitations": [

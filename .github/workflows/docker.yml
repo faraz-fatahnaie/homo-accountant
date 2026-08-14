@@ -55,9 +55,11 @@ jobs:
           format: sarif
           output: trivy-api.sarif
           severity: CRITICAL,HIGH
-          # Fail only on FIXABLE high/critical findings; unfixed base-image
-          # CVEs are tracked by bumping python:3.12-slim monthly (see docs).
+          # Fail only on FIXABLE high/critical findings. Base images are
+          # pinned to digests — bump them deliberately (Dockerfile "bump:"
+          # comments) rather than chasing moving tags.
           ignore-unfixed: true
+          trivyignores: .trivyignore
           exit-code: "1"
       - name: Image scan (trivy) — Web
         uses: aquasecurity/trivy-action@v0.36.0
@@ -67,6 +69,7 @@ jobs:
           output: trivy-web.sarif
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          trivyignores: .trivyignore
           exit-code: "1"
       - name: Upload trivy reports
         if: always()

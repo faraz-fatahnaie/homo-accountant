@@ -94,8 +94,14 @@ and approval.
   (0 vulnerabilities), trufflehog secret scan, CodeQL.
 - `docker.yml` — builds api+web, boots the prod stack via `.github/compose.smoke.yaml`
   (publishes :8000/:3000 for smoke tests; prod compose keeps ports nginx-only), scans both
-  images with trivy (fails only on fixable HIGH/CRITICAL). Publish/deploy stays disabled
-  until the owner adds registry credentials.
+  images with trivy (fails only on FIXABLE HIGH/CRITICAL via `ignore-unfixed`; documented
+  accepts go in `.trivyignore`). Publish/deploy stays disabled until the owner adds registry
+  credentials.
+- **Base images are pinned to digests** (python:3.12-slim, node:20-alpine in the Dockerfiles;
+  postgres:16-alpine, minio, nginx in compose.prod.yaml) for reproducible, supply-chain-safe
+  builds. To update, bump the digest after `docker pull <image>` and re-run the Docker
+  workflow (the Dockerfile `# bump:` comments mark every pin). The weekly schedule re-runs
+  scans; it does NOT silently change images.
 - `e2e.yml` — full Playwright suite (78 tests, desktop+mobile) against the dev compose stack.
 - **Lockfile is Python-3.12-safe**: `requirements.txt` pins resolve on 3.12 (greenlet 3.2.5),
   matching CI and the `python:3.12-slim` Docker image. If regenerating the lockfile, verify

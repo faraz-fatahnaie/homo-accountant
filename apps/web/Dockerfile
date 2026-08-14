@@ -1,11 +1,11 @@
 # ---- Stage 1: deps ----
-FROM node:20-alpine AS deps
+FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS deps  # bump: docker pull node:20-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 # ---- Stage 2: build ----
-FROM node:20-alpine AS build
+FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS build
 WORKDIR /app
 # API origin the browser will call. In production the web app is served
 # through nginx on the same origin, so the client bundle must inline the
@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # ---- Stage 3: runtime (standalone) ----
-FROM node:20-alpine AS runner
+FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 RUN addgroup -S app && adduser -S app -G app
