@@ -162,12 +162,19 @@ export function Money({ value, className }: { value: number; className?: string 
 export function ReportTable({
   head,
   children,
+  label = "جدول گزارش",
 }: {
   head: React.ReactNode;
   children: React.ReactNode;
+  label?: string;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+    <div
+      className="overflow-x-auto rounded-lg border border-border bg-surface"
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+    >
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-surface-2 text-[11px] font-bold text-muted">

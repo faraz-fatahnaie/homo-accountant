@@ -77,3 +77,16 @@ The `docker.yml` `publish` job is **disabled by default** (`if: ${{ false }}`). 
 configure a registry (GHCR/Docker Hub) token as a secret, review the job, and explicitly
 authorize — per project policy, nothing is published or deployed without owner credentials
 and approval.
+
+## 8. Security updates (slice 9)
+
+- **Keep Next.js patched:** the app pins `next@15.5.23` (CVE-2025-66478 React2Shell and the
+  July 2026 advisories are only fixed in 15.5.21+ / 16.2.11+ — 15.3.x is NOT patched). Before
+  each release run `npm audit` in `apps/web` (0 vulnerabilities expected) and
+  `pip-audit`/`pip install --upgrade` in `apps/api`.
+- **CSP** is delivered by `apps/web/src/middleware.ts` (per-request). Do NOT move it into
+  `next.config.ts` headers — a static CSP breaks Next.js RSC inline scripts (verified).
+- **Uploads** are magic-byte validated server-side; the declared content-type is never trusted.
+- **Certs** live in `infra/nginx/ssl/` (gitignored) — never commit them.
+- OpenAPI contract snapshot: `packages/api-client/src/schema.d.ts` is committed and checked for
+  drift in CI (`ci.yml` → contract-drift); regenerate with `npm run generate` when routes change.

@@ -80,7 +80,11 @@ export default function Shell({ children }: { children: ReactNode }) {
             <div className="text-[10px] text-[var(--sb-muted)]">سامانه حسابداری</div>
           </div>
         </div>
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
+        <nav
+          aria-label="منوی اصلی"
+          tabIndex={0}
+          className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2 focus-visible:outline-primary"
+        >
           {visible.map((item) => {
             const active = pathname.startsWith(item.href);
             return item.available ? (

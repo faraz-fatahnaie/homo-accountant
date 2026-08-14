@@ -5,8 +5,8 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 
 ## Last verified
 
-- **Commit:** `3df4d92` (slice 8 — dashboard KPIs, financial reports, drill-downs, reconciliation)
-- **UTC:** 2026-08-13T21:45:00Z
+- **Commit:** slice 9 working tree (hardening) — commit lands with this slice
+- **UTC:** 2026-08-14T07:50:00Z
 - **Environment:** Debian 13 sandbox · Python 3.13.14 · Node 20.20.2 · PostgreSQL 17.10
   (local) · Chromium 151 (Playwright)
 
@@ -16,16 +16,16 @@ Machine-readable copy: `artifacts/quality-summary.json`.
 |---|---|---|
 | Backend Ruff | ✅ pass | `ruff check` + `ruff format --check` clean |
 | Backend mypy | ✅ pass | strict, 18 source files, 0 issues |
-| Backend pytest | ✅ 231/231 | real PostgreSQL (`arya_test`), migrations applied |
-| Backend coverage | ✅ 93% | floor 80%; ledger 99%, expenses 92%; **reports 96%** |
+| Backend pytest | ✅ 239/239 | real PostgreSQL (`arya_test`), migrations applied |
+| Backend coverage | ✅ 93% | floor 80%; ledger 99%; reports 96% |
 | Migrations | ✅ pass | upgrade on dev+test; downgrade→upgrade exercised in tests |
 | Frontend ESLint | ✅ pass | 0 errors / 0 warnings |
 | Frontend typecheck | ✅ pass | `tsc --noEmit`, strict options on |
 | Frontend Vitest | ✅ 52/52 | + reports hub/reconciliation, trial balance, dashboard KPIs |
 | Frontend build | ✅ pass | `next build` (standalone) |
-| Playwright E2E | ✅ 54/54 | real stack; report journeys to be added in the slice-9 E2E pass |
-| Docker builds | ⛔ not run | no docker in sandbox — authored; runs in `docker.yml` |
-| Security scans | ⛔ not run | wired in `security.yml` (pip-audit, npm audit, trufflehog, CodeQL, trivy) |
+| Playwright E2E | ✅ 78/78 | desktop+mobile; reports journeys; axe WCAG 2.2 A/AA scans (0 serious/critical) |
+| Docker builds | ⛔ not run | no docker in sandbox — compose YAML validated; `docker.yml` runs in CI |
+| Security scans | ✅ npm audit 0 | Next 15.3.4→15.5.23 (CVE-2025-66478); pip-audit/trufflehog/CodeQL/trivy in CI |
 
 ## Commands to reproduce
 

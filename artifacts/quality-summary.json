@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "project": "homo-accountant",
-  "generated_at_utc": "2026-08-13T21:45:00Z",
-  "verified_commit_sha": "3df4d92",
+  "generated_at_utc": "2026-08-14T07:50:00Z",
+  "verified_commit_sha": "3173d19",
   "environment": {
     "os": "Debian 13 (sandbox)",
     "python": "3.13.14",
     "node": "20.20.2",
     "postgres": "17.10 (local real instance; CI/compose uses 16)",
-    "browser": "Chromium headless 151 (Playwright)"
+    "browser": "Chromium headless 151 (Playwright, real)"
   },
   "checks": {
     "backend_ruff": {
@@ -21,9 +21,9 @@
     },
     "backend_pytest": {
       "status": "pass",
-      "passed": 231,
+      "passed": 239,
       "failed": 0,
-      "coverage_pct": 93.2,
+      "coverage_pct": 93.3,
       "coverage_floor": 80,
       "ledger_service_coverage_pct": 99,
       "expenses_service_coverage_pct": 92,
@@ -38,7 +38,7 @@
     },
     "frontend_eslint": {
       "status": "pass",
-      "note": "0 errors, 0 warnings"
+      "note": "0 errors, 0 warnings; next@15.5.23 (CVE-2025-66478 fixed)"
     },
     "frontend_typecheck": {
       "status": "pass",
@@ -55,25 +55,39 @@
     },
     "e2e_playwright": {
       "status": "pass",
-      "passed": 54,
+      "passed": 78,
       "failed": 0,
-      "note": "ledger+expense+invoice+bill+funding+query-builder journeys; RBAC; per-role guide; CSV/XLSX/PDF export; reports reachable from dashboard (slice 8 adds report journeys in a follow-up e2e pass)"
+      "note": "desktop + mobile; auth/RBAC; ledger/expense/invoice/bill/funding/query-builder journeys; reports journeys; axe WCAG 2.2 A/AA scans (0 serious/critical); auth-session-resilience fix verified (0/40 flake loop)"
     },
     "docker_build": {
       "status": "not_run",
-      "note": "Docker unavailable in this sandbox; Dockerfiles+compose authored; docker.yml runs in CI"
+      "note": "Docker unavailable in this sandbox; compose.prod YAML validated; docker.yml runs in CI"
     },
     "security_scans": {
       "status": "not_run",
       "note": "npm audit/pip-audit/trivy wired in security.yml; not executed here"
+    },
+    "npm_audit": {
+      "status": "pass",
+      "note": "0 vulnerabilities (prod + full tree); postcss/sharp overrides"
+    },
+    "csp_browser_verified": {
+      "status": "pass",
+      "note": "0 CSP violations, full render in Chromium (static default-src broke RSC — fixed via middleware)"
+    },
+    "nginx_validation": {
+      "status": "pass",
+      "note": "nginx -t clean; login limit_req added; http2 directive modernized"
+    },
+    "backup_restore_rehearsal": {
+      "status": "pass",
+      "note": "pg_dump custom -> gzip -> gunzip|pg_restore round-trip on real PG17; rows intact"
     }
   },
   "known_limitations": [
-    "Docker/container builds and compose-based E2E not executable inside this sandbox (no docker binary) — run `make dev`, `make e2e`, or the GitHub workflows",
-    "Docker/container builds and compose-based E2E not executable inside this sandbox (no docker binary) — run `make dev`, `make e2e`, or the GitHub workflows",
+    "Docker/container builds and compose-based E2E execution happen in CI (no docker binary in this sandbox) — run `make dev`, `make e2e`, or the GitHub workflows",
+    "CSP script-src includes 'unsafe-inline' (Next.js static App Router prerender); revisit nonces when dynamic rendering or nonce-for-static support lands",
     "Backend integration tests target a locally installed PostgreSQL 17; compose/CI uses 16 (no schema divergence expected)",
-    "OpenAPI-generated frontend client (packages/api-client) wired from slice 2 — pending first stable domain contract generation",
-    "Accessibility linting (axe) and PDF/export tests land with their feature slices",
-    "Next.js 15.3.4 pinned in package.json carries CVE-2025-66478; upgrade is scheduled in slice 9 (hardening/security)"
+    "Login rate limiter is in-memory (single process); Redis-backed limiter is the documented scale-out path"
   ]
 }

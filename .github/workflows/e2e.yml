@@ -23,6 +23,7 @@ jobs:
       POSTGRES_USER: arya
       POSTGRES_PASSWORD: e2e_pw
       POSTGRES_DB: arya_dev
+      HOMO_LOGIN_RATE_LIMIT_PER_MINUTE: 1000 # parallel workers would 429 on the prod default
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

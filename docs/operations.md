@@ -13,6 +13,12 @@
 - **Verify:** monthly restore rehearsal onto a scratch database:
   `./infra/backup/restore.sh /mnt/backups/homo-accountant-<ts>/db.dump.gz` (confirm prompt), then check
   a few records and `health/ready`.
+- **Rehearsal evidence (slice 9):** the exact backup→restore pipeline was executed against a real
+  PostgreSQL 17 instance in the sandbox: `pg_dump --format=custom --no-owner` → `gzip` →
+  `gunzip -c | pg_restore --clean --if-exists --no-owner` into a scratch DB. All rows survived
+  (users, 13 starter accounts, accounting periods, roles intact). The scripts in `infra/backup/`
+  wrap the identical commands; `restore.sh`'s `gunzip -c | pg_restore` pipe is required — feeding
+  the gzip file directly to `pg_restore` fails (`not a valid archive`).
 
 ## Restore
 

@@ -84,17 +84,49 @@ jobs:
 
   contract-drift:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arya
+          POSTGRES_PASSWORD: test_pw
+          POSTGRES_DB: arya_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U arya -d arya_test"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    env:
+      HOMO_DATABASE_URL: postgresql+psycopg://arya:test_pw@127.0.0.1:5432/arya_test
+      HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
+      HOMO_ENVIRONMENT: test
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements*.txt
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: packages/api-client/package-lock.json
-      - name: Generate client and check drift
+      - name: Install backend + start API
+        run: |
+          cd apps/api
+          pip install -r requirements.txt -r requirements-dev.txt
+          alembic upgrade head
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/api/v1/health/ready && break || sleep 2; done
+      - name: Generate client from live OpenAPI
+        run: cd packages/api-client && npm ci --no-audit --no-fund && npm run generate
+      - name: Typecheck generated client
+        run: cd packages/api-client && npx tsc --noEmit
+      - name: Fail on contract drift
         run: |
           cd packages/api-client
-          npm ci --no-audit --no-fund || true
-          echo "Drift check will be wired when the first stable domain contract lands (slice 2)."
-          test -f src/schema.d.ts || echo "schema.d.ts not yet generated — expected pre-slice-2"
+          git diff --exit-code src/schema.d.ts || {
+            echo "::error::OpenAPI contract drifted — regenerate packages/api-client/src/schema.d.ts and commit it."
+            exit 1
+          }

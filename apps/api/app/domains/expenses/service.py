@@ -35,6 +35,24 @@ logger = logging.getLogger(__name__)
 ALLOWED_UPLOAD_TYPES = {"image/jpeg", "image/png", "application/pdf"}
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
+# Magic-byte signatures checked against the first bytes of the uploaded file.
+# A client-declared content-type alone is never trusted (it is trivially
+# spoofable) — the signature must match one of the allowed formats.
+_MAGIC_SIGNATURES: dict[str, list[tuple[bytes, int]]] = {
+    "image/jpeg": [(b"\xff\xd8\xff", 3)],
+    "image/png": [(b"\x89PNG\r\n\x1a\n", 8)],
+    "application/pdf": [(b"%PDF-", 5)],
+}
+
+
+def sniff_content_type(data: bytes) -> str | None:
+    """Detect the real format from the file's magic bytes; None if unknown."""
+    for content_type, signatures in _MAGIC_SIGNATURES.items():
+        for magic, offset in signatures:
+            if data[:offset] == magic:
+                return content_type
+    return None
+
 
 class ExpenseError(Exception):
     def __init__(self, message: str, code: str = "expense_error", status_code: int = 422) -> None:
@@ -206,7 +224,7 @@ def media_root() -> Path:
     return Path(settings.media_dir)
 
 
-def validate_upload(content_type: str, size_bytes: int, filename: str) -> None:
+def validate_upload(content_type: str, size_bytes: int, filename: str, data: bytes) -> None:
     if content_type not in ALLOWED_UPLOAD_TYPES:
         raise ExpenseError(
             "فرمت فایل مجاز نیست؛ فقط تصویر (JPG/PNG) یا PDF بپذیرید",
@@ -219,6 +237,14 @@ def validate_upload(content_type: str, size_bytes: int, filename: str) -> None:
         )
     if len(filename) > 255:
         raise ExpenseError("نام فایل بیش از حد طولانی است", code="upload_name")
+    # The declared content-type is not trusted: the file's magic bytes must
+    # match an allowed format (prevents HTML/JS disguised as an image/PDF).
+    if sniff_content_type(data) != content_type:
+        raise ExpenseError(
+            "محتوای فایل با نوع اعلامشده همخوانی ندارد",
+            code="upload_content_mismatch",
+            status_code=415,
+        )
 
 
 def store_attachment(
@@ -232,7 +258,7 @@ def store_attachment(
     content_type: str,
     data: bytes,
 ) -> Attachment:
-    validate_upload(content_type, len(data), filename)
+    validate_upload(content_type, len(data), filename, data)
     root = media_root()
     root.mkdir(parents=True, exist_ok=True)
     ext = Path(filename).suffix.lower()[:10]

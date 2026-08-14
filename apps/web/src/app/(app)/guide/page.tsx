@@ -147,7 +147,7 @@ export default function GuidePage() {
         title="۲) نقش‌ها و دسترسی‌ها"
         intro="هر کاربر یکی از چهار نقش را دارد. دسترسی واقعی همیشه در سرور کنترل می‌شود؛ یعنی حتی اگر کسی دکمه‌ای را ببیند، بدون اجازه نقش خود نمی‌تواند کاری انجام دهد."
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" role="region" aria-label="جدول نقشها و دسترسیها" tabIndex={0}>
           <table className="w-full min-w-[640px] text-right text-sm">
             <thead>
               <tr className="border-b-2 border-border-strong bg-surface-2 text-[11px] font-extrabold text-muted">

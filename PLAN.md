@@ -104,5 +104,8 @@ deployment-engineer (containers/CI/deployment), project-manager (slice tracking)
 - [x] **Slice 8 — Real dashboard KPIs, financial reports, drill-downs, reconciliation**
       (verified: 231 backend 93% cov · reports service 96% · 52 frontend · live API smoke test;
       E2E report journeys deferred to slice-9 pass)
-- [ ] **Slice 9 — Hardening: security, a11y, responsive QA, backups, prod deployment assets**
+- [x] **Slice 9 — Hardening: security, a11y, responsive QA, backups, prod deployment assets**
+      (verified: 239 backend 93% cov · 52 frontend · 78 E2E desktop+mobile incl. axe WCAG 2.2 AA and
+      report journeys · npm audit 0 · CSP browser-verified · nginx -t · backup/restore rehearsal ·
+      api-client contract snapshot + CI drift check wired)
 - [ ] Full-system QA + final quality snapshot + deployment handoff

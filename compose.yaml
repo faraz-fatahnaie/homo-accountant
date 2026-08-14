@@ -46,7 +46,7 @@ services:
       HOMO_JWT_SECRET: ${HOMO_JWT_SECRET:-dev-only-jwt-secret-change-me}
       HOMO_CORS_ORIGINS: http://localhost:3000
       HOMO_SEED_DEMO_USERS: "true"
-      HOMO_LOGIN_RATE_LIMIT_PER_MINUTE: 100  # higher in dev so E2E suites can run; prod uses 10
+      HOMO_LOGIN_RATE_LIMIT_PER_MINUTE: 1000  # higher in dev so E2E suites can run; prod uses 10
     ports:
       - "8000:8000"
     volumes:

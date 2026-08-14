@@ -64,3 +64,5 @@ Thumbs.db
 homo-accountant-history.bundle
 homo-accountant-source.zip
 PUBLISH.md
+infra/nginx/ssl/
+apps/api/media/
