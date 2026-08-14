@@ -1,12 +1,14 @@
 # ---- Stage 1: build environment ----
-FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65 AS builder  # bump: docker pull python:3.12-slim
+# Bump with: docker pull python:3.12-slim
+FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65 AS builder
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 COPY requirements.txt .
 RUN pip install --prefix=/install -r requirements.txt
 
 # ---- Stage 2: runtime ----
-FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65  # bump: docker pull python:3.12-slim
+# Bump with: docker pull python:3.12-slim
+FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 RUN groupadd --system app && useradd --system --gid app app
 WORKDIR /srv/api

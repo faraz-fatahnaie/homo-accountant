@@ -38,7 +38,7 @@ jobs:
       - name: Secret scanning
         uses: trufflesecurity/trufflehog@v3.88.25
         with:
-          extra_args: --results=verified,unknown --only-verified=false
+          extra_args: --results=verified,unknown
 
   codeql:
     runs-on: ubuntu-latest
