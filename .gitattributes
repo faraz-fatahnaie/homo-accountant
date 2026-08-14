@@ -1,0 +1,12 @@
+# Keep shell scripts LF-only everywhere (Windows Git would otherwise check
+# them out with CRLF, which breaks them in Git Bash: "command not found").
+*.sh text eol=lf
+*.bash text eol=lf
+Makefile text eol=lf
+
+# Never normalize lockfiles/binary-ish artifacts
+*.bundle binary
+*.gz binary
+*.png binary
+*.jpg binary
+*.pdf binary
