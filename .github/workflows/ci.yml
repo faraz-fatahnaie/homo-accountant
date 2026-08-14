@@ -118,7 +118,14 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
           alembic upgrade head
           nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
-          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/api/v1/health/ready && break || sleep 2; done
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8000/api/v1/health/ready && break || sleep 2
+          done
+          curl -sf http://127.0.0.1:8000/api/v1/health/ready || {
+            echo "::error::API failed to start (needed for contract generation)"
+            tail -50 /tmp/api.log
+            exit 1
+          }
       - name: Generate client from live OpenAPI
         run: cd packages/api-client && npm ci --no-audit --no-fund && npm run generate
       - name: Typecheck generated client

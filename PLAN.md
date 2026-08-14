@@ -108,4 +108,7 @@ deployment-engineer (containers/CI/deployment), project-manager (slice tracking)
       (verified: 239 backend 93% cov · 52 frontend · 78 E2E desktop+mobile incl. axe WCAG 2.2 AA and
       report journeys · npm audit 0 · CSP browser-verified · nginx -t · backup/restore rehearsal ·
       api-client contract snapshot + CI drift check wired)
-- [ ] Full-system QA + final quality snapshot + deployment handoff
+- [~] Full-system QA + final quality snapshot + deployment handoff — packaging pass:
+      workflows fixed (py312 lockfile, vitest coverage, api-client generate, docker.yml env/smoke
+      override/trivy, trufflehog tag, strict npm audit); scripts/run-local.sh + scripts/deploy.sh
+      authored, shellchecked and smoke-tested; quality snapshot updated

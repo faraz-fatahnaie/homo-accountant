@@ -53,6 +53,14 @@ make quality          # format + lint + typecheck + backend+frontend tests + bui
 make dev              # docker compose up (PostgreSQL + MinIO + API + web)
 make e2e              # Playwright role journeys (desktop + mobile)
 
+# packaged local runner (docker mode, or --bare with local PostgreSQL)
+./scripts/run-local.sh        # docker compose dev stack, migrates + seeds, prints URLs
+./scripts/run-local.sh --bare # no docker: local Postgres + uvicorn + next dev
+
+# deployment (Linux VPS)
+sudo ./scripts/deploy.sh --domain your.domain --email you@example.com
+sudo ./scripts/deploy.sh --update
+
 # backend alone (expects local PostgreSQL: see PLAN.md/AGENTS.md)
 make migrate && make seed && make test
 ```

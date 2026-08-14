@@ -10,10 +10,11 @@ import { NextRequest, NextResponse } from "next/server";
  * - Static pages still receive the CSP header (middleware headers are applied
  *   per request) — only the inline-script nonce trick is unavailable.
  */
-const API_ORIGIN =
-  process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.startsWith("http")
-    ? process.env.NEXT_PUBLIC_API_URL
-    : "http://localhost:8000";
+// If NEXT_PUBLIC_API_URL is an absolute origin (e.g. dev points at
+// http://localhost:8000) it must be allowed by connect-src; a RELATIVE path
+// (production: /api/v1 through nginx) means same-origin, so 'self' covers it.
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_ORIGIN = RAW_API_URL.startsWith("http") ? RAW_API_URL : "";
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -23,7 +24,7 @@ export function middleware(request: NextRequest) {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'", // Next.js RSC inline bootstrap (static prerender)
       "style-src 'self' 'unsafe-inline'", // Tailwind/Next inline styles
-      `connect-src 'self' ${API_ORIGIN}`,
+      `connect-src 'self'${API_ORIGIN ? ` ${API_ORIGIN}` : ""}`,
       "img-src 'self' data:",
       "font-src 'self'",
       "base-uri 'self'",

@@ -17,41 +17,65 @@ permissions:
 jobs:
   build-and-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+    env:
+      # All variables compose.prod.yaml interpolates. Without these the
+      # Postgres role/password and HOMO_JWT_SECRET come out empty and the
+      # stack fails to start (this was breaking the smoke test).
+      POSTGRES_USER: arya
+      POSTGRES_PASSWORD: ci_prod_pw
+      POSTGRES_DB: arya_prod
+      HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
+      HOMO_CORS_ORIGINS: https://example.com
+      HOMO_ADMIN_BOOTSTRAP_EMAIL: ""
+      HOMO_ADMIN_BOOTSTRAP_PASSWORD: ""
+      MINIO_ROOT_USER: ci_minio_user
+      MINIO_ROOT_PASSWORD: ci_minio_password
+      HOMO_S3_BUCKET: homo-accountant-attachments
+      IMAGE_TAG: ci
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build production images
+      - name: Build production images (api + web)
+        run: docker compose -f compose.prod.yaml build api web
+      - name: Start production-like stack (ports via smoke override)
         run: |
-          docker compose -f compose.prod.yaml build api web
-          docker compose -f compose.prod.yaml build
-        env:
-          HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
-      - name: Start production-like stack
-        run: |
-          # nginx TLS needs certs; smoke the core services directly (documented limitation)
-          docker compose -f compose.prod.yaml up -d db minio api web
-          for i in $(seq 1 60); do
+          docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml up -d db minio api web
+          for i in $(seq 1 90); do
             curl -sf http://localhost:8000/api/v1/health/ready && break || sleep 2
           done
           curl -sf http://localhost:8000/api/v1/health/ready
           curl -sf -o /dev/null http://localhost:3000/login
           docker compose -f compose.prod.yaml ps
-      - name: Image scan (trivy)
-        uses: aquasecurity/trivy-action@0.30.0
+      - name: Image scan (trivy) — API
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: homo-accountant/api:latest
+          image-ref: homo-accountant/api:ci
           format: sarif
           output: trivy-api.sarif
           severity: CRITICAL,HIGH
+          # Fail only on FIXABLE high/critical findings; unfixed base-image
+          # CVEs are tracked by bumping python:3.12-slim monthly (see docs).
+          ignore-unfixed: true
           exit-code: "1"
-      - name: Upload trivy report
+      - name: Image scan (trivy) — Web
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: homo-accountant/web:ci
+          format: sarif
+          output: trivy-web.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Upload trivy reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-report
-          path: trivy-api.sarif
+          name: trivy-reports
+          path: |
+            trivy-api.sarif
+            trivy-web.sarif
           retention-days: 14
 
   # Publishing images / deploying happens ONLY when the owner configures

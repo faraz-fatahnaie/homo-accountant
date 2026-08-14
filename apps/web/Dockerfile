@@ -7,9 +7,15 @@ RUN npm ci --no-audit --no-fund
 # ---- Stage 2: build ----
 FROM node:20-alpine AS build
 WORKDIR /app
+# API origin the browser will call. In production the web app is served
+# through nginx on the same origin, so the client bundle must inline the
+# RELATIVE /api/v1 path (a build-time "http://localhost:8000" would make
+# browsers call the user's own machine). Override via build arg if the web
+# app is hosted separately from the API.
+ARG NEXT_PUBLIC_API_URL=/api/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ---- Stage 3: runtime (standalone) ----

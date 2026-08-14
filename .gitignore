@@ -66,3 +66,4 @@ homo-accountant-source.zip
 PUBLISH.md
 infra/nginx/ssl/
 apps/api/media/
+apps/web/coverage/

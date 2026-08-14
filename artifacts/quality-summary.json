@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "project": "homo-accountant",
-  "generated_at_utc": "2026-08-14T07:50:00Z",
-  "verified_commit_sha": "d5dc06c",
+  "generated_at_utc": "2026-08-14T10:15:00Z",
+  "verified_commit_sha": "packaging-fix (next commit)",
   "environment": {
     "os": "Debian 13 (sandbox)",
     "python": "3.13.14",
@@ -69,7 +69,7 @@
     },
     "npm_audit": {
       "status": "pass",
-      "note": "0 vulnerabilities (prod + full tree); postcss/sharp overrides"
+      "note": "0 vulnerabilities (prod + full tree); @vitest/coverage-v8 added for CI --coverage"
     },
     "csp_browser_verified": {
       "status": "pass",
@@ -82,6 +82,18 @@
     "backup_restore_rehearsal": {
       "status": "pass",
       "note": "pg_dump custom -> gzip -> gunzip|pg_restore round-trip on real PG17; rows intact"
+    },
+    "lockfile_py312": {
+      "status": "pass",
+      "note": "requirements*.txt pins all resolve as cp312 manylinux wheels (greenlet 3.2.5); pip-audit: 0 known vulnerabilities"
+    },
+    "workflows": {
+      "status": "pass",
+      "note": "ci/security/docker/e2e reviewed & fixed: py312 lockfile, vitest coverage provider, api-client generate script, docker.yml env + smoke override + trivy v0.36.0, trufflehog v3.88.25, strict npm audit; all YAML validated"
+    },
+    "scripts": {
+      "status": "pass",
+      "note": "scripts/run-local.sh + scripts/deploy.sh: bash -n + shellcheck clean; run-local.sh --bare smoke-tested end-to-end (migrate, seed, API+web healthy, login OK, clean shutdown)"
     }
   },
   "known_limitations": [

@@ -1,5 +1,12 @@
 # استقرار — Deployment runbook (Linux VPS, Docker Compose)
 
+> **Quick start (recommended):** use the packaged scripts instead of the manual steps below.
+> - Local development: `./scripts/run-local.sh` (docker mode) or `--bare` (local PostgreSQL)
+> - First deploy: `sudo ./scripts/deploy.sh --domain your.domain --email you@example.com`
+> - Upgrade: `sudo ./scripts/deploy.sh --update`
+>
+> The manual steps below document exactly what the scripts do.
+
 ## 1. Prerequisites
 
 - Ubuntu 22.04/24.04 (or Debian 12) VPS, ≥ 2 vCPU / 4 GB RAM, 30 GB disk.
@@ -77,6 +84,23 @@ The `docker.yml` `publish` job is **disabled by default** (`if: ${{ false }}`). 
 configure a registry (GHCR/Docker Hub) token as a secret, review the job, and explicitly
 authorize — per project policy, nothing is published or deployed without owner credentials
 and approval.
+
+## 7b. CI/CD workflows (verified in slice 9 packaging)
+
+- `ci.yml` — backend (ruff/mypy/pytest+coverage on PG16), frontend (eslint/tsc/vitest
+  --coverage/build), and `contract-drift` (regenerates the OpenAPI client and fails on drift).
+  Requires `@vitest/coverage-v8` (present) and the api-client `generate` script (simplified).
+- `security.yml` — pip-audit on the lockfile (verified 0 findings), strict `npm audit`
+  (0 vulnerabilities), trufflehog secret scan, CodeQL.
+- `docker.yml` — builds api+web, boots the prod stack via `.github/compose.smoke.yaml`
+  (publishes :8000/:3000 for smoke tests; prod compose keeps ports nginx-only), scans both
+  images with trivy (fails only on fixable HIGH/CRITICAL). Publish/deploy stays disabled
+  until the owner adds registry credentials.
+- `e2e.yml` — full Playwright suite (78 tests, desktop+mobile) against the dev compose stack.
+- **Lockfile is Python-3.12-safe**: `requirements.txt` pins resolve on 3.12 (greenlet 3.2.5),
+  matching CI and the `python:3.12-slim` Docker image. If regenerating the lockfile, verify
+  with: `pip download -r requirements.txt --only-binary=:all: --python-version 3.12
+  --implementation cp --platform manylinux_2_17_x86_64`.
 
 ## 8. Security updates (slice 9)
 

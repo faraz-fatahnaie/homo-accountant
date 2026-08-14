@@ -21,17 +21,22 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Python dependency audit
+      - name: Python dependency audit (lockfile)
+        # pip-audit against the pinned requirements.txt (resolves transitive
+        # deps by default). Verified clean in slice 9 (pip-audit -r, 0 findings).
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: apps/api/requirements.txt
           vulnerability-service: osv
-      - name: Node dependency audit
+          audit-level: high
+      - name: Node dependency audit (prod tree)
+        # Strict gate: `npm audit` currently reports 0 vulnerabilities
+        # (Next 15.5.23 + postcss/sharp overrides). If a high+ advisory
+        # appears this step fails — fix the pin, don't silence the scan.
         working-directory: apps/web
-        run: |
-          npm audit --omit=dev --audit-level=high || echo "npm audit found issues — see report"
+        run: npm audit --omit=dev --audit-level=high
       - name: Secret scanning
-        uses: trufflesecurity/trufflehog@v3.88.0
+        uses: trufflesecurity/trufflehog@v3.88.25
         with:
           extra_args: --results=verified,unknown --only-verified=false
 

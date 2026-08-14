@@ -1,0 +1,13 @@
+# CI smoke-test override for the production compose stack.
+# compose.prod.yaml intentionally publishes ONLY nginx (80/443) — the api and
+# web services are expose-only. This override publishes their ports on the
+# runner host so docker.yml can smoke-test them without TLS certs.
+name: homo-accountant-prod-smoke
+
+services:
+  api:
+    ports:
+      - "8000:8000"
+  web:
+    ports:
+      - "3000:3000"

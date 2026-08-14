@@ -7,6 +7,7 @@ and engine bind to the test database.
 from __future__ import annotations
 
 import os
+import tempfile
 
 os.environ.setdefault(
     "HOMO_DATABASE_URL", "postgresql+psycopg://arya:arya_dev_pw@127.0.0.1:5432/arya_test"
@@ -15,7 +16,7 @@ os.environ.setdefault("HOMO_JWT_SECRET", "test-only-secret-0123456789abcdef")
 os.environ.setdefault("HOMO_LOGIN_RATE_LIMIT_PER_MINUTE", "1000")
 os.environ.setdefault("HOMO_ENVIRONMENT", "test")
 # Upload tests write attachments to a scratch dir, never to the repo's media/
-os.environ.setdefault("HOMO_MEDIA_DIR", "/tmp/homo-test-media")
+os.environ.setdefault("HOMO_MEDIA_DIR", tempfile.mkdtemp(prefix="homo-test-media-"))
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402
