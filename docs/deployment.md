@@ -44,6 +44,19 @@ curl -sf https://your.domain/api/v1/health/ready && echo OK
 curl -sf https://your.domain/login && echo OK
 ```
 
+### Temporary HTTP-only deployment
+
+When only port 80 is available, use the explicit override below. This does not publish ports
+3000, 8000, or 5432 and does not require certificate files:
+
+```bash
+docker compose -f compose.prod.yaml -f compose.http.yaml up -d --build
+curl -sf http://your-host/healthz && echo OK
+```
+
+HTTP sends login credentials and financial data without transport encryption. Treat this as a
+temporary or externally TLS-terminated mode and move to the base TLS configuration when possible.
+
 ## 3. Bootstrap the first admin
 
 ```bash

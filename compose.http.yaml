@@ -1,0 +1,10 @@
+# HTTP-only production override. Use only when TLS terminates outside this VM
+# or during a temporary port-80-only deployment.
+services:
+  nginx:
+    ports: !override
+      - "80:80"
+    volumes: !override
+      - ./infra/nginx/nginx.http.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginxcache:/var/cache/nginx
+

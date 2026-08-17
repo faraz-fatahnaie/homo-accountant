@@ -49,3 +49,5 @@ replaced by the generated `packages/api-client` types (OpenAPI) to prevent contr
 `nginx (TLS) → web:3000 + api:8000` · `PostgreSQL 16` · persistent Docker volume (attachments).
 Single VPS,
 Docker Compose (`compose.prod.yaml`). Details in `docs/deployment.md` and `docs/operations.md`.
+For temporary port-80-only operation, `compose.http.yaml` replaces the nginx listener and config;
+application, API, and database ports remain private to Docker.
