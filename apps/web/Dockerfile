@@ -32,9 +32,10 @@ RUN apk upgrade --no-cache \
             /usr/local/bin/yarn /usr/local/bin/yarnpkg \
  && addgroup -S app \
  && adduser -S app -G app
-COPY --from=build /app/public ./public
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
+COPY --chown=app:app --from=build /app/public ./public
+COPY --chown=app:app --from=build /app/.next/standalone ./
+COPY --chown=app:app --from=build /app/.next/static ./.next/static
+RUN chmod -R a+rX /app/public /app/.next
 USER app
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
