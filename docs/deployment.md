@@ -17,7 +17,7 @@
 
 ```bash
 # as root or a sudo user
-sudo apt update && sudo apt install -y docker.io docker-compose-plugin
+sudo apt update && sudo apt install -y docker.io docker-compose-v2
 sudo systemctl enable --now docker
 
 # checkout the release
@@ -31,7 +31,7 @@ cp .env.example .env
 #           HOMO_CORS_ORIGINS=https://your.domain
 
 # TLS certificates (choose one):
-#  a) certbot:   sudo apt install -y certbot && sudo certbot certonly --nginx -d your.domain
+#  a) certbot:   sudo apt install -y certbot && sudo certbot certonly --standalone -d your.domain
 #     then: mkdir -p infra/nginx/ssl && cp /etc/letsencrypt/live/your.domain/{fullchain.pem,privkey.pem} infra/nginx/ssl/
 #  b) DNS-01 challenge for wildcards (documented separately).
 # NOTE: nginx requires certs to start. For first bring-up without certs,
@@ -75,7 +75,7 @@ offsite copy mandatory).
 | nginx won't start | missing TLS certs → provide certs or disable 443 block |
 | API unhealthy | DB not ready / migrations failed → `docker compose -f compose.prod.yaml logs api` |
 | 502 on /api/ | api container restarting → check `health/ready` + logs |
-| Uploads fail | MinIO bucket not created → create `homo-accountant-attachments` bucket once |
+| Uploads fail | verify the `media` volume and ownership: `docker compose -f compose.prod.yaml run --rm media-init` |
 | 429 on login | rate limit — expected; check for brute-force attempts in logs |
 
 ## 7. Publishing images / CI deployment
@@ -98,7 +98,7 @@ and approval.
   accepts go in `.trivyignore`). Publish/deploy stays disabled until the owner adds registry
   credentials.
 - **Base images are pinned to digests** (python:3.12-slim, node:20-alpine in the Dockerfiles;
-  postgres:16-alpine, minio, nginx in compose.prod.yaml) for reproducible, supply-chain-safe
+  postgres:16-alpine and nginx in compose.prod.yaml) for reproducible, supply-chain-safe
   builds. To update, bump the digest after `docker pull <image>` and re-run the Docker
   workflow (the Dockerfile `# bump:` comments mark every pin). The weekly schedule re-runs
   scans; it does NOT silently change images.

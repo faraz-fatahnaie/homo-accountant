@@ -2,7 +2,7 @@
 
 ## Backups
 
-- **What:** PostgreSQL dump (custom format) + MinIO objects mirror + compose/env snapshot.
+- **What:** PostgreSQL dump (custom format) + uploaded attachment files + compose/env snapshot.
 - **How:** `./infra/backup/backup.sh /mnt/backups` (retention: 14 daily, 8 weekly archives).
 - **Schedule (cron):**
   ```cron
@@ -11,7 +11,7 @@
 - **Offsite:** copy `/mnt/backups` off-server daily (rclone to object storage / scp to another
   host). A local-only backup is not a backup.
 - **Verify:** monthly restore rehearsal onto a scratch database:
-  `./infra/backup/restore.sh /mnt/backups/homo-accountant-<ts>/db.dump.gz` (confirm prompt), then check
+  `./infra/backup/restore.sh /mnt/backups/homo-accountant-<ts>` (confirm prompt), then check
   a few records and `health/ready`.
 - **Rehearsal evidence (slice 9):** the exact backup→restore pipeline was executed against a real
   PostgreSQL 17 instance in the sandbox: `pg_dump --format=custom --no-owner` → `gzip` →
@@ -23,16 +23,16 @@
 ## Restore
 
 1. Stop writes: `docker compose -f compose.prod.yaml stop api web` (keep db running).
-2. `./infra/backup/restore.sh /path/to/db.dump.gz` (type `restore` at the prompt).
+2. `./infra/backup/restore.sh /path/to/homo-accountant-<ts>` (type `restore` at the prompt).
 3. Start: `docker compose -f compose.prod.yaml up -d api web` and verify totals/health.
-4. Restore MinIO objects if needed (`mc mirror --overwrite <backup> local/homo-accountant-attachments`).
+4. Verify uploaded attachments from the restored `media/` directory.
 
 ## Monitoring
 
 - Container health: `docker compose -f compose.prod.yaml ps` (healthchecks defined for all services).
 - API: `/api/v1/health/live` + `/api/v1/health/ready`; structured JSON logs (prod) with
   `X-Request-ID` correlation; watch 5xx rate and login 429s.
-- OS basics: `docker stats`, `df -h` (watch pgdata/miniodata volumes), `journalctl -u docker`.
+- OS basics: `docker stats`, `df -h` (watch `pgdata` and `media` volumes), `journalctl -u docker`.
 - Alerting (optional, recommended): Uptime-Kuma/Healthchecks.io hitting the two health endpoints.
 
 ## Incident basics

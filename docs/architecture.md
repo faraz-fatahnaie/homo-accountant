@@ -46,5 +46,6 @@ replaced by the generated `packages/api-client` types (OpenAPI) to prevent contr
 
 ## Deployment topology (production)
 
-`nginx (TLS) → web:3000 + api:8000` · `PostgreSQL 16` · `MinIO` (attachments). Single VPS,
+`nginx (TLS) → web:3000 + api:8000` · `PostgreSQL 16` · persistent Docker volume (attachments).
+Single VPS,
 Docker Compose (`compose.prod.yaml`). Details in `docs/deployment.md` and `docs/operations.md`.

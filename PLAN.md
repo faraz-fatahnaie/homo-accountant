@@ -20,7 +20,7 @@ product — but with a tamper-evident activity trail.
 - Deploy: Linux VPS, Docker Compose, reverse proxy, HTTPS-ready, backups, health checks, runbook.
 - Stack: FastAPI + Pydantic + SQLAlchemy 2.x + Alembic + PostgreSQL | Next.js + TS + Tailwind +
   shadcn/ui-equivalent + TanStack Query/Table | pytest | Vitest + Testing Library | Playwright |
-  Ruff + mypy | ESLint + strict TS | MinIO (S3-compatible) | Redis+worker only when a real MVP
+  Ruff + mypy | ESLint + strict TS | persistent attachment volume (S3-compatible storage later) | Redis+worker only when a real MVP
   workflow needs it | OpenAPI-generated typed client (packages/api-client).
 
 ## Milestones (vertical slices; each ends runnable + documented)

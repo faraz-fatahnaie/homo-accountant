@@ -29,9 +29,6 @@ jobs:
       HOMO_CORS_ORIGINS: https://example.com
       HOMO_ADMIN_BOOTSTRAP_EMAIL: ""
       HOMO_ADMIN_BOOTSTRAP_PASSWORD: ""
-      MINIO_ROOT_USER: ci_minio_user
-      MINIO_ROOT_PASSWORD: ci_minio_password
-      HOMO_S3_BUCKET: homo-accountant-attachments
       IMAGE_TAG: ci
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +38,7 @@ jobs:
         run: docker compose -f compose.prod.yaml build api web
       - name: Start production-like stack (ports via smoke override)
         run: |
-          docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml up -d db minio api web
+          docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml up -d db api web
           for i in $(seq 1 90); do
             curl -sf http://localhost:8000/api/v1/health/ready && break || sleep 2
           done

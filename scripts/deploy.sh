@@ -20,7 +20,7 @@
 set -euo pipefail
 
 APP_DIR="/opt/homo-accountant"
-REPO_URL="git@github.com:faraz-fatahnaie/homo-accountant.git"
+REPO_URL="https://github.com/faraz-fatahnaie/homo-accountant.git"
 DOMAIN=""
 CERT_EMAIL=""
 DO_CERT=1
@@ -61,7 +61,7 @@ ensure_docker() {
   fi
   log "installing Docker Engine + compose plugin…"
   apt-get update -qq
-  apt-get install -y -qq docker.io docker-compose-plugin
+  apt-get install -y -qq docker.io docker-compose-v2
   systemctl enable --now docker
   require_cmd docker
   docker compose version >/dev/null 2>&1 || fail "docker compose plugin not available"
@@ -114,16 +114,34 @@ ensure_certs() {
     return
   fi
   [[ -n "$DOMAIN" ]] || { warn "no --domain given; skipping TLS setup (provide certs manually)"; return; }
-  require_cmd certbot
+  if ! command -v certbot >/dev/null 2>&1; then
+    log "installing certbot…"
+    apt-get update -qq
+    apt-get install -y -qq certbot
+  fi
   log "obtaining/refreshing Let's Encrypt certificate for $DOMAIN …"
   mkdir -p "$APP_DIR/infra/nginx/ssl"
   local cert_args=()
   [[ -n "$CERT_EMAIL" ]] && cert_args+=(--email "$CERT_EMAIL")
-  certbot certonly --nginx -d "$DOMAIN" --non-interactive --agree-tos \
+  certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos \
     --keep-until-expiring "${cert_args[@]}"
   cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$APP_DIR/infra/nginx/ssl/fullchain.pem"
   cp "/etc/letsencrypt/live/$DOMAIN/privkey.pem"   "$APP_DIR/infra/nginx/ssl/privkey.pem"
   chmod 600 "$APP_DIR/infra/nginx/ssl/privkey.pem"
+  install -d /etc/letsencrypt/renewal-hooks/pre /etc/letsencrypt/renewal-hooks/post
+  cat > /etc/letsencrypt/renewal-hooks/pre/homo-accountant-nginx <<EOF
+#!/usr/bin/env bash
+docker compose -f "$APP_DIR/compose.prod.yaml" stop nginx >/dev/null 2>&1 || true
+EOF
+  cat > /etc/letsencrypt/renewal-hooks/post/homo-accountant-nginx <<EOF
+#!/usr/bin/env bash
+set -e
+cp "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$APP_DIR/infra/nginx/ssl/fullchain.pem"
+cp "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$APP_DIR/infra/nginx/ssl/privkey.pem"
+chmod 600 "$APP_DIR/infra/nginx/ssl/privkey.pem"
+docker compose -f "$APP_DIR/compose.prod.yaml" up -d nginx
+EOF
+  chmod 700 /etc/letsencrypt/renewal-hooks/{pre,post}/homo-accountant-nginx
   log "certificates copied to infra/nginx/ssl/"
 }
 
@@ -141,16 +159,27 @@ start_stack() {
 
   log "waiting for API health…"
   for _ in $(seq 1 90); do
-    if docker compose -f compose.prod.yaml ps api >/dev/null 2>&1 &&
-       curl -fsS "http://localhost:8000/api/v1/health/ready" >/dev/null 2>&1; then
+    if docker compose -f compose.prod.yaml exec -T api \
+       python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready')" \
+       >/dev/null 2>&1; then
       break
     fi
     sleep 2
   done
-  curl -fsS "http://localhost:8000/api/v1/health/ready" >/dev/null || {
+  docker compose -f compose.prod.yaml exec -T api \
+    python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready')" \
+    >/dev/null || {
     docker compose -f compose.prod.yaml logs api | tail -40 >&2
     fail "API did not become healthy"
   }
+  if [[ -n "$DOMAIN" && "$DO_CERT" -eq 1 ]]; then
+    curl -kfsS --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/healthz" >/dev/null || {
+      docker compose -f compose.prod.yaml logs nginx | tail -40 >&2
+      fail "nginx HTTPS health check failed"
+    }
+    curl -kfsS --resolve "$DOMAIN:443:127.0.0.1" "https://$DOMAIN/login" >/dev/null \
+      || fail "web login page health check failed"
+  fi
   log "API healthy"
 }
 
@@ -164,7 +193,11 @@ bootstrap_and_verify() {
   if [[ -n "$admin_email" && -n "$admin_pw" ]]; then
     log "bootstrapping first admin ($admin_email)…"
     docker compose -f compose.prod.yaml exec -T api python -m app.scripts.bootstrap_admin \
-      || warn "bootstrap_admin failed (already bootstrapped?) — rotate the password in the UI"
+      || warn "bootstrap_admin failed (already bootstrapped?) — verify the owner account"
+    sed -i 's|^HOMO_ADMIN_BOOTSTRAP_EMAIL=.*|HOMO_ADMIN_BOOTSTRAP_EMAIL=|' .env
+    sed -i 's|^HOMO_ADMIN_BOOTSTRAP_PASSWORD=.*|HOMO_ADMIN_BOOTSTRAP_PASSWORD=|' .env
+    docker compose -f compose.prod.yaml up -d --no-deps api
+    log "bootstrap credentials removed from .env and API environment"
   else
     warn "HOMO_ADMIN_BOOTSTRAP_* not set — create the first admin manually:"
     warn "  docker compose -f compose.prod.yaml exec api python -m app.scripts.bootstrap_admin"

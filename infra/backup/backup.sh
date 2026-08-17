@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# PostgreSQL + MinIO backup for the Homo Accountant stack.
+# PostgreSQL + attachment backup for the Homo Accountant stack.
 # Usage: ./infra/backup/backup.sh [backup-dir]
 # Retention: keep KEEP_DAILY daily backups + KEEP_WEEKLY weekly (defaults below).
 # Cron example (VPS): 0 2 * * * /opt/homo-accountant/infra/backup/backup.sh /mnt/backups >> /var/log/homo-accountant-backup.log 2>&1
@@ -31,10 +31,15 @@ docker exec "$DB_CONTAINER" pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --form
 gzip -f "$STAMP/db.dump"
 echo "[backup] db.dump.gz: $(du -h "$STAMP/db.dump.gz" | cut -f1)"
 
-# --- MinIO objects ---
-if command -v mc >/dev/null 2>&1; then
-  mc mirror --overwrite --remove local/homo-accountant-attachments "$STAMP/minio-homo-accountant-attachments" || \
-    echo "[backup] WARN: mc mirror failed (is mc configured?)"
+# --- Uploaded attachments (persistent API media volume) ---
+API_CONTAINER=$($COMPOSE ps -q api)
+if [ -n "$API_CONTAINER" ]; then
+  mkdir -p "$STAMP/media"
+  docker cp "$API_CONTAINER:/srv/api/media/." "$STAMP/media/"
+  echo "[backup] media: $(du -sh "$STAMP/media" | cut -f1)"
+else
+  echo "[backup] ERROR: api container not running; attachments were not backed up" >&2
+  exit 1
 fi
 
 # --- Compose file snapshot (config reproducibility) ---

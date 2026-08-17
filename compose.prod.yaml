@@ -4,6 +4,12 @@
 # ============================================================
 name: homo-accountant-prod
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgres:16-alpine@sha256:44c4ee9810eff91f7eab4d822642e01115b1a9eccce4bcbdde7604752d68eac6
@@ -14,31 +20,27 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 12
 
-  minio:
-    image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  media-init:
+    image: homo-accountant/api:${IMAGE_TAG:-latest}
+    user: root
+    command: ["sh", "-c", "mkdir -p /srv/api/media && chown -R app:app /srv/api/media"]
     volumes:
-      - miniodata:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
+      - media:/srv/api/media
+    logging: *default-logging
+    restart: "no"
 
   api:
     build: ./apps/api
     image: homo-accountant/api:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    command: ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
     environment:
       HOMO_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       HOMO_ENVIRONMENT: production
@@ -46,13 +48,15 @@ services:
       HOMO_CORS_ORIGINS: ${HOMO_CORS_ORIGINS}
       HOMO_ADMIN_BOOTSTRAP_EMAIL: ${HOMO_ADMIN_BOOTSTRAP_EMAIL}
       HOMO_ADMIN_BOOTSTRAP_PASSWORD: ${HOMO_ADMIN_BOOTSTRAP_PASSWORD}
-      HOMO_S3_ENDPOINT: http://minio:9000
-      HOMO_S3_ACCESS_KEY: ${MINIO_ROOT_USER}
-      HOMO_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      HOMO_S3_BUCKET: ${HOMO_S3_BUCKET:-homo-accountant-attachments}
+      HOMO_MEDIA_DIR: /srv/api/media
+    volumes:
+      - media:/srv/api/media
     depends_on:
       db:
         condition: service_healthy
+      media-init:
+        condition: service_completed_successfully
+    logging: *default-logging
     expose:
       - "8000"
     healthcheck:
@@ -74,6 +78,7 @@ services:
       PORT: 3000
     depends_on:
       - api
+    logging: *default-logging
     expose:
       - "3000"
     healthcheck:
@@ -96,6 +101,7 @@ services:
     depends_on:
       - web
       - api
+    logging: *default-logging
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/healthz"]
       interval: 15s
@@ -104,5 +110,5 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  media:
   nginxcache:
