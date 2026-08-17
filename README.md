@@ -4,6 +4,8 @@ Production-ready MVP of a Persian-first (Solar Hijri, RTL, rial) accrual account
 small Iranian company (~3–4 users): expenses, supplier bills, customer invoices, payments,
 projects, budgets, funding, and a double-entry ledger that is the source of truth.
 
+Production: [https://mohotec.ir/](https://mohotec.ir/)
+
 ## کیفیت و وضعیت تست — Quality and test status
 
 **Workflow badges** (live after the repository is published to GitHub — replace `faraz-fatahnaie/homo-accountant` in the
@@ -14,11 +16,10 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 [![Security](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/security.yml?label=Security)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/security.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/docker.yml?label=Docker)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/docker.yml)
 
-> **Last verified:** commit `3df4d92` + slice 9 (working tree `d2d9a95` + hardening) · 2026-08-14T07:50:00Z · Debian 13 sandbox, Python 3.13,
-> Node 20, PostgreSQL 17 (local), Chromium (Playwright). **All locally runnable checks pass** —
-> full matrix below; `docs/quality-report.md` + `artifacts/quality-summary.json` hold the
-> machine-readable snapshot. Docker builds and security scans are wired in CI and were **not**
-> runnable inside the sandbox (no Docker) — do not treat them as passed.
+> **Last verified:** commit `53c78db` · 2026-08-17 · GitHub Actions on Ubuntu with Python,
+> Node 20, PostgreSQL, Docker, Trivy, and Chromium (Playwright). **CI, E2E, Security, and Docker
+> workflows pass.** The production HTTP profile was also smoke-tested on Ubuntu 24.04; database
+> backup/restore and persistent receipt storage were rehearsed successfully.
 
 ### Test matrix
 
@@ -35,10 +36,10 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 | Frontend build | next build | ✅ | standalone output |
 | Browser journeys | Playwright | ✅ 78 passed | desktop + mobile; **reports journeys + axe WCAG 2.2 A/AA scans**; auth-session-resilience fix verified |
 | Accessibility lint | axe | ✅ 0 serious/critical | automated WCAG 2.2 A/AA scans on key surfaces (login, dashboard, transactions, reports, guide) |
-| Docker builds/smoke | compose.prod + trivy | ⏳ CI only | authored; runs in `docker.yml` |
+| Docker builds/smoke | compose.prod + Trivy | ✅ | production images build; API/web health smoke and fixable HIGH/CRITICAL image gate pass in `docker.yml` |
 | Security scans | npm audit | ✅ 0 vulnerabilities | Next 15.3.4 → 15.5.23 (CVE-2025-66478); postcss/sharp overrides; pip-audit/trufflehog/CodeQL run in `security.yml` |
 | PDF/export tests | — | ⏳ slice 4/7 | with their features |
-| Backup/restore smoke | infra/backup | ⏳ ops | scripts authored; rehearsal documented in `docs/operations.md` |
+| Backup/restore smoke | infra/backup | ✅ | production snapshot restored into a scratch database; all 22 public tables verified |
 
 ### Commands
 
