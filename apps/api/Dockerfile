@@ -10,7 +10,11 @@ RUN pip install --prefix=/install -r requirements.txt
 # Bump with: docker pull python:3.12-slim
 FROM python:3.12-slim@sha256:2c941e860699f878900b0edc2403613c234d4b32eda3cc9fa7036991a2a63c4a
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
-RUN groupadd --system app && useradd --system --gid app app
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --system app \
+ && useradd --system --gid app app
 WORKDIR /srv/api
 COPY --from=builder /install /usr/local
 COPY alembic.ini .
