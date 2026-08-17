@@ -7,6 +7,10 @@
 # ============================================================
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$APP_DIR"
+
 INPUT="${1:?usage: restore.sh <backup-directory|db.dump.gz>}"
 if [ -d "$INPUT" ]; then
   BACKUP_ROOT="$INPUT"

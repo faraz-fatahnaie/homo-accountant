@@ -2,14 +2,16 @@
 
 ## Backups
 
-- **What:** PostgreSQL dump (custom format) + uploaded attachment files + compose/env snapshot.
+- **What:** PostgreSQL dump (custom format) + uploaded attachment files + production Compose and
+  `.env` snapshot. Backup directories are root-only because `.env` contains secrets.
 - **How:** `./infra/backup/backup.sh /mnt/backups` (retention: 14 daily, 8 weekly archives).
 - **Schedule (cron):**
   ```cron
   0 2 * * *  /opt/homo-accountant/infra/backup/backup.sh /mnt/backups >> /var/log/homo-accountant-backup.log 2>&1
   ```
-- **Offsite:** copy `/mnt/backups` off-server daily (rclone to object storage / scp to another
-  host). A local-only backup is not a backup.
+- **Retention:** 14 daily directories plus Monday archives retained for eight weeks.
+- **Offsite:** copy `/mnt/backups` off-server daily using encrypted storage (rclone to object
+  storage / scp to another host). A local-only backup is not a backup.
 - **Verify:** monthly restore rehearsal onto a scratch database:
   `./infra/backup/restore.sh /mnt/backups/homo-accountant-<ts>` (confirm prompt), then check
   a few records and `health/ready`.

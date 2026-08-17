@@ -6,15 +6,20 @@
 # Cron example (VPS): 0 2 * * * /opt/homo-accountant/infra/backup/backup.sh /mnt/backups >> /var/log/homo-accountant-backup.log 2>&1
 # ============================================================
 set -euo pipefail
+umask 077
 
-BACKUP_DIR="${1:-$(dirname "$0")/../../backups}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BACKUP_DIR="${1:-$APP_DIR/backups}"
 KEEP_DAILY="${KEEP_DAILY:-14}"
 KEEP_WEEKLY="${KEEP_WEEKLY:-8}"
 COMPOSE="docker compose -f compose.prod.yaml"
 TS="$(date +%Y%m%d-%H%M%S)"
 STAMP="$BACKUP_DIR/homo-accountant-$TS"
 
-mkdir -p "$STAMP"
+cd "$APP_DIR"
+mkdir -p "$STAMP" "$BACKUP_DIR/weekly"
+chmod 700 "$BACKUP_DIR" "$BACKUP_DIR/weekly" "$STAMP"
 
 echo "[backup] $(date -Is) starting"
 
@@ -42,16 +47,21 @@ else
   exit 1
 fi
 
-# --- Compose file snapshot (config reproducibility) ---
-cp compose.prod.yaml .env.example "$STAMP/" 2>/dev/null || true
+# --- Deployment snapshot (needed for local disaster recovery) ---
+cp compose.prod.yaml .env.example "$STAMP/"
+cp .env "$STAMP/.env"
+chmod 600 "$STAMP/.env"
+
+# --- Weekly archive (Monday) ---
+if [ "$(date +%u)" = "1" ]; then
+  tar -C "$BACKUP_DIR" -czf "$BACKUP_DIR/weekly/homo-accountant-$TS.tar.gz" \
+    "$(basename "$STAMP")"
+  find "$BACKUP_DIR/weekly" -maxdepth 1 -type f -name 'homo-accountant-*.tar.gz' \
+    -mtime "+$((KEEP_WEEKLY*7))" -delete
+fi
 
 # --- Retention: daily ---
 find "$BACKUP_DIR" -maxdepth 1 -type d -name 'homo-accountant-*' -mtime "+$KEEP_DAILY" -exec rm -rf {} +
-
-# --- Weekly archive (monday) ---
-if [ "$(date +%u)" = "1" ]; then
-  find "$BACKUP_DIR" -maxdepth 1 -type d -name 'homo-accountant-*' -mtime "+$((KEEP_WEEKLY*7))" -exec rm -rf {} +
-fi
 
 echo "[backup] done -> $STAMP"
 echo "[backup] remember: copy this directory off-server (scp/rclone) for offsite retention."
