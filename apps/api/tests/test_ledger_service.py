@@ -159,6 +159,7 @@ class TestPosting:
         # Same jalali period -> continues; a different month starts a new sequence.
         e_other = post_entry(
             db,
+            company,
             _draft(db, company, actor, entry_date=dt.date(2026, 4, 10)).id,  # 1405/01/21
             actor,
         )
@@ -355,6 +356,7 @@ class TestCoverageGaps:
         post_entry(db, company, _draft(db, company, actor).id, actor)
         post_entry(
             db,
+            company,
             _draft(db, company, actor, entry_date=dt.date(2026, 4, 10)).id,
             actor,
         )
@@ -385,6 +387,7 @@ class TestAccountBalances:
         # cash sale: Dr 101 5M / Cr 401 5M
         post_entry(
             db,
+            company,
             _draft(
                 db,
                 company,

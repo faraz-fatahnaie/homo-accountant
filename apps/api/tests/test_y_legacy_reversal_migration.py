@@ -105,8 +105,23 @@ def test_duplicate_legacy_reversals_are_balanced_and_relinked() -> None:
                 "correction": correction_id,
             },
         ).one()
+        account_nets = conn.execute(
+            text(
+                "SELECT account_id, sum(debit) - sum(credit) AS balance "
+                "FROM journal_lines "
+                "WHERE entry_id IN (:original, :first, :duplicate, :correction) "
+                "GROUP BY account_id"
+            ),
+            {
+                "original": original_id,
+                "first": reversal_ids[0],
+                "duplicate": reversal_ids[1],
+                "correction": correction_id,
+            },
+        ).all()
 
     assert links_to_original == 1
     assert correction_id is not None
     assert extra_parent is None
-    assert net[0] == net[1] == 200
+    assert net[0] == net[1] == 400
+    assert {balance for _, balance in account_nets} == {0}
