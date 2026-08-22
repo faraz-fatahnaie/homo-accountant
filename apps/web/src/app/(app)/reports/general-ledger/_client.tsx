@@ -38,7 +38,7 @@ export function GeneralLedgerClient({ initialAccountCode }: { initialAccountCode
       <ReportHeader
         active="/reports/general-ledger"
         title="دفتر کل"
-        subtitle="گردش یک حساب با مانده تجمعی؛ با کلیک روی حساب در ترازنامه یا تراز آزمایشی باز میشود."
+        subtitle="گردش یک حساب با مانده تجمعی؛ با کلیک روی حساب در ترازنامه یا تراز آزمایشی باز می‌شود."
       >
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-xs font-bold text-muted" htmlFor="gl-account">

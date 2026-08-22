@@ -51,9 +51,9 @@ export default function ProjectsPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">پروژهها</h1>
+          <h1 className="text-lg font-extrabold">پروژه‌ها</h1>
           <p className="mt-0.5 text-xs text-muted">
-            بودجه و وضعیت پروژهها — {(data ?? []).length} پروژه
+            بودجه و وضعیت پروژه‌ها — {(data ?? []).length} پروژه
           </p>
         </div>
         {isWriter ? (
@@ -111,7 +111,7 @@ export default function ProjectsPage() {
 
       {data && data.length === 0 ? (
         <div className="card px-4 py-10 text-center text-sm text-muted">
-          هنوز پروژهای ثبت نشده است.
+          هنوز پروژه‌ای ثبت نشده است.
         </div>
       ) : null}
 

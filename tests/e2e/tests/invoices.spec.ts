@@ -29,18 +29,18 @@ test.describe("invoices user journey (real API + DB)", () => {
 
     // build the invoice in the UI
     await page.goto("/invoices/new");
-    await expect(page.getByRole("heading", { name: "صورتحساب جدید" })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "صورت‌حساب جدید" })).toBeVisible({ timeout: 20_000 });
     await page.locator("#inv-customer").selectOption({ label: customer });
     const descInput = page.getByPlaceholder("شرح کالا / خدمت");
     await descInput.fill(desc);
     await page.locator('input[inputmode="numeric"]').nth(1).fill("1000000"); // unit price
-    await page.getByRole("button", { name: "ایجاد صورتحساب" }).click();
+    await page.getByRole("button", { name: "ایجاد صورت‌حساب" }).click();
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 20_000 });
 
     // draft detail — issue it (dev-mode first compile of the route can stall the
     // first load; reload once if the page is still showing the loading block)
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const issueBtn = page.getByRole("button", { name: "صدور صورتحساب" });
+      const issueBtn = page.getByRole("button", { name: "صدور صورت‌حساب" });
       if (await issueBtn.count()) {
         await expect(issueBtn).toBeVisible({ timeout: 20_000 });
         break;
@@ -48,15 +48,15 @@ test.describe("invoices user journey (real API + DB)", () => {
       await page.waitForTimeout(2000);
       await page.reload().catch(() => undefined);
     }
-    await expect(page.getByRole("button", { name: "صدور صورتحساب" })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "صدور صورتحساب" }).click();
+    await expect(page.getByRole("button", { name: "صدور صورت‌حساب" })).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "صدور صورت‌حساب" }).click();
     await expect(page.getByText("صادرشده")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/INV-1405-\d{4}/)).toBeVisible();
 
     // partial payment
     await page.getByLabel("مبلغ پرداخت").fill("400000");
     await page.getByRole("button", { name: "ثبت پرداخت" }).click();
-    await expect(page.getByText("جزیی پرداختشده")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("جزئی پرداخت‌شده")).toBeVisible({ timeout: 15_000 });
     // payment appears in the payments list item
     await expect(page.getByRole("listitem").getByText("۴۰۰٬۰۰۰")).toBeVisible();
 
@@ -78,8 +78,8 @@ test.describe("invoices user journey (real API + DB)", () => {
       vToken,
     );
     await page.goto("/invoices");
-    await expect(page.getByRole("heading", { name: /صورتحساب/ })).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("link", { name: "+ صورتحساب جدید" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /صورت‌حساب/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("link", { name: "+ صورت‌حساب جدید" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "صدور" })).toHaveCount(0);
   });
 });

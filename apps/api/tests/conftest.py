@@ -26,6 +26,7 @@ from sqlalchemy import text  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
 from app.core.db import SessionLocal, engine  # noqa: E402
+from app.core.security import create_access_token  # noqa: E402
 from app.domains.identity.models import Role  # noqa: E402
 from app.domains.identity.service import create_user, ensure_default_company  # noqa: E402
 from app.main import app  # noqa: E402
@@ -102,10 +103,8 @@ def auth_headers(client: TestClient, make_user):
     """Return (headers, user) for a logged-in user of a given role."""
 
     def _auth(role: Role = Role.ACCOUNTANT):
-        user, password = make_user(role)
-        resp = client.post("/api/v1/auth/login", json={"email": user.email, "password": password})
-        assert resp.status_code == 200, resp.text
-        token = resp.json()["access_token"]
+        user, _ = make_user(role)
+        token = create_access_token(str(user.id), user.role.value)
         return {"Authorization": f"Bearer {token}"}, user
 
     return _auth

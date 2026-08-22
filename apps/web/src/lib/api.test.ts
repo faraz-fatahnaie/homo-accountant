@@ -16,7 +16,7 @@ describe("api client", () => {
     expect(fetchMock).toHaveBeenCalledWith(`${API_BASE}/users/me`, expect.any(Object));
   });
 
-  it("attaches bearer token when present", async () => {
+  it("uses cookie credentials and never reads a legacy bearer token", async () => {
     window.localStorage.setItem("homo-accountant-access-token", "tok-123");
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({}), { status: 200 }),
@@ -25,7 +25,8 @@ describe("api client", () => {
     await authApi.me();
     const opts = fetchMock.mock.calls[0]?.[1] as RequestInit;
     const headers = opts.headers as Record<string, string>;
-    expect(headers.Authorization).toBe("Bearer tok-123");
+    expect(headers.Authorization).toBeUndefined();
+    expect(opts.credentials).toBe("include");
   });
 
   it("parses the API error envelope", async () => {
@@ -51,11 +52,27 @@ describe("api client", () => {
   it("does not send auth header for login", async () => {
     window.localStorage.setItem("homo-accountant-access-token", "tok-123");
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ access_token: "a", refresh_token: "b", token_type: "bearer", expires_in: 1800 }), { status: 200 }),
+      new Response(JSON.stringify({ expires_in: 1800 }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
     await authApi.login("a@example.com", "password-1");
     const opts = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect((opts.headers as Record<string, string>).Authorization).toBeUndefined();
+  });
+
+  it("refreshes an expired cookie session once and retries", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ expires_in: 1800 }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 1 }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await authApi.me();
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      `${API_BASE}/auth/refresh`,
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

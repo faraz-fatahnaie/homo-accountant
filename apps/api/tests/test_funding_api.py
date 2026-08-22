@@ -22,7 +22,7 @@ def _seed(client: TestClient, db) -> None:
 def _investor(client: TestClient, headers: dict) -> int:
     resp = client.post(
         "/api/v1/contacts",
-        json={"name": "شرکت سرمایهگذاری امید", "roles": ["investor"]},
+        json={"name": "شرکت سرمایه‌گذاری امید", "roles": ["investor"]},
         headers=headers,
     )
     assert resp.status_code == 201

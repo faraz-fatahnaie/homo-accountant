@@ -65,7 +65,7 @@ export default function BillsPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">فاکتورهای خرید (پرداختنیها)</h1>
+          <h1 className="text-lg font-extrabold">فاکتورهای خرید (پرداختنی‌ها)</h1>
           <p className="mt-0.5 text-xs text-muted">
             {totals.count} فاکتور · مانده پرداختنی:{" "}
             <b className="tabular-nums">{formatRials(totals.payable)}</b> ریال
@@ -79,10 +79,15 @@ export default function BillsPage() {
       <div className="mb-3 flex flex-wrap gap-2">
         {(["all", "draft", "open", "partially_paid", "paid", "overdue", "void"] as const).map((f) => (
           <button key={f} className={`chip ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)} aria-pressed={filter === f}>
-            {f === "all" ? "همه" : f === "open" ? "باز" : f === "partially_paid" ? "جزیی پرداختشده" : f === "overdue" ? "معوق" : BILL_STATUS_LABELS[f as BillStatus]}
+            {f === "all" ? "همه" : f === "open" ? "باز" : f === "partially_paid" ? "جزئی پرداخت‌شده" : f === "overdue" ? "معوق" : BILL_STATUS_LABELS[f as BillStatus]}
           </button>
         ))}
       </div>
+      {postMutation.isError || voidMutation.isError ? (
+        <div className="mb-3">
+          <ErrorBlock message={(postMutation.error ?? voidMutation.error) instanceof Error ? (postMutation.error ?? voidMutation.error as Error).message : "عملیات انجام نشد."} />
+        </div>
+      ) : null}
 
       {isLoading ? <LoadingBlock /> : null}
       {isError ? <ErrorBlock message={error instanceof Error ? error.message : "خطا"} onRetry={() => void refetch()} /> : null}
@@ -98,7 +103,7 @@ export default function BillsPage() {
               <thead>
                 <tr className="border-b-2 border-border-strong bg-surface-2 text-[11px] font-extrabold text-muted">
                   <th className="px-3 py-2.5">شماره</th>
-                  <th className="px-3 py-2.5">تأمینکننده</th>
+                  <th className="px-3 py-2.5">تأمین‌کننده</th>
                   <th className="px-3 py-2.5">شرح</th>
                   <th className="px-3 py-2.5">سررسید</th>
                   <th className="px-3 py-2.5 text-left">مبلغ (ریال)</th>

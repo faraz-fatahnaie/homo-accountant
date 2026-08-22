@@ -19,10 +19,10 @@ import {
 } from "../_components";
 
 const SECTION_LABELS: Record<string, { label: string; desc: string }> = {
-  operating: { label: "فعالیتهای عملیاتی", desc: "درآمد/هزینه نقدی و تغییر در دریافتنی و پرداختنی" },
-  financing: { label: "فعالیتهای تأمین مالی", desc: "سرمایه مالک و وامها" },
-  investing: { label: "فعالیتهای سرمایهگذاری", desc: "خرید/فروش داراییهای ثابت" },
-  other: { label: "سایر", desc: "مواردی که در بخشهای بالا جای نگرفتند" },
+  operating: { label: "فعالیت‌های عملیاتی", desc: "درآمد/هزینه نقدی و تغییر در دریافتنی و پرداختنی" },
+  financing: { label: "فعالیت‌های تأمین مالی", desc: "سرمایه مالک و وام‌ها" },
+  investing: { label: "فعالیت‌های سرمایه‌گذاری", desc: "خرید/فروش دارایی‌های ثابت" },
+  other: { label: "سایر", desc: "مواردی که در بخش‌های بالا جای نگرفتند" },
 };
 
 function Section({ key, data }: { key: string; data: CashFlowSection }) {
@@ -94,7 +94,7 @@ export default function CashFlowPage() {
       <ReportHeader
         active="/reports/cash-flow"
         title="صورت جریان وجوه نقد"
-        subtitle="روش مستقیم روی حسابهای نقد (۱۰۱) و بانک (۱۰۲) از دفتر کل."
+        subtitle="روش مستقیم روی حساب‌های نقد (۱۰۱) و بانک (۱۰۲) از دفتر کل."
       >
         <div className="flex flex-wrap items-center gap-2">
           {data && <ReconBadge ok={data.reconciled} label={data.reconciled ? "تطبیق شد" : "تطبیق نشد"} />}
@@ -118,10 +118,10 @@ export default function CashFlowPage() {
           <Section key="investing" data={data.sections.investing} />
           <Section key="other" data={data.sections.other} />
           <p className="rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">روش و تطبیق:</b> این گزارش به روش مستقیم از ردیفهای سندهای
-            ثبتشده روی حسابهای صندوق (۱۰۱) و بانک (۱۰۲) ساخته میشود و هر حرکت بر اساس حساب مقابل
-            طبقهبندی میشود (عملیاتی ← تأمین مالی ← سرمایهگذاری). معادله «موجودی ابتدا + تغییرات =
-            موجودی انتها» مستقیماً از دفتر کل بررسی میشود.
+            <b className="text-text">روش و تطبیق:</b> این گزارش به روش مستقیم از ردیف‌های سندهای
+            ثبت‌شده روی حساب‌های صندوق (۱۰۱) و بانک (۱۰۲) ساخته می‌شود و هر حرکت بر اساس حساب مقابل
+            طبقه‌بندی می‌شود (عملیاتی ← تأمین مالی ← سرمایه‌گذاری). معادله «موجودی ابتدا + تغییرات =
+            موجودی انتها» مستقیماً از دفتر کل بررسی می‌شود.
           </p>
         </div>
       ) : null}

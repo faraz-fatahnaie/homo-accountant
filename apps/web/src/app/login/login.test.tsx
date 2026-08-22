@@ -45,12 +45,13 @@ describe("login page", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("ایمیل یا رمز عبور نادرست است");
   });
 
-  it("stores tokens and navigates on success", async () => {
+  it("uses the cookie session, clears legacy tokens, and navigates on success", async () => {
+    window.localStorage.setItem("homo-accountant-access-token", "legacy");
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
         new Response(
-          JSON.stringify({ access_token: "acc", refresh_token: "ref", token_type: "bearer", expires_in: 1800 }),
+          JSON.stringify({ expires_in: 1800 }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
       ),
@@ -60,8 +61,14 @@ describe("login page", () => {
     fireEvent.change(screen.getByLabelText("رمز عبور"), { target: { value: "correct-pass-1" } });
     fireEvent.click(screen.getByRole("button", { name: "ورود" }));
     await vi.waitFor(() => {
-      expect(window.localStorage.getItem("homo-accountant-access-token")).toBe("acc");
+      expect(window.localStorage.getItem("homo-accountant-access-token")).toBeNull();
       expect(push).toHaveBeenCalledWith("/dashboard");
     });
+  });
+
+  it("does not expose development account shortcuts", () => {
+    render(<LoginPage />);
+    expect(screen.queryByText(/کاربران آزمایشی/)).not.toBeInTheDocument();
+    expect(screen.queryByText("owner@example.com")).not.toBeInTheDocument();
   });
 });

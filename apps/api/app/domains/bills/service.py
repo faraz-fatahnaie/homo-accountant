@@ -1,6 +1,6 @@
 """Bills service: lifecycle + posting rules.
 
-Post:    Dr <expense/account>  total   /   Cr 204 حسابهای پرداختنی  total
+Post:    Dr <expense/account>  total   /   Cr 204 حساب‌های پرداختنی  total
 Payment: Dr 204 پرداختنی         amount /   Cr 101/102 (cash/bank)   amount
 Void:    reversal of the post entry (only when nothing was paid).
 All flows are single-transaction and reuse the ledger posting service.
@@ -14,6 +14,7 @@ import logging
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.core.jalali import entry_period
 from app.domains.bills.models import Bill, BillPayment, BillStatus
 from app.domains.ledger.service import (
@@ -29,12 +30,9 @@ logger = logging.getLogger(__name__)
 PAYABLE_ACCOUNT = "204"
 
 
-class BillError(Exception):
+class BillError(AppError):
     def __init__(self, message: str, code: str = "bill_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 def create_bill(
@@ -52,7 +50,12 @@ def create_bill(
     total: int,
 ) -> Bill:
     if due_date < issue_date:
-        raise BillError("سررسید نمیتواند قبل از تاریخ فاکتور باشد", code="bill_dates_invalid")
+        raise BillError("سررسید نمی‌تواند قبل از تاریخ فاکتور باشد", code="bill_dates_invalid")
+    if project_id is not None:
+        from app.domains.projects.service import get_project
+
+        if get_project(db, company_id, project_id) is None:
+            raise BillError("پروژه یافت نشد", code="project_missing", status_code=404)
     account = get_account(db, company_id, account_code)
     if account is None:
         raise BillError(f"حساب با کد {account_code} یافت نشد", code="account_missing")
@@ -84,8 +87,8 @@ def _paid_total(db: Session, bill_id: int) -> int:
     return int(paid or 0)
 
 
-def post_bill(db: Session, bill_id: int, actor_id: int) -> Bill:
-    bill = db.get(Bill, bill_id)
+def post_bill(db: Session, company_id: int, bill_id: int, actor_id: int) -> Bill:
+    bill = db.scalar(select(Bill).where(Bill.id == bill_id, Bill.company_id == company_id))
     if bill is None:
         raise BillError("فاکتور خرید یافت نشد", code="bill_missing", status_code=404)
     if bill.status == BillStatus.VOID:
@@ -106,7 +109,7 @@ def post_bill(db: Session, bill_id: int, actor_id: int) -> Bill:
         lines=[(account.code, bill.total, 0), (PAYABLE_ACCOUNT, 0, bill.total)],
         idempotency_key=None,
     )
-    posted = post_entry(db, entry.id, actor_id)
+    posted = post_entry(db, company_id, entry.id, actor_id)
     year, month = entry_period(bill.issue_date)
     bill.number = next_reference(db, bill.company_id, year, month, "BIL")
     bill.journal_entry_id = posted.id
@@ -121,6 +124,7 @@ def post_bill(db: Session, bill_id: int, actor_id: int) -> Bill:
 def record_payment(
     db: Session,
     *,
+    company_id: int,
     bill_id: int,
     actor_id: int,
     amount: int,
@@ -128,11 +132,11 @@ def record_payment(
     method: str,
     reference: str | None,
 ) -> BillPayment:
-    bill = db.get(Bill, bill_id)
+    bill = db.scalar(select(Bill).where(Bill.id == bill_id, Bill.company_id == company_id))
     if bill is None:
         raise BillError("فاکتور خرید یافت نشد", code="bill_missing", status_code=404)
     if bill.status in (BillStatus.DRAFT, BillStatus.VOID):
-        raise BillError("فقط فاکتور خرید ثبتشده را میتوان پرداخت کرد", code="bill_not_posted")
+        raise BillError("فقط فاکتور خرید ثبت‌شده را می‌توان پرداخت کرد", code="bill_not_posted")
     if bill.journal_entry_id is None:
         raise BillError("فاکتور خرید هنوز ثبت نشده است", code="bill_not_posted")
     paid = _paid_total(db, bill.id)
@@ -148,7 +152,7 @@ def record_payment(
         lines=[(PAYABLE_ACCOUNT, amount, 0), (cash_account, 0, amount)],
         idempotency_key=None,
     )
-    posted = post_entry(db, entry.id, actor_id)
+    posted = post_entry(db, company_id, entry.id, actor_id)
     payment = BillPayment(
         bill_id=bill.id,
         amount=amount,
@@ -172,8 +176,8 @@ def record_payment(
     return payment
 
 
-def void_bill(db: Session, bill_id: int, actor_id: int) -> Bill:
-    bill = db.get(Bill, bill_id)
+def void_bill(db: Session, company_id: int, bill_id: int, actor_id: int) -> Bill:
+    bill = db.scalar(select(Bill).where(Bill.id == bill_id, Bill.company_id == company_id))
     if bill is None:
         raise BillError("فاکتور خرید یافت نشد", code="bill_missing", status_code=404)
     if bill.status == BillStatus.VOID:
@@ -184,11 +188,15 @@ def void_bill(db: Session, bill_id: int, actor_id: int) -> Bill:
         return bill
     if _paid_total(db, bill.id) > 0:
         raise BillError(
-            "فاکتور خریدی که پرداخت داشته را نمیتوان باطل کرد",
+            "فاکتور خریدی که پرداخت داشته را نمی‌توان باطل کرد",
             code="bill_has_payments",
         )
     void_entry(
-        db, bill.journal_entry_id, actor_id, memo=f"ابطال فاکتور خرید {bill.number or bill.id}"
+        db,
+        company_id,
+        bill.journal_entry_id,
+        actor_id,
+        memo=f"ابطال فاکتور خرید {bill.number or bill.id}",
     )
     bill.status = BillStatus.VOID
     db.flush()

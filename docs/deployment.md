@@ -56,13 +56,30 @@ curl -sf http://your-host/healthz && echo OK
 
 HTTP sends login credentials and financial data without transport encryption. Treat this as a
 temporary or externally TLS-terminated mode and move to the base TLS configuration when possible.
+The bundled nginx deliberately replaces (rather than appends) client-supplied `X-Forwarded-For`
+to prevent rate-limit spoofing. If another trusted reverse proxy sits in front of the VM, configure
+nginx `set_real_ip_from` for that proxy's exact address and `real_ip_header` before relying on the
+forwarded client address; never trust this header from arbitrary sources.
 
 ## 3. Bootstrap the first admin
 
 ```bash
 docker compose -f compose.prod.yaml exec api python -m app.scripts.bootstrap_admin
 # -> creates the OWNER from HOMO_ADMIN_BOOTSTRAP_EMAIL/PASSWORD
-# then immediately rotate the password via the UI/user management.
+# The command is idempotent and also verifies required system accounts/mappings.
+```
+
+Rotate a leaked or temporary password without placing it in command arguments, and revoke every
+active refresh session for that user:
+
+```bash
+read -r -p 'User email: ' HOMO_ROTATE_USER_EMAIL
+read -r -s -p 'New password: ' HOMO_ROTATE_USER_PASSWORD; echo
+export HOMO_ROTATE_USER_EMAIL HOMO_ROTATE_USER_PASSWORD
+docker compose -f compose.prod.yaml exec -T \
+  -e HOMO_ROTATE_USER_EMAIL -e HOMO_ROTATE_USER_PASSWORD \
+  api python -m app.scripts.rotate_password
+unset HOMO_ROTATE_USER_EMAIL HOMO_ROTATE_USER_PASSWORD
 ```
 
 ## 4. Upgrades
@@ -93,10 +110,9 @@ offsite copy mandatory).
 
 ## 7. Publishing images / CI deployment
 
-The `docker.yml` `publish` job is **disabled by default** (`if: ${{ false }}`). To enable:
-configure a registry (GHCR/Docker Hub) token as a secret, review the job, and explicitly
-authorize — per project policy, nothing is published or deployed without owner credentials
-and approval.
+The repository intentionally has no inactive or placeholder publish job. Add a reviewed registry
+and deployment workflow only after credentials, environment protection, rollback, and explicit
+owner authorization are available.
 
 ## 7b. CI/CD workflows (verified in slice 9 packaging)
 
@@ -105,11 +121,12 @@ and approval.
   Requires `@vitest/coverage-v8` (present) and the api-client `generate` script (simplified).
 - `security.yml` — pip-audit on the lockfile (verified 0 findings), strict `npm audit`
   (0 vulnerabilities), trufflehog secret scan, CodeQL.
-- `docker.yml` — builds api+web, boots the prod stack via `.github/compose.smoke.yaml`
+- `docker.yml` — builds api+web, boots the prod stack via `.github/compose.smoke.yaml`, verifies
+  production bootstrap twice, and validates an HttpOnly cookie login against the real API
   (publishes :8000/:3000 for smoke tests; prod compose keeps ports nginx-only), scans both
   images with trivy (fails only on FIXABLE HIGH/CRITICAL via `ignore-unfixed`; documented
-  accepts go in `.trivyignore`). Publish/deploy stays disabled until the owner adds registry
-  credentials.
+  accepts go in `.trivyignore`). Publishing/deployment is not present until the owner adds a
+  protected environment and registry credentials.
 - **Base images are pinned to digests** (python:3.12-slim, node:20-alpine in the Dockerfiles;
   postgres:16-alpine and nginx in compose.prod.yaml) for reproducible, supply-chain-safe
   builds. To update, bump the digest after `docker pull <image>` and re-run the Docker

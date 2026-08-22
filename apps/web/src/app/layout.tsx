@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | آریا تجارت",
   },
   description:
-    "سامانه حسابداری دوطرفه فارسی برای شرکتهای کوچک — هزینهها، صورتحسابها، پرداختها، پروژهها و گزارشهای مالی",
+    "سامانه حسابداری دوطرفه فارسی برای شرکت‌های کوچک — هزینه‌ها، صورت‌حساب‌ها، پرداخت‌ها، پروژه‌ها و گزارش‌های مالی",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

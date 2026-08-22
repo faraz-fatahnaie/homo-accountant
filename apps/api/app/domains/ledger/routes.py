@@ -190,7 +190,7 @@ def entry_post(
     db: Session = Depends(get_db),
 ) -> JournalEntryOut | JSONResponse:
     try:
-        entry = post_entry(db, entry_id, actor.id)
+        entry = post_entry(db, actor.company_id, entry_id, actor.id)
     except LedgerError as exc:
         db.rollback()
         return _ledger_error_handler(exc)
@@ -205,7 +205,7 @@ def entry_void(
     db: Session = Depends(get_db),
 ) -> JournalEntryOut | JSONResponse:
     try:
-        reversal = void_entry(db, entry_id, actor.id)
+        reversal = void_entry(db, actor.company_id, entry_id, actor.id)
     except LedgerError as exc:
         db.rollback()
         return _ledger_error_handler(exc)
@@ -233,7 +233,7 @@ def period_close(
     db: Session = Depends(get_db),
 ) -> AccountingPeriod | JSONResponse:
     try:
-        period = close_period(db, period_id, actor.id)
+        period = close_period(db, actor.company_id, period_id, actor.id)
     except LedgerError as exc:
         db.rollback()
         return _ledger_error_handler(exc)
@@ -248,7 +248,7 @@ def period_reopen(
     db: Session = Depends(get_db),
 ) -> AccountingPeriod | JSONResponse:
     try:
-        period = reopen_period(db, period_id, actor.id)
+        period = reopen_period(db, actor.company_id, period_id, actor.id)
     except LedgerError as exc:
         db.rollback()
         return _ledger_error_handler(exc)

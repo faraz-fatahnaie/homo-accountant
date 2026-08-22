@@ -16,6 +16,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.core.jalali import entry_period
 from app.domains.funding.models import FundingAccountMapping, FundingEvent, FundingType
 from app.domains.ledger.service import (
@@ -28,12 +29,9 @@ from app.domains.ledger.service import (
 logger = logging.getLogger(__name__)
 
 
-class FundingError(Exception):
+class FundingError(AppError):
     def __init__(self, message: str, code: str = "funding_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 DEFAULT_MAPPINGS: dict[FundingType, str] = {
@@ -153,6 +151,11 @@ def create_funding_event(
     maturity_date: dt.date | None,
     notes: str | None,
 ) -> FundingEvent:
+    if project_id is not None:
+        from app.domains.projects.service import get_project
+
+        if get_project(db, company_id, project_id) is None:
+            raise FundingError("پروژه یافت نشد", code="project_missing", status_code=404)
     if funding_type == FundingType.LOAN and maturity_date is None:
         raise FundingError("برای وام، تاریخ سررسید الزامی است", code="loan_maturity_required")
     if (
@@ -161,7 +164,7 @@ def create_funding_event(
         and maturity_date < event_date
     ):
         raise FundingError(
-            "سررسید وام نمیتواند قبل از تاریخ دریافت باشد", code="loan_maturity_invalid"
+            "سررسید وام نمی‌تواند قبل از تاریخ دریافت باشد", code="loan_maturity_invalid"
         )
     account_code = _resolve_account_code(db, company_id, funding_type)
     account = get_account(db, company_id, account_code)
@@ -180,7 +183,7 @@ def create_funding_event(
         lines=[(cash_account, amount, 0), (account_code, 0, amount)],
         idempotency_key=None,
     )
-    posted = post_entry(db, entry.id, actor_id)
+    posted = post_entry(db, company_id, entry.id, actor_id)
     year, month = entry_period(event_date)
     event = FundingEvent(
         company_id=company_id,

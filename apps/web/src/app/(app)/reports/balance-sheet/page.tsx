@@ -79,7 +79,7 @@ export default function BalanceSheetPage() {
       <ReportHeader
         active="/reports/balance-sheet"
         title="ترازنامه"
-        subtitle="داراییها در برابر بدهیها و حقوق صاحبان سهام (شامل سود/زیان دوره)."
+        subtitle="دارایی‌ها در برابر بدهی‌ها و حقوق صاحبان سهام (شامل سود/زیان دوره)."
       >
         <div className="flex flex-wrap items-center gap-2">
           {data && <ReconBadge ok={data.reconciled} label={data.reconciled ? "تراز است" : "تراز نیست"} />}
@@ -93,17 +93,17 @@ export default function BalanceSheetPage() {
         <ErrorBlock message={error instanceof Error ? error.message : "خطا"} onRetry={() => void refetch()} />
       ) : data ? (
         <div className="space-y-4">
-          <SheetSection title="داراییها" rows={data.assets} linkAccount={(c) => `/reports/general-ledger?account_code=${c}`} />
-          <SheetSection title="بدهیها" rows={data.liabilities} linkAccount={(c) => `/reports/general-ledger?account_code=${c}`} />
+          <SheetSection title="دارایی‌ها" rows={data.assets} linkAccount={(c) => `/reports/general-ledger?account_code=${c}`} />
+          <SheetSection title="بدهی‌ها" rows={data.liabilities} linkAccount={(c) => `/reports/general-ledger?account_code=${c}`} />
           <SheetSection title="حقوق صاحبان سهام" rows={data.equity} linkAccount={(c) => (c === "PNL" ? undefined : `/reports/general-ledger?account_code=${c}`)} />
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <TotalRow label="جمع داراییها" value={data.total_assets} />
-            <TotalRow label="جمع بدهیها و حقوق صاحبان سهام" value={data.total_liabilities_equity} />
+            <TotalRow label="جمع دارایی‌ها" value={data.total_assets} />
+            <TotalRow label="جمع بدهی‌ها و حقوق صاحبان سهام" value={data.total_liabilities_equity} />
           </div>
           <p className="rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">تطبیق:</b> «سود (زیان) دوره» از درآمدها منهای هزینههای ثبتشده
-            تا تاریخ گزارش محاسبه و به حقوق صاحبان سهام اضافه میشود. معادله «دارایی = بدهی + سرمایه»
+            <b className="text-text">تطبیق:</b> «سود (زیان) دوره» از درآمدها منهای هزینه‌های ثبت‌شده
+            تا تاریخ گزارش محاسبه و به حقوق صاحبان سهام اضافه می‌شود. معادله «دارایی = بدهی + سرمایه»
             با این قلم همواره برقرار است.
           </p>
         </div>

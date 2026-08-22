@@ -51,10 +51,10 @@ function Side({
           head={
             <>
               <Th>شماره</Th>
-              <Th>طرف حساب</Th>
+              <Th>طرف‌حساب</Th>
               <Th>سررسید</Th>
               <Th className="text-left">کل</Th>
-              <Th className="text-left">پرداختشده</Th>
+              <Th className="text-left">پرداخت‌شده</Th>
               <Th className="text-left">مانده</Th>
               <Th>گروه سنی</Th>
             </>
@@ -99,7 +99,7 @@ export default function AgingPage() {
       <ReportHeader
         active="/reports/aging"
         title="سررسید دریافتنی و پرداختنی"
-        subtitle="سن مطالبات و بدهیها به دستههای جاری، ۳۰، ۶۰، ۹۰ و بیش از ۹۰ روز."
+        subtitle="سن مطالبات و بدهی‌ها به دستههای جاری، ۳۰، ۶۰، ۹۰ و بیش از ۹۰ روز."
       >
         <div className="flex flex-wrap items-center gap-2">
           {data && <ReconBadge ok={data.reconciled} label={data.reconciled ? "تطبیق شد" : "تطبیق نشد"} />}

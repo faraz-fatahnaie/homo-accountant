@@ -21,7 +21,7 @@ class ProjectCreate(BaseModel):
     @model_validator(mode="after")
     def _dates_consistent(self) -> ProjectCreate:
         if self.start_date and self.end_date and self.end_date < self.start_date:
-            raise ValueError("تاریخ پایان نمیتواند قبل از تاریخ شروع باشد")
+            raise ValueError("تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد")
         return self
 
 

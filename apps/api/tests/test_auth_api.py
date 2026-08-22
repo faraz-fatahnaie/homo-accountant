@@ -13,15 +13,18 @@ def _login(client: TestClient, email: str, password: str):
 
 
 class TestLogin:
-    def test_login_success_returns_token_pair(self, client: TestClient, make_user) -> None:
+    def test_login_success_sets_http_only_session_cookies(
+        self, client: TestClient, make_user
+    ) -> None:
         user, password = make_user(Role.ACCOUNTANT)
         resp = _login(client, user.email, password)
         assert resp.status_code == 200
         body = resp.json()
-        assert body["token_type"] == "bearer"
-        assert body["access_token"]
-        assert body["refresh_token"]
         assert body["expires_in"] > 0
+        assert "access_token" not in body
+        cookies = resp.headers.get_list("set-cookie")
+        assert any("homo_access=" in cookie and "HttpOnly" in cookie for cookie in cookies)
+        assert any("homo_refresh=" in cookie and "HttpOnly" in cookie for cookie in cookies)
 
     def test_login_wrong_password(self, client: TestClient, make_user) -> None:
         user, _ = make_user(Role.STAFF)
@@ -63,29 +66,32 @@ class TestLogin:
 class TestRefreshRotation:
     def test_refresh_rotates_and_old_is_rejected(self, client: TestClient, make_user) -> None:
         user, password = make_user(Role.ACCOUNTANT)
-        pair = _login(client, user.email, password).json()
+        login = _login(client, user.email, password)
+        old_refresh = login.cookies["homo_refresh"]
         # first refresh works
-        r1 = client.post("/api/v1/auth/refresh", json={"refresh_token": pair["refresh_token"]})
+        r1 = client.post("/api/v1/auth/refresh")
         assert r1.status_code == 200
-        new_pair = r1.json()
-        assert new_pair["access_token"] != pair["access_token"]
+        new_refresh = r1.cookies["homo_refresh"]
+        assert new_refresh != old_refresh
         # old refresh token is now revoked -> reuse detection
-        r2 = client.post("/api/v1/auth/refresh", json={"refresh_token": pair["refresh_token"]})
+        client.cookies.set("homo_refresh", old_refresh, path="/api/v1/auth")
+        r2 = client.post("/api/v1/auth/refresh")
         assert r2.status_code == 401
-        # the rotated token still works
-        r3 = client.post("/api/v1/auth/refresh", json={"refresh_token": new_pair["refresh_token"]})
-        assert r3.status_code == 200
+        # reuse revokes the whole token family
+        client.cookies.set("homo_refresh", new_refresh, path="/api/v1/auth")
+        assert client.post("/api/v1/auth/refresh").status_code == 401
 
     def test_refresh_invalid_token(self, client: TestClient) -> None:
-        resp = client.post("/api/v1/auth/refresh", json={"refresh_token": "garbage-token"})
+        client.cookies.set("homo_refresh", "garbage-token", path="/api/v1/auth")
+        resp = client.post("/api/v1/auth/refresh")
         assert resp.status_code == 401
 
     def test_logout_revokes_refresh(self, client: TestClient, make_user) -> None:
         user, password = make_user(Role.STAFF)
-        pair = _login(client, user.email, password).json()
-        resp = client.post("/api/v1/auth/logout", json={"refresh_token": pair["refresh_token"]})
+        _login(client, user.email, password)
+        resp = client.post("/api/v1/auth/logout")
         assert resp.status_code == 200
-        after = client.post("/api/v1/auth/refresh", json={"refresh_token": pair["refresh_token"]})
+        after = client.post("/api/v1/auth/refresh")
         assert after.status_code == 401
 
 
@@ -98,6 +104,13 @@ class TestMe:
         assert body["email"] == user.email
         assert body["role"] == "accountant"
         assert body["full_name"] == user.full_name
+
+    def test_me_accepts_cookie_session(self, client: TestClient, make_user) -> None:
+        user, password = make_user(Role.ACCOUNTANT)
+        assert _login(client, user.email, password).status_code == 200
+        resp = client.get("/api/v1/users/me")
+        assert resp.status_code == 200
+        assert resp.json()["id"] == user.id
 
     def test_me_without_token(self, client: TestClient) -> None:
         resp = client.get("/api/v1/users/me")

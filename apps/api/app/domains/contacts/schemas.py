@@ -24,7 +24,7 @@ class ContactCreate(BaseModel):
     def _valid_roles(cls, v: list[str]) -> list[str]:
         invalid = [r for r in v if r not in CONTACT_ROLES]
         if invalid:
-            raise ValueError(f"نقشهای نامعتبر: {', '.join(invalid)}")
+            raise ValueError(f"نقش‌های نامعتبر: {', '.join(invalid)}")
         return list(dict.fromkeys(v))  # de-duplicate, preserve order
 
 

@@ -34,6 +34,8 @@ POSTGRES_DB=$(grep '^POSTGRES_DB=' .env | cut -d= -f2)
 docker exec "$DB_CONTAINER" pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom --no-owner \
   > "$STAMP/db.dump"
 gzip -f "$STAMP/db.dump"
+gzip -t "$STAMP/db.dump.gz"
+gunzip -c "$STAMP/db.dump.gz" | docker exec -i "$DB_CONTAINER" pg_restore --list >/dev/null
 echo "[backup] db.dump.gz: $(du -h "$STAMP/db.dump.gz" | cut -f1)"
 
 # --- Uploaded attachments (persistent API media volume) ---
@@ -51,6 +53,10 @@ fi
 cp compose.prod.yaml .env.example "$STAMP/"
 cp .env "$STAMP/.env"
 chmod 600 "$STAMP/.env"
+
+# Integrity manifest. Verify this before every restore or off-server copy.
+(cd "$STAMP" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+sha256sum -c "$STAMP/SHA256SUMS" >/dev/null
 
 # --- Weekly archive (Monday) ---
 if [ "$(date +%u)" = "1" ]; then

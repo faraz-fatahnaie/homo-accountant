@@ -2,12 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError, authApi, storeTokens } from "@/lib/api";
-
-const DEMO_USERS = [
-  { role: "مدیر", email: "owner@example.com", password: "owner-homo-1405" },
-  { role: "حسابدار", email: "accountant@example.com", password: "acct-homo-1405" },
-];
+import { ApiError, authApi, clearLegacyTokens } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,8 +20,8 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const pair = await authApi.login(email.trim(), password);
-      storeTokens(pair.access_token, pair.refresh_token);
+      await authApi.login(email.trim(), password);
+      clearLegacyTokens();
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -90,28 +85,6 @@ export default function LoginPage() {
             {loading ? "در حال ورود…" : "ورود"}
           </button>
         </form>
-
-        <div className="card mt-4 p-4 text-xs text-muted">
-          <p className="mb-2 font-bold text-text">کاربران آزمایشی (فقط محیط توسعه)</p>
-          <ul className="space-y-1">
-            {DEMO_USERS.map((u) => (
-              <li key={u.email} className="flex items-center justify-between gap-2">
-                <span>{u.role}</span>
-                <button
-                  type="button"
-                  className="font-mono text-primary-strong underline"
-                  onClick={() => {
-                    setEmail(u.email);
-                    setPassword(u.password);
-                    setError(null);
-                  }}
-                >
-                  <span dir="ltr">{u.email}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
     </main>
   );

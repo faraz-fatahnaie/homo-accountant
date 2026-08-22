@@ -22,6 +22,35 @@ const OP_LABELS: Record<string, string> = {
   in: "در فهرست",
 };
 
+const VALUE_LABELS: Record<string, string> = {
+  draft: "پیش‌نویس",
+  posted: "ثبت‌شده",
+  voided: "برگشتی",
+  issued: "صادرشده",
+  partially_paid: "پرداخت‌شده جزئی",
+  paid: "پرداخت‌شده",
+  void: "باطل‌شده",
+  open: "باز",
+  cash: "نقدی",
+  bank: "انتقال بانکی",
+  online: "آنلاین",
+  investment: "سرمایه‌گذاری",
+  loan: "وام",
+  grant: "کمک بلاعوض",
+  revenue: "درآمد",
+  active: "فعال",
+  completed: "تکمیل‌شده",
+  on_hold: "متوقف",
+  true: "بله",
+  false: "خیر",
+};
+
+function displayQueryValue(value: unknown, type: string): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (type === "amount") return formatRials(Number(value) || 0);
+  return VALUE_LABELS[String(value)] ?? String(value);
+}
+
 interface FilterRow {
   id: number;
   field: string;
@@ -45,6 +74,7 @@ export default function QueryBuilderPage() {
   const [pageSize, setPageSize] = useState(25);
   const [saveName, setSaveName] = useState("");
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const { data: datasets, isLoading: datasetsLoading } = useQuery({
     queryKey: ["qb-datasets"],
@@ -120,6 +150,8 @@ export default function QueryBuilderPage() {
 
   const exportBusy = useMutation({
     mutationFn: (format: "csv" | "xlsx") => queryBuilderApi.exportFile(format, buildAst()),
+    onMutate: () => setActionError(null),
+    onError: (error) => setActionError(error instanceof Error ? error.message : "خروجی ایجاد نشد"),
   });
   const saveMutation = useMutation({
     mutationFn: () => queryBuilderApi.save(saveName, dataset, buildAst()),
@@ -144,15 +176,15 @@ export default function QueryBuilderPage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-lg font-extrabold">پرسوجو و جستجو</h1>
+        <h1 className="text-lg font-extrabold">پرس‌وجو و جست‌وجو</h1>
         <p className="mt-0.5 text-xs text-muted">
-          بدون نیاز به دانش فنی، دادهها را جستجو، فیلتر و خروجی بگیرید — فقط با گزینههای آماده
+          بدون نیاز به دانش فنی، داده‌ها را جست‌وجو، فیلتر و خروجی بگیرید — فقط با گزینه‌های آماده
         </p>
       </div>
 
       {/* templates */}
       <div className="mb-3 flex flex-wrap gap-2">
-        <span className="text-xs font-bold text-muted self-center">قالبهای آماده:</span>
+        <span className="text-xs font-bold text-muted self-center">قالب‌های آماده:</span>
         {(templates ?? []).map((t) => (
           <button key={t.id} className="chip" onClick={() => applyTemplate(t)} title={t.description}>
             {t.name}
@@ -163,7 +195,7 @@ export default function QueryBuilderPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* builder */}
         <section className="card p-4 lg:col-span-1">
-          <h2 className="mb-3 text-sm font-extrabold">ساخت پرسوجو</h2>
+          <h2 className="mb-3 text-sm font-extrabold">ساخت پرس‌وجو</h2>
 
           <label className="label" htmlFor="qb-dataset">مجموعه داده</label>
           <select id="qb-dataset" className="input mb-3" value={dataset} onChange={(e) => { setDataset(e.target.value); setPage(1); setResult(null); }}>
@@ -190,10 +222,13 @@ export default function QueryBuilderPage() {
 
           <div className="mb-3">
             <span className="label">شرطها</span>
-            {filters.map((f) => (
+            {filters.map((f) => {
+              const selectedColumn = current?.columns.find((column) => column.field === f.field);
+              const options = selectedColumn?.type === "bool" ? ["true", "false"] : selectedColumn?.enum_options;
+              return (
               <div key={f.id} className="mb-2 grid grid-cols-[1fr_auto_1fr_auto] gap-1.5 items-center">
                 <select className="input !px-1.5 !py-1 text-xs" value={f.field}
-                  onChange={(e) => setFilters((prev) => prev.map((x) => x.id === f.id ? { ...x, field: e.target.value } : x))}>
+                  onChange={(e) => setFilters((prev) => prev.map((x) => x.id === f.id ? { ...x, field: e.target.value, op: "eq", value: "" } : x))}>
                   {(current?.columns ?? []).map((c) => (
                     <option key={c.field} value={c.field}>{c.label}</option>
                   ))}
@@ -204,22 +239,32 @@ export default function QueryBuilderPage() {
                     <option key={k} value={k}>{v}</option>
                   ))}
                 </select>
-                <input className="input !px-1.5 !py-1 text-xs" dir="ltr" value={f.value}
-                  onChange={(e) => setFilters((prev) => prev.map((x) => x.id === f.id ? { ...x, value: e.target.value } : x))}
-                  placeholder="مقدار" />
+                {options && options.length > 0 ? (
+                  <select className="input !px-1.5 !py-1 text-xs" value={f.value}
+                    aria-label="مقدار شرط"
+                    onChange={(e) => setFilters((prev) => prev.map((x) => x.id === f.id ? { ...x, value: e.target.value } : x))}>
+                    <option value="">انتخاب…</option>
+                    {options.map((option) => <option key={option} value={option}>{VALUE_LABELS[option] ?? option}</option>)}
+                  </select>
+                ) : (
+                  <input className="input !px-1.5 !py-1 text-xs" dir="ltr" value={f.value}
+                    onChange={(e) => setFilters((prev) => prev.map((x) => x.id === f.id ? { ...x, value: e.target.value } : x))}
+                    placeholder="مقدار" />
+                )}
                 <button className="icon-btn" aria-label="حذف شرط"
                   onClick={() => setFilters((prev) => prev.filter((x) => x.id !== f.id))}>
                   <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
                 </button>
               </div>
-            ))}
+              );
+            })}
             <button className="btn btn-ghost btn-sm" onClick={() => setFilters((prev) => [...prev, { id: fId++, field: current?.columns[0]?.field ?? "", op: "eq", value: "" }])}>
               + افزودن شرط
             </button>
           </div>
 
           <div className="mb-3">
-            <span className="label">مرتبسازی</span>
+            <span className="label">مرتب‌سازی</span>
             {sorts.map((s, i) => (
               <div key={i} className="mb-2 grid grid-cols-[1fr_auto_auto] gap-1.5 items-center">
                 <select className="input !px-1.5 !py-1 text-xs" value={s.field}
@@ -233,18 +278,18 @@ export default function QueryBuilderPage() {
                   <option value="asc">صعودی</option>
                   <option value="desc">نزولی</option>
                 </select>
-                <button className="icon-btn" aria-label="حذف مرتبسازی"
+                <button className="icon-btn" aria-label="حذف مرتب‌سازی"
                   onClick={() => setSorts((prev) => prev.filter((_, j) => j !== i))}>
                   <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
                 </button>
               </div>
             ))}
             <button className="btn btn-ghost btn-sm" onClick={() => setSorts((prev) => [...prev, { field: current?.columns[0]?.field ?? "", dir: "asc" }])}>
-              + افزودن مرتبسازی
+              + افزودن مرتب‌سازی
             </button>
           </div>
 
-          <button className="btn btn-primary w-full" onClick={() => void doRun()}>اجرای پرسوجو</button>
+          <button className="btn btn-primary w-full" onClick={() => void doRun()}>اجرای پرس‌وجو</button>
         </section>
 
         {/* results */}
@@ -255,6 +300,7 @@ export default function QueryBuilderPage() {
             </p>
           ) : null}
           {runError ? <p className="error mb-3" role="alert">{runError}</p> : null}
+          {actionError ? <p className="error mb-3" role="alert">{actionError}</p> : null}
 
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <select className="input w-auto !py-1 text-xs" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}>
@@ -292,7 +338,14 @@ export default function QueryBuilderPage() {
                     اجرا
                   </button>
                   <button className="text-xs text-muted" title="حذف"
-                    onClick={() => { void queryBuilderApi.remove(q.id).then(() => refetchSaved()); }}>
+                    onClick={() => {
+                      setActionError(null);
+                      void queryBuilderApi.remove(q.id)
+                        .then(() => refetchSaved())
+                        .catch((removeError: unknown) => {
+                          setActionError(removeError instanceof Error ? removeError.message : "حذف نما انجام نشد");
+                        });
+                    }}>
                     ×
                   </button>
                 </span>
@@ -320,7 +373,7 @@ export default function QueryBuilderPage() {
                         <td className="px-3 py-2 text-xs text-muted">{faDigits((result.page - 1) * result.page_size + ri + 1)}</td>
                         {totalCols.map((c, ci) => (
                           <td key={ci} className={`px-3 py-2 ${c.type === "amount" ? "text-left font-bold tabular-nums" : ""}`}>
-                            {c.type === "amount" ? formatRials(Number(row[ci]) || 0) : String(row[ci] ?? "—")}
+                            {displayQueryValue(row[ci], c.type)}
                           </td>
                         ))}
                       </tr>
@@ -353,7 +406,7 @@ export default function QueryBuilderPage() {
 
           {!datasetsLoading && !result ? (
             <div className="card px-4 py-10 text-center text-sm text-muted">
-              یک قالب آماده انتخاب کنید یا پرسوجوی خود را بسازید و «اجرای پرسوجو» را بزنید.
+              یک قالب آماده انتخاب کنید یا پرس‌وجوی خود را بسازید و «اجرای پرس‌وجو» را بزنید.
             </div>
           ) : null}
         </section>

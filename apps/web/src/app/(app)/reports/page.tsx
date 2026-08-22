@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ReconciliationPanel } from "./_hub-client";
 
-export const metadata: Metadata = { title: "گزارشهای مالی" };
+export const metadata: Metadata = { title: "گزارش‌های مالی" };
 
 const REPORT_CARDS = [
   {
@@ -13,17 +13,17 @@ const REPORT_CARDS = [
   {
     href: "/reports/balance-sheet",
     title: "ترازنامه",
-    desc: "داراییها در برابر بدهیها و حقوق صاحبان سهام (شامل سود دوره).",
+    desc: "دارایی‌ها در برابر بدهی‌ها و حقوق صاحبان سهام (شامل سود دوره).",
   },
   {
     href: "/reports/profit-loss",
     title: "صورت سود و زیان",
-    desc: "درآمد و هزینه دوره با تفکیک حسابها و نتیجه خالص.",
+    desc: "درآمد و هزینه دوره با تفکیک حساب‌ها و نتیجه خالص.",
   },
   {
     href: "/reports/cash-flow",
     title: "صورت جریان وجوه نقد",
-    desc: "روش مستقیم بر مبنای حسابهای نقد و بانک؛ عملیاتی، تأمین مالی، سرمایهگذاری.",
+    desc: "روش مستقیم بر مبنای حساب‌های نقد و بانک؛ عملیاتی، تأمین مالی، سرمایه‌گذاری.",
   },
   {
     href: "/reports/general-ledger",
@@ -33,12 +33,12 @@ const REPORT_CARDS = [
   {
     href: "/reports/aging",
     title: "سررسید دریافتنی و پرداختنی",
-    desc: "تفکیک سن مطالبات و بدهیها (جاری، ۳۰، ۶۰، ۹۰+ روز).",
+    desc: "تفکیک سن مطالبات و بدهی‌ها (جاری، ۳۰، ۶۰، ۹۰+ روز).",
   },
   {
     href: "/reports/budget",
-    title: "بودجه و عملکرد پروژهها",
-    desc: "مقایسه بودجه هر پروژه با هزینههای ثبتشده.",
+    title: "بودجه و عملکرد پروژه‌ها",
+    desc: "مقایسه بودجه هر پروژه با هزینه‌های ثبت‌شده.",
   },
   {
     href: "/reports/funding",
@@ -51,9 +51,9 @@ export default function ReportsPage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-lg font-extrabold">گزارشهای مالی</h1>
+        <h1 className="text-lg font-extrabold">گزارش‌های مالی</h1>
         <p className="mt-0.5 text-xs text-muted">
-          همه ارقام مستقیماً از دفتر کل (سندهای ثبتشده) محاسبه میشوند — هر گزارش برچسب تطبیق دارد.
+          همه ارقام مستقیماً از دفتر کل (سندهای ثبت‌شده) محاسبه می‌شوند — هر گزارش برچسب تطبیق دارد.
         </p>
       </div>
 

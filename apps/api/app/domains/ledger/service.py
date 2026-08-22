@@ -17,6 +17,7 @@ import logging
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.core.jalali import entry_period, jalali_to_gregorian
 from app.domains.ledger.models import (
     Account,
@@ -34,14 +35,11 @@ from app.domains.ledger.models import (
 logger = logging.getLogger(__name__)
 
 
-class LedgerError(Exception):
+class LedgerError(AppError):
     """Business-rule violation (mapped to 422/400 in routes)."""
 
     def __init__(self, message: str, code: str = "ledger_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 # ---------------------------------------------------------------------------
@@ -51,8 +49,8 @@ class LedgerError(Exception):
 STARTER_CHART: list[tuple[str, str, AccountType]] = [
     ("101", "صندوق", AccountType.ASSET),
     ("102", "بانک — حساب جاری", AccountType.ASSET),
-    ("203", "حسابهای دریافتنی", AccountType.ASSET),
-    ("204", "حسابهای پرداختنی", AccountType.LIABILITY),
+    ("203", "حساب‌های دریافتنی", AccountType.ASSET),
+    ("204", "حساب‌های پرداختنی", AccountType.LIABILITY),
     ("301", "سرمایه مالک", AccountType.EQUITY),
     ("401", "درآمد فروش", AccountType.REVENUE),
     ("402", "درآمد خدمات", AccountType.REVENUE),
@@ -61,7 +59,7 @@ STARTER_CHART: list[tuple[str, str, AccountType]] = [
     ("603", "مواد اولیه و کالا", AccountType.EXPENSE),
     ("604", "ارتباطات و اینترنت", AccountType.EXPENSE),
     ("605", "حمل و سوخت", AccountType.EXPENSE),
-    ("606", "هزینههای عمومی", AccountType.EXPENSE),
+    ("606", "هزینه‌های عمومی", AccountType.EXPENSE),
 ]
 
 
@@ -191,8 +189,12 @@ def list_periods(db: Session, company_id: int) -> list[AccountingPeriod]:
     )
 
 
-def close_period(db: Session, period_id: int, actor_id: int) -> AccountingPeriod:
-    period = db.get(AccountingPeriod, period_id)
+def close_period(db: Session, company_id: int, period_id: int, actor_id: int) -> AccountingPeriod:
+    period = db.scalar(
+        select(AccountingPeriod).where(
+            AccountingPeriod.id == period_id, AccountingPeriod.company_id == company_id
+        )
+    )
     if period is None:
         raise LedgerError("دوره حسابداری یافت نشد", code="period_missing", status_code=404)
     if period.status == PeriodStatus.CLOSED:
@@ -207,8 +209,12 @@ def close_period(db: Session, period_id: int, actor_id: int) -> AccountingPeriod
     return period
 
 
-def reopen_period(db: Session, period_id: int, actor_id: int) -> AccountingPeriod:
-    period = db.get(AccountingPeriod, period_id)
+def reopen_period(db: Session, company_id: int, period_id: int, actor_id: int) -> AccountingPeriod:
+    period = db.scalar(
+        select(AccountingPeriod).where(
+            AccountingPeriod.id == period_id, AccountingPeriod.company_id == company_id
+        )
+    )
     if period is None:
         raise LedgerError("دوره حسابداری یافت نشد", code="period_missing", status_code=404)
     if period.status == PeriodStatus.OPEN:
@@ -240,7 +246,10 @@ def create_draft_entry(
 ) -> JournalEntry:
     if idempotency_key:
         existing = db.scalar(
-            select(JournalEntry).where(JournalEntry.idempotency_key == idempotency_key)
+            select(JournalEntry).where(
+                JournalEntry.company_id == company_id,
+                JournalEntry.idempotency_key == idempotency_key,
+            )
         )
         if existing is not None:
             return existing
@@ -308,8 +317,12 @@ def _assert_balanced(lines: list[JournalLine]) -> tuple[int, int]:
     return total_debit, total_credit
 
 
-def post_entry(db: Session, entry_id: int, actor_id: int) -> JournalEntry:
-    entry = db.get(JournalEntry, entry_id)
+def post_entry(db: Session, company_id: int, entry_id: int, actor_id: int) -> JournalEntry:
+    entry = db.scalar(
+        select(JournalEntry).where(
+            JournalEntry.id == entry_id, JournalEntry.company_id == company_id
+        )
+    )
     if entry is None:
         raise LedgerError("سند یافت نشد", code="entry_missing", status_code=404)
     if entry.status == JournalStatus.POSTED:
@@ -322,6 +335,7 @@ def post_entry(db: Session, entry_id: int, actor_id: int) -> JournalEntry:
     if entry.idempotency_key:
         dup = db.scalar(
             select(JournalEntry).where(
+                JournalEntry.company_id == company_id,
                 JournalEntry.idempotency_key == entry.idempotency_key,
                 JournalEntry.status == JournalStatus.POSTED,
             )
@@ -353,15 +367,37 @@ def post_entry(db: Session, entry_id: int, actor_id: int) -> JournalEntry:
     return entry
 
 
-def void_entry(db: Session, entry_id: int, actor_id: int, memo: str | None = None) -> JournalEntry:
+def void_entry(
+    db: Session,
+    company_id: int,
+    entry_id: int,
+    actor_id: int,
+    memo: str | None = None,
+) -> JournalEntry:
     """Create + post a reversal entry for a posted entry (never edits it)."""
-    entry = db.get(JournalEntry, entry_id)
+    entry = db.scalar(
+        select(JournalEntry)
+        .where(JournalEntry.id == entry_id, JournalEntry.company_id == company_id)
+        .with_for_update()
+    )
     if entry is None:
         raise LedgerError("سند یافت نشد", code="entry_missing", status_code=404)
     if entry.status != JournalStatus.POSTED:
-        raise LedgerError("فقط سند ثبتشده را میتوان برگشت زد", code="entry_not_posted")
+        raise LedgerError("فقط سند ثبت‌شده را می‌توان برگشت زد", code="entry_not_posted")
     if entry.reversal_of_id is not None:
         raise LedgerError("این سند خودش یک سند برگشتی است", code="entry_is_reversal")
+    existing_reversal = db.scalar(
+        select(JournalEntry.id).where(
+            JournalEntry.company_id == company_id,
+            JournalEntry.reversal_of_id == entry.id,
+        )
+    )
+    if existing_reversal is not None:
+        raise LedgerError(
+            "این سند قبلاً برگشت خورده است",
+            code="entry_already_reversed",
+            status_code=409,
+        )
 
     reversed_lines = [(line.account.code, line.credit, line.debit) for line in entry.lines]
     reversal = create_draft_entry(
@@ -374,7 +410,7 @@ def void_entry(db: Session, entry_id: int, actor_id: int, memo: str | None = Non
     )
     reversal.reversal_of_id = entry.id
     db.flush()
-    return post_entry(db, reversal.id, actor_id)
+    return post_entry(db, company_id, reversal.id, actor_id)
 
 
 _MONTH_LAST_DAY = {

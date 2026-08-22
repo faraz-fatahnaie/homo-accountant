@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 
@@ -17,18 +17,18 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "داشبورد", icon: "M4 5h16l-6.2 7.4V19l-3.6-1.8v-4.8z", available: true },
-  { href: "/transactions", label: "سندها و تراکنشها", icon: "M8 3l-5 5 5 5M3 8h18M16 21l5-5-5-5M21 16H3", available: true },
+  { href: "/transactions", label: "سندها و تراکنش‌ها", icon: "M8 3l-5 5 5 5M3 8h18M16 21l5-5-5-5M21 16H3", available: true },
   { href: "/journal-entries/new", label: "سند جدید", icon: "M12 5v14M5 12h14", available: true, writerOnly: true },
-  { href: "/accounts", label: "حسابها (کدینگ)", icon: "M3 3v18h18M7 9h4M7 13h8M7 17h10", available: true },
-  { href: "/periods", label: "دورههای حسابداری", icon: "M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2z", available: true },
-  { href: "/expenses", label: "هزینهها", icon: "M12 5v14M5 12h14", available: true },
-  { href: "/contacts", label: "طرف حسابها", icon: "M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", available: true },
-  { href: "/projects", label: "پروژهها", icon: "M3 7h18M3 12h12M3 17h8", available: true },
-  { href: "/invoices", label: "صورتحسابها", icon: "M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zM14 2v5h5", available: true },
+  { href: "/accounts", label: "حساب‌ها (کدینگ)", icon: "M3 3v18h18M7 9h4M7 13h8M7 17h10", available: true },
+  { href: "/periods", label: "دوره‌های حسابداری", icon: "M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2z", available: true },
+  { href: "/expenses", label: "هزینه‌ها", icon: "M12 5v14M5 12h14", available: true },
+  { href: "/contacts", label: "طرف‌حساب‌ها", icon: "M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", available: true },
+  { href: "/projects", label: "پروژه‌ها", icon: "M3 7h18M3 12h12M3 17h8", available: true },
+  { href: "/invoices", label: "صورت‌حساب‌ها", icon: "M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7zM14 2v5h5", available: true },
   { href: "/bills", label: "فاکتور خرید", icon: "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1zM8 8h8M8 12h8M8 16h5", available: true },
   { href: "/funding", label: "تأمین مالی", icon: "M3 22h18M4 18h16M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 3l9 6H3z", available: true },
-  { href: "/query-builder", label: "پرسوجو و جستجو", icon: "M21 21l-4.3-4.3M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z", available: true },
-  { href: "/reports", label: "گزارشها", icon: "M3 3v18h18M7 14l4-4 3 3 5-6", available: true },
+  { href: "/query-builder", label: "پرس‌وجو و جست‌وجو", icon: "M21 21l-4.3-4.3M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z", available: true },
+  { href: "/reports", label: "گزارش‌ها", icon: "M3 3v18h18M7 14l4-4 3 3 5-6", available: true },
   { href: "/guide", label: "راهنمای استفاده", icon: "M12 3.5l10 17H2zM12 10v4.5M12 17.6v.2", available: true },
 ];
 
@@ -38,6 +38,13 @@ const ROLE_LABELS: Record<string, string> = {
   staff: "کارمند",
   viewer: "بیننده",
 };
+
+const MOBILE_PRIMARY_HREFS = new Set([
+  "/dashboard",
+  "/transactions",
+  "/journal-entries/new",
+  "/reports",
+]);
 
 function Icon({ d, className }: { d: string; className?: string }) {
   return (
@@ -60,12 +67,16 @@ export default function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const { user, loading, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const visible = NAV_ITEMS.filter((item) => {
     if (item.writerOnly && !(user?.role === "accountant" || user?.role === "owner")) return false;
     if (item.ownerOnly && user?.role !== "owner") return false;
     return true;
   });
+  const mobilePrimary = visible.filter((item) => MOBILE_PRIMARY_HREFS.has(item.href));
+  const mobileMore = visible.filter((item) => !MOBILE_PRIMARY_HREFS.has(item.href));
+  const mobileMoreActive = mobileMore.some((item) => pathname.startsWith(item.href));
 
   return (
     <div className="min-h-screen" dir="rtl">
@@ -104,7 +115,7 @@ export default function Shell({ children }: { children: ReactNode }) {
             ) : (
               <span
                 key={item.href}
-                title="در نسخههای بعدی"
+                title="در نسخه‌های بعدی"
                 className="flex cursor-not-allowed items-center gap-2.5 rounded px-2.5 py-2 text-[13px] font-semibold opacity-60"
               >
                 <Icon d={item.icon} className="h-4 w-4 text-[var(--sb-muted)]" />
@@ -141,21 +152,17 @@ export default function Shell({ children }: { children: ReactNode }) {
       <div className="lg:mr-56">
         {/* Topbar */}
         <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-[var(--topbar-bg)] px-4 py-2.5">
-          <div className="flex items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-muted flex-1 max-w-md">
+          <Link
+            href="/query-builder"
+            className="flex max-w-md flex-1 items-center gap-2 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-muted hover:border-primary hover:text-text"
+            aria-label="رفتن به پرس‌وجو و جست‌وجو"
+          >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8}>
               <circle cx="11" cy="11" r="7" />
               <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
             </svg>
-            <input
-              type="search"
-              placeholder="جستجوی سند، طرف حساب، شماره…"
-              aria-label="جستجو"
-              className="w-full bg-transparent text-sm outline-none"
-            />
-            <kbd className="rounded border border-border bg-surface px-1.5 text-[10px]" dir="ltr">
-              /
-            </kbd>
-          </div>
+            <span className="w-full text-sm">پرس‌وجو و جست‌وجوی اطلاعات مالی</span>
+          </Link>
           <div className="flex-1" />
           {/* Mobile user chip (sidebar is hidden on small screens) */}
           <div className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-1.5 py-1 lg:hidden">
@@ -183,26 +190,54 @@ export default function Shell({ children }: { children: ReactNode }) {
         <main className="mx-auto max-w-6xl px-4 py-5 pb-24 lg:px-6 lg:pb-10">{children}</main>
       </div>
 
-      {/* Bottom nav (mobile) — shows all available items (scrollable row) */}
-      <nav className="fixed bottom-0 right-0 left-0 z-30 flex h-14 overflow-x-auto border-t border-border bg-surface lg:hidden" aria-label="ناوبری موبایل">
-        {visible.map((item) => {
+      {mobileMenuOpen ? (
+        <div id="mobile-more-menu" className="fixed inset-x-3 bottom-16 z-40 max-h-[65vh] overflow-y-auto rounded-lg border border-border bg-surface p-2 shadow-xl lg:hidden">
+          <div className="grid grid-cols-2 gap-1" role="menu" aria-label="سایر بخش‌ها">
+            {mobileMore.map((item) => {
+              const active = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  role="menuitem"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-2 rounded-md px-3 py-3 text-xs font-bold ${active ? "bg-primary-soft text-primary-strong" : "text-text hover:bg-surface-2"}`}
+                >
+                  <Icon d={item.icon} className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Bottom nav (mobile) — four primary destinations plus a discoverable menu. */}
+      <nav className="fixed bottom-0 right-0 left-0 z-30 flex h-14 border-t border-border bg-surface lg:hidden" aria-label="ناوبری موبایل">
+        {mobilePrimary.map((item) => {
           const active = pathname.startsWith(item.href);
-          return item.available ? (
+          return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex min-w-[72px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold ${active ? "text-primary-strong" : "text-muted"}`}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-bold ${active ? "text-primary-strong" : "text-muted"}`}
             >
               <Icon d={item.icon} className="h-5 w-5" />
-              {item.label}
+              <span className="max-w-full truncate">{item.label}</span>
             </Link>
-          ) : (
-            <span key={item.href} className="flex min-w-[72px] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-bold text-muted opacity-60" title="در نسخههای بعدی">
-              <Icon d={item.icon} className="h-5 w-5" />
-              {item.label}
-            </span>
           );
         })}
+        <button
+          type="button"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-more-menu"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-bold ${mobileMenuOpen || mobileMoreActive ? "text-primary-strong" : "text-muted"}`}
+        >
+          <Icon d="M5 12h.01M12 12h.01M19 12h.01" className="h-5 w-5" />
+          بیشتر
+        </button>
       </nav>
     </div>
   );

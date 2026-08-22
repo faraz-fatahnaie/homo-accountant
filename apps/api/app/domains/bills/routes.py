@@ -81,7 +81,7 @@ def bills_create(
 ) -> BillOut | JSONResponse:
     vendor = get_contact(db, actor.company_id, payload.vendor_id)
     if vendor is None:
-        return error_response(404, "not_found", "تأمینکننده یافت نشد")
+        return error_response(404, "not_found", "تأمین‌کننده یافت نشد")
     try:
         bill = create_bill(
             db,
@@ -121,7 +121,7 @@ def bills_post(
     db: Session = Depends(get_db),
 ) -> BillOut | JSONResponse:
     try:
-        bill = post_bill(db, bill_id, actor.id)
+        bill = post_bill(db, actor.company_id, bill_id, actor.id)
     except BillError as exc:
         db.rollback()
         return _handle(exc)
@@ -141,6 +141,7 @@ def bills_pay(
     try:
         payment = record_payment(
             db,
+            company_id=actor.company_id,
             bill_id=bill_id,
             actor_id=actor.id,
             amount=payload.amount,
@@ -162,7 +163,7 @@ def bills_void(
     db: Session = Depends(get_db),
 ) -> BillOut | JSONResponse:
     try:
-        bill = void_bill(db, bill_id, actor.id)
+        bill = void_bill(db, actor.company_id, bill_id, actor.id)
     except BillError as exc:
         db.rollback()
         return _handle(exc)

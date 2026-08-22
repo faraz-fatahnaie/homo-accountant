@@ -19,6 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.errors import AppError
 from app.core.jalali import entry_period
 from app.domains.expenses.models import Attachment, Expense, ExpenseStatus, PaymentMethod
 from app.domains.expenses.schemas import AttachmentOut, ExpenseOut
@@ -33,7 +34,6 @@ from app.domains.ledger.service import (
 logger = logging.getLogger(__name__)
 
 ALLOWED_UPLOAD_TYPES = {"image/jpeg", "image/png", "application/pdf"}
-MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
 # Magic-byte signatures checked against the first bytes of the uploaded file.
 # A client-declared content-type alone is never trusted (it is trivially
@@ -54,12 +54,9 @@ def sniff_content_type(data: bytes) -> str | None:
     return None
 
 
-class ExpenseError(Exception):
+class ExpenseError(AppError):
     def __init__(self, message: str, code: str = "expense_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 def _payment_account(method: PaymentMethod) -> str:
@@ -109,7 +106,12 @@ def create_expense(
     idempotency_key: str | None,
 ) -> Expense:
     if idempotency_key:
-        existing = db.scalar(select(Expense).where(Expense.idempotency_key == idempotency_key))
+        existing = db.scalar(
+            select(Expense).where(
+                Expense.company_id == company_id,
+                Expense.idempotency_key == idempotency_key,
+            )
+        )
         if existing is not None:
             return existing
     account = get_account(db, company_id, account_code)
@@ -117,6 +119,16 @@ def create_expense(
         raise ExpenseError(f"حساب با کد {account_code} یافت نشد", code="account_missing")
     if not account.is_active:
         raise ExpenseError(f"حساب {account_code} غیرفعال است", code="account_inactive")
+    if contact_id is not None:
+        from app.domains.contacts.service import get_contact
+
+        if get_contact(db, company_id, contact_id) is None:
+            raise ExpenseError("طرف‌حساب یافت نشد", code="contact_missing", status_code=404)
+    if project_id is not None:
+        from app.domains.projects.service import get_project
+
+        if get_project(db, company_id, project_id) is None:
+            raise ExpenseError("پروژه یافت نشد", code="project_missing", status_code=404)
 
     expense = Expense(
         company_id=company_id,
@@ -140,8 +152,10 @@ def create_expense(
     return expense
 
 
-def post_expense(db: Session, expense_id: int, actor_id: int) -> Expense:
-    expense = db.get(Expense, expense_id)
+def post_expense(db: Session, company_id: int, expense_id: int, actor_id: int) -> Expense:
+    expense = db.scalar(
+        select(Expense).where(Expense.id == expense_id, Expense.company_id == company_id)
+    )
     if expense is None:
         raise ExpenseError("هزینه یافت نشد", code="expense_missing", status_code=404)
     if expense.status == ExpenseStatus.POSTED:
@@ -169,7 +183,7 @@ def post_expense(db: Session, expense_id: int, actor_id: int) -> Expense:
         ],
         idempotency_key=None,  # ledger draft is internal; expense carries the key
     )
-    posted = post_entry(db, entry.id, actor_id)
+    posted = post_entry(db, company_id, entry.id, actor_id)
     expense.number = next_reference(db, expense.company_id, year, month, "EXP")
     expense.status = ExpenseStatus.POSTED
     expense.journal_entry_id = posted.id
@@ -182,15 +196,23 @@ def post_expense(db: Session, expense_id: int, actor_id: int) -> Expense:
     return expense
 
 
-def void_expense(db: Session, expense_id: int, actor_id: int, memo: str | None = None) -> Expense:
-    expense = db.get(Expense, expense_id)
+def void_expense(
+    db: Session,
+    company_id: int,
+    expense_id: int,
+    actor_id: int,
+    memo: str | None = None,
+) -> Expense:
+    expense = db.scalar(
+        select(Expense).where(Expense.id == expense_id, Expense.company_id == company_id)
+    )
     if expense is None:
         raise ExpenseError("هزینه یافت نشد", code="expense_missing", status_code=404)
     if expense.status != ExpenseStatus.POSTED:
-        raise ExpenseError("فقط هزینه ثبتشده را میتوان برگشت زد", code="expense_not_posted")
+        raise ExpenseError("فقط هزینه ثبت‌شده را می‌توان برگشت زد", code="expense_not_posted")
     if expense.journal_entry_id is None:
         raise ExpenseError("سند مرتبط یافت نشد", code="expense_no_entry")
-    reversal = void_entry(db, expense.journal_entry_id, actor_id, memo=memo)
+    reversal = void_entry(db, company_id, expense.journal_entry_id, actor_id, memo=memo)
     expense.status = ExpenseStatus.VOIDED
     db.flush()
     logger.info("expense voided", extra={"expense_id": expense.id, "reversal_entry": reversal.id})
@@ -231,7 +253,7 @@ def validate_upload(content_type: str, size_bytes: int, filename: str, data: byt
             code="upload_type",
             status_code=415,
         )
-    if size_bytes <= 0 or size_bytes > MAX_UPLOAD_BYTES:
+    if size_bytes <= 0 or size_bytes > get_settings().max_upload_bytes:
         raise ExpenseError(
             "حجم فایل باید حداکثر ۵ مگابایت باشد", code="upload_size", status_code=413
         )

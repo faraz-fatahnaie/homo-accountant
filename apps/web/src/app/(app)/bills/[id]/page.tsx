@@ -40,7 +40,8 @@ export default function BillDetailPage() {
   });
   const payMutation = useMutation({
     mutationFn: () => {
-      const date = parseJalaliInput(payDate) ?? new Date();
+      const date = parseJalaliInput(payDate);
+      if (!date) throw new Error("تاریخ پرداخت شمسی نامعتبر است");
       const amount = parseAmount(payAmount);
       if (!Number.isFinite(amount) || amount <= 0) throw new Error("مبلغ معتبر وارد کنید");
       const y = date.getFullYear();
@@ -85,11 +86,11 @@ export default function BillDetailPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">فاکتور خرید {bill.number ?? "پیشنویس"}</h1>
+          <h1 className="text-lg font-extrabold">فاکتور خرید {bill.number ?? "پیش‌نویس"}</h1>
           <p className="mt-0.5 text-xs text-muted">
             {bill.vendor_name} · صدور {formatJalaliLong(new Date(bill.issue_date + "T12:00:00"))} · سررسید{" "}
             {formatJalaliLong(new Date(bill.due_date + "T12:00:00"))}
-            {bill.bill_number ? <span className="mr-2" dir="ltr">شماره تأمینکننده: {bill.bill_number}</span> : null}
+            {bill.bill_number ? <span className="mr-2" dir="ltr">شماره تأمین‌کننده: {bill.bill_number}</span> : null}
             {bill.is_overdue ? " · معوق" : ""}
           </p>
         </div>
@@ -109,7 +110,7 @@ export default function BillDetailPage() {
         </Badge>
         <span className="text-muted">حساب: <b dir="ltr">{bill.account_code}</b> {bill.account_name}</span>
         <span className="text-muted">مبلغ: <b className="tabular-nums">{formatRials(bill.total)}</b> ریال</span>
-        <span className="text-muted">پرداختشده: <b className="tabular-nums">{formatRials(bill.paid_total)}</b></span>
+        <span className="text-muted">پرداخت‌شده: <b className="tabular-nums">{formatRials(bill.paid_total)}</b></span>
         <span className={bill.balance > 0 ? "font-bold text-danger-strong" : "text-muted"}>
           مانده: <b className="tabular-nums">{formatRials(bill.balance)}</b> ریال
         </span>
@@ -122,7 +123,7 @@ export default function BillDetailPage() {
         </section>
 
         <section className="card">
-          <div className="card-head"><h2 className="text-sm font-extrabold">پرداختها</h2></div>
+          <div className="card-head"><h2 className="text-sm font-extrabold">پرداخت‌ها</h2></div>
           <div className="px-4 py-2">
             {bill.payments.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted">پرداختی ثبت نشده است.</p>
@@ -148,7 +149,7 @@ export default function BillDetailPage() {
               onSubmit={(e) => { e.preventDefault(); setPayError(null); payMutation.mutate(); }}
             >
               <h3 className="mb-2 text-xs font-extrabold text-muted">ثبت پرداخت</h3>
-              <div className="grid gap-2 sm:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 <input className="input tabular-nums" dir="ltr" inputMode="numeric" placeholder="مبلغ (ریال)"
                   aria-label="مبلغ پرداخت" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
                 <input className="input" dir="ltr" aria-label="تاریخ پرداخت (شمسی)" value={payDate}
@@ -159,6 +160,8 @@ export default function BillDetailPage() {
                     <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>
                   ))}
                 </select>
+                <input className="input" dir="ltr" aria-label="کد پیگیری پرداخت" placeholder="کد پیگیری"
+                  value={payRef} onChange={(e) => setPayRef(e.target.value)} />
                 <button type="submit" className="btn btn-primary" disabled={payMutation.isPending}>ثبت پرداخت</button>
               </div>
               {payError ? <p className="error mt-2" role="alert">{payError}</p> : null}

@@ -82,6 +82,6 @@ describe("transactions page", () => {
     expect(screen.getByText("خرید ورق فولادی")).toBeInTheDocument();
     expect(screen.getByText("J-1405-0001")).toBeInTheDocument();
     expect(screen.getAllByText("۴۸٬۵۰۰٬۰۰۰").length).toBeGreaterThan(0);
-    expect(screen.getByText("ثبتشده")).toBeInTheDocument();
+    expect(screen.getByText("ثبت‌شده")).toBeInTheDocument();
   });
 });

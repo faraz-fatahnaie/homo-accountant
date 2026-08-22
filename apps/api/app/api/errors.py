@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
+from app.core.errors import AppError
 from app.domains.identity.service import AuthError
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,10 @@ def error_response(
 
 
 def register_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppError)
+    async def _application_error(_: Request, exc: AppError) -> JSONResponse:
+        return error_response(exc.status_code, exc.code, exc.message, exc.details)
+
     @app.exception_handler(AuthError)
     async def _auth_error(_: Request, exc: AuthError) -> JSONResponse:
         return error_response(exc.status_code, "auth_error", exc.message)

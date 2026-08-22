@@ -7,17 +7,15 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.domains.contacts.models import Contact
 
 logger = logging.getLogger(__name__)
 
 
-class ContactError(Exception):
+class ContactError(AppError):
     def __init__(self, message: str, code: str = "contact_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 def list_contacts(db: Session, company_id: int, *, active_only: bool = False) -> list[Contact]:

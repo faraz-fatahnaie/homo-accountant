@@ -56,8 +56,8 @@ export default function AccountsPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">حسابها (کدینگ)</h1>
-          <p className="mt-0.5 text-xs text-muted">نمودار حسابها — {(data ?? []).length} حساب</p>
+          <h1 className="text-lg font-extrabold">حساب‌ها (کدینگ)</h1>
+          <p className="mt-0.5 text-xs text-muted">نمودار حساب‌ها — {(data ?? []).length} حساب</p>
         </div>
         {isWriter ? (
           <button className="btn btn-primary" onClick={() => setShowForm((v) => !v)}>

@@ -63,7 +63,7 @@ describe("reports hub", () => {
       },
       {
         key: "balance_sheet",
-        label: "ترازنامه (داراییها = بدهیها + حقوق صاحبان سهام)",
+        label: "ترازنامه (دارایی‌ها = بدهی‌ها + حقوق صاحبان سهام)",
         ok: false,
         detail: "دارایی 300 / بدهی+سرمایه 200",
       },
@@ -72,7 +72,7 @@ describe("reports hub", () => {
 
   it("lists all eight report cards with links", () => {
     render(<ReportsPage />);
-    expect(screen.getByText("گزارشهای مالی")).toBeInTheDocument();
+    expect(screen.getByText("گزارش‌های مالی")).toBeInTheDocument();
     for (const title of [
       "تراز آزمایشی",
       "ترازنامه",
@@ -80,7 +80,7 @@ describe("reports hub", () => {
       "صورت جریان وجوه نقد",
       "دفتر کل",
       "سررسید دریافتنی و پرداختنی",
-      "بودجه و عملکرد پروژهها",
+      "بودجه و عملکرد پروژه‌ها",
       "خلاصه تأمین مالی",
     ]) {
       expect(screen.getByText(title)).toBeInTheDocument();
@@ -91,15 +91,15 @@ describe("reports hub", () => {
 
   it("shows reconciliation checks with ok/fail states", () => {
     render(<ReconciliationPanel />);
-    expect(screen.getByText("تطبیق گزارشها با دفتر کل")).toBeInTheDocument();
-    expect(screen.getByText("برخی بررسیها ناموفقاند — برای جزئیات به زیر مراجعه کنید")).toBeInTheDocument();
+    expect(screen.getByText("تطبیق گزارش‌ها با دفتر کل")).toBeInTheDocument();
+    expect(screen.getByText("برخی بررسی‌ها ناموفق‌اند — برای جزئیات به زیر مراجعه کنید")).toBeInTheDocument();
     expect(screen.getByText("تراز آزمایشی (جمع بدهکار = جمع بستانکار)")).toBeInTheDocument();
   });
 
   it("reports all checks passing when ledger is consistent", () => {
     queryState.checks = queryState.checks.map((c) => ({ ...c, ok: true }));
     render(<ReconciliationPanel />);
-    expect(screen.getByText("همه بررسیها موفق — ارقام با دفتر کل منطبقاند")).toBeInTheDocument();
+    expect(screen.getByText("همه بررسی‌ها موفق — ارقام با دفتر کل منطبق‌اند")).toBeInTheDocument();
   });
 
   it("shows loading state", () => {

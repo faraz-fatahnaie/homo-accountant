@@ -78,7 +78,7 @@ describe("dashboard client", () => {
     render(<DashboardClient />);
     expect(screen.getByText("موجودی نقد و بانک")).toBeInTheDocument();
     expect(screen.getByText("درآمد دوره")).toBeInTheDocument();
-    expect(screen.getByText("هزینههای دوره")).toBeInTheDocument();
+    expect(screen.getByText("هزینه‌های دوره")).toBeInTheDocument();
     expect(screen.getByText("نتیجه خالص")).toBeInTheDocument();
     expect(screen.getByText("دریافتنی (مشتریان)")).toBeInTheDocument();
     // KPI cards link to their reports

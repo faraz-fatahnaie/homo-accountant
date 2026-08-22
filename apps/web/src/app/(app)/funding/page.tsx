@@ -41,7 +41,7 @@ export default function FundingPage() {
         <div>
           <h1 className="text-lg font-extrabold">تأمین مالی</h1>
           <p className="mt-0.5 text-xs text-muted">
-            سرمایهگذاری، وام، کمک و درآمد — {totals.count} رویداد · جمع{" "}
+            سرمایه‌گذاری، وام، کمک و درآمد — {totals.count} رویداد · جمع{" "}
             <b className="tabular-nums">{formatRials(totals.total)}</b> ریال
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function FundingPage() {
 
       {mappings && mappings.length > 0 ? (
         <p className="mb-3 text-[11px] text-muted">
-          نگاشت حسابها:{" "}
+          نگاشت حساب‌ها:{" "}
           {mappings.map((m) => (
             <span key={m.funding_type} className="ml-2 inline-flex items-center gap-1">
               <b>{FUNDING_TYPE_LABELS[m.funding_type]}</b>
@@ -89,7 +89,7 @@ export default function FundingPage() {
                 <tr className="border-b-2 border-border-strong bg-surface-2 text-[11px] font-extrabold text-muted">
                   <th className="px-3 py-2.5">شماره</th>
                   <th className="px-3 py-2.5">نوع</th>
-                  <th className="px-3 py-2.5">طرف حساب</th>
+                  <th className="px-3 py-2.5">طرف‌حساب</th>
                   <th className="px-3 py-2.5">تاریخ</th>
                   <th className="px-3 py-2.5">مرجع/توافق</th>
                   <th className="px-3 py-2.5 text-left">مبلغ (ریال)</th>

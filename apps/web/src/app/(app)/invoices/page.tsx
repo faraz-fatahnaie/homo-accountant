@@ -70,31 +70,36 @@ export default function InvoicesPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">صورتحسابهای فروش</h1>
+          <h1 className="text-lg font-extrabold">صورت‌حساب‌های فروش</h1>
           <p className="mt-0.5 text-xs text-muted">
-            {totals.count} صورتحساب · مانده دریافتنی:{" "}
+            {totals.count} صورت‌حساب · مانده دریافتنی:{" "}
             <b className="tabular-nums">{formatRials(totals.receivable)}</b> ریال
           </p>
         </div>
         {isWriter ? (
-          <Link href="/invoices/new" className="btn btn-primary">+ صورتحساب جدید</Link>
+          <Link href="/invoices/new" className="btn btn-primary">+ صورت‌حساب جدید</Link>
         ) : null}
       </div>
 
       <div className="mb-3 flex flex-wrap gap-2">
         {(["all", "draft", "issued", "partially_paid", "paid", "overdue", "void"] as const).map((f) => (
           <button key={f} className={`chip ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)} aria-pressed={filter === f}>
-            {f === "all" ? "همه" : f === "issued" ? "صادرشده" : f === "partially_paid" ? "جزیی پرداختشده" : f === "overdue" ? "معوق" : INVOICE_STATUS_LABELS[f as InvoiceStatus]}
+            {f === "all" ? "همه" : f === "issued" ? "صادرشده" : f === "partially_paid" ? "جزئی پرداخت‌شده" : f === "overdue" ? "معوق" : INVOICE_STATUS_LABELS[f as InvoiceStatus]}
           </button>
         ))}
       </div>
+      {issueMutation.isError || voidMutation.isError ? (
+        <div className="mb-3">
+          <ErrorBlock message={(issueMutation.error ?? voidMutation.error) instanceof Error ? (issueMutation.error ?? voidMutation.error as Error).message : "عملیات انجام نشد."} />
+        </div>
+      ) : null}
 
       {isLoading ? <LoadingBlock /> : null}
       {isError ? <ErrorBlock message={error instanceof Error ? error.message : "خطا"} onRetry={() => void refetch()} /> : null}
 
       {visible.length === 0 ? (
         <div className="card px-4 py-10 text-center text-sm text-muted">
-          صورتحسابی در این وضعیت یافت نشد.
+          صورت‌حسابی در این وضعیت یافت نشد.
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -150,7 +155,7 @@ export default function InvoicesPage() {
                         {(inv.status === "issued" || inv.status === "partially_paid") && isWriter ? (
                           <button className="btn btn-danger-ghost btn-sm" disabled={voidMutation.isPending}
                             onClick={() => {
-                              if (window.confirm("صورتحساب باطل شود؟ (فقط اگر پرداختی نداشته باشد)"))
+                              if (window.confirm("صورت‌حساب باطل شود؟ (فقط اگر پرداختی نداشته باشد)"))
                                 voidMutation.mutate(inv.id);
                             }}>
                             باطل

@@ -29,7 +29,7 @@ const REPORT_LINKS = [
 
 export function ReportTabs({ active }: { active: string }) {
   return (
-    <nav aria-label="گزارشها" className="mb-4 flex flex-wrap gap-1.5">
+    <nav aria-label="گزارش‌ها" className="mb-4 flex flex-wrap gap-1.5">
       {REPORT_LINKS.map((l) => (
         <Link
           key={l.href}

@@ -20,7 +20,7 @@ export function ReconciliationPanel() {
   return (
     <section className="card" aria-label="تطبیق با دفتر کل">
       <div className="card-head">
-        <h2 className="text-sm font-extrabold">تطبیق گزارشها با دفتر کل</h2>
+        <h2 className="text-sm font-extrabold">تطبیق گزارش‌ها با دفتر کل</h2>
         <span className="mr-auto text-[11px] text-muted">
           تا تاریخ {formatJalali(new Date(data.as_of + "T12:00:00"))}
         </span>
@@ -31,8 +31,8 @@ export function ReconciliationPanel() {
           aria-hidden="true"
         />
         {data.all_ok
-          ? "همه بررسیها موفق — ارقام با دفتر کل منطبقاند"
-          : "برخی بررسیها ناموفقاند — برای جزئیات به زیر مراجعه کنید"}
+          ? "همه بررسی‌ها موفق — ارقام با دفتر کل منطبق‌اند"
+          : "برخی بررسی‌ها ناموفق‌اند — برای جزئیات به زیر مراجعه کنید"}
       </div>
       <ul className="divide-y divide-dashed divide-border border-t border-border px-4 text-sm">
         {data.checks.map((c) => (

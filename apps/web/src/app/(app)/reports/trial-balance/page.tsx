@@ -43,7 +43,7 @@ export default function TrialBalancePage() {
       <ReportHeader
         active="/reports/trial-balance"
         title="تراز آزمایشی"
-        subtitle="بدهکار و بستانکار هر حساب از سندهای ثبتشده؛ جمع دو طرف همواره برابر است."
+        subtitle="بدهکار و بستانکار هر حساب از سندهای ثبت‌شده؛ جمع دو طرف همواره برابر است."
       >
         <div className="flex flex-wrap items-center gap-2">
           {data && <ReconBadge ok={data.reconciled} label={data.reconciled ? "تراز است" : "تراز نیست"} />}
@@ -96,9 +96,9 @@ export default function TrialBalancePage() {
             <TotalRow label="جمع بستانکار" value={data.total_credit} />
           </div>
           <p className="rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">تطبیق:</b> جمع بدهکار و بستانکار از ردیفهای سندهای ثبتشده محاسبه
-            میشود و بهخاطر تعادل اجبارشده در ثبت سندها (دوطرفه) همواره برابر است. پیشنویسها هرگز
-            وارد گزارش نمیشوند.
+            <b className="text-text">تطبیق:</b> جمع بدهکار و بستانکار از ردیف‌های سندهای ثبت‌شده محاسبه
+            می‌شود و به‌خاطر تعادل اجبارشده در ثبت سندها (دوطرفه) همواره برابر است. پیش‌نویس‌ها هرگز
+            وارد گزارش نمی‌شوند.
           </p>
         </div>
       ) : null}

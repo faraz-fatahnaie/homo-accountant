@@ -6,8 +6,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app.core.config import get_settings
+from app.domains.funding.models import FundingAccountMapping
+from app.domains.identity.bootstrap import ensure_required_system_data
 from app.domains.identity.models import Role, User
 from app.domains.identity.seed import DEMO_USERS, seed_demo_users
+from app.domains.ledger.models import Account
 
 
 def test_seed_creates_one_user_per_role(client: TestClient, db) -> None:
@@ -59,3 +62,35 @@ def test_seed_dev_data_full_bootstrap(db) -> None:
 
     assert len(list(db.scalars(select(Account)))) == 15  # 13 starter + 205 وام + 403 کمک
     assert len(list(db.scalars(select(AccountingPeriod)))) == 12
+
+
+def test_production_system_data_is_complete_idempotent_and_non_destructive(db) -> None:
+    """Production startup creates missing invariants without replacing custom records."""
+    from sqlalchemy import select
+
+    from app.domains.identity.service import ensure_default_company
+    from app.domains.ledger.models import AccountType
+
+    company = ensure_default_company(db)
+    custom = Account(
+        company_id=company.id,
+        code="401",
+        name="درآمد پروژه سفارشی",
+        type=AccountType.REVENUE,
+        is_system=False,
+    )
+    db.add(custom)
+    db.flush()
+
+    first = ensure_required_system_data(db)
+    second = ensure_required_system_data(db)
+
+    codes = set(db.scalars(select(Account.code).where(Account.company_id == company.id)))
+    assert {"101", "102", "203", "204", "205", "403"}.issubset(codes)
+    assert len(list(db.scalars(select(FundingAccountMapping)))) == 4
+    assert first["chart_accounts"] > 0
+    assert second["chart_accounts"] == 0
+    assert second["funding_mappings"] == 0
+    db.refresh(custom)
+    assert custom.name == "درآمد پروژه سفارشی"
+    assert custom.is_system is False

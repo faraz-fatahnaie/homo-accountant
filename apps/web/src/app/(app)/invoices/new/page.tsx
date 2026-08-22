@@ -110,9 +110,9 @@ export default function NewInvoicePage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-lg font-extrabold">صورتحساب جدید</h1>
+        <h1 className="text-lg font-extrabold">صورت‌حساب جدید</h1>
         <p className="mt-0.5 text-xs text-muted">
-          ابتدا پیشنویس ساخته میشود؛ سپس با دکمه «صدور» در صفحه صورتحساب، سند دریافتنی ثبت میشود
+          ابتدا پیش‌نویس ساخته می‌شود؛ سپس با دکمه «صدور» در صفحه صورت‌حساب، سند دریافتنی ثبت می‌شود
         </p>
       </div>
 
@@ -157,7 +157,7 @@ export default function NewInvoicePage() {
         </div>
 
         <div className="mt-5 mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-extrabold">ردیفهای صورتحساب</h2>
+          <h2 className="text-sm font-extrabold">ردیف‌های صورت‌حساب</h2>
           <button type="button" className="btn btn-ghost btn-sm" onClick={addLine}>+ افزودن ردیف</button>
         </div>
 
@@ -223,7 +223,7 @@ export default function NewInvoicePage() {
 
         <div className="mt-5 flex items-center gap-3">
           <button type="submit" className="btn btn-primary" disabled={createMutation.isPending}>
-            {createMutation.isPending ? "در حال ساخت…" : "ایجاد صورتحساب"}
+            {createMutation.isPending ? "در حال ساخت…" : "ایجاد صورت‌حساب"}
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => router.push("/invoices")}>انصراف</button>
         </div>

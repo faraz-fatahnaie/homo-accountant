@@ -86,14 +86,19 @@ function monthOffset(jm: number): number {
 /** Gregorian date of 1 Farvardin for jalali year jy (anchored at 1405 → 2026-03-21). */
 function nowruz(jy: number): Date {
   const anchorJy = 1405;
-  const anchorDate = new Date(2026, 2, 21);
+  const anchorDate = new Date(2026, 2, 21, 12);
   let daysOffset = 0;
   if (jy > anchorJy) {
     for (let y = anchorJy; y < jy; y += 1) daysOffset += isJalaliLeap(y) ? 366 : 365;
   } else if (jy < anchorJy) {
     for (let y = anchorJy - 1; y >= jy; y -= 1) daysOffset -= isJalaliLeap(y) ? 366 : 365;
   }
-  return new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate() + daysOffset);
+  return new Date(
+    anchorDate.getFullYear(),
+    anchorDate.getMonth(),
+    anchorDate.getDate() + daysOffset,
+    12,
+  );
 }
 
 export function jalaliToGregorian(jy: number, jm: number, jd: number): Date {
@@ -101,7 +106,12 @@ export function jalaliToGregorian(jy: number, jm: number, jd: number): Date {
   const lastDay = jm <= 6 ? 31 : jm <= 11 ? 30 : isJalaliLeap(jy) ? 30 : 29;
   if (jd < 1 || jd > lastDay) throw new Error("روز نامعتبر است");
   const base = nowruz(jy);
-  return new Date(base.getFullYear(), base.getMonth(), base.getDate() + monthOffset(jm) + jd - 1);
+  return new Date(
+    base.getFullYear(),
+    base.getMonth(),
+    base.getDate() + monthOffset(jm) + jd - 1,
+    12,
+  );
 }
 
 /** Parse "1405/05/22" (ASCII or Persian digits) into a Date (local noon). */

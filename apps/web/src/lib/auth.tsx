@@ -19,7 +19,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError, authApi, clearTokens, getTokens, type UserOut } from "@/lib/api";
+import { ApiError, authApi, clearLegacyTokens, type UserOut } from "@/lib/api";
 
 interface AuthState {
   user: UserOut | null;
@@ -46,10 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    if (!getTokens().access) {
-      router.replace("/login");
-      return;
-    }
+    clearLegacyTokens();
     try {
       const me = await authApi.me();
       setUser(me);
@@ -57,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const status = err instanceof ApiError ? err.status : undefined;
       if (status === 401) {
         // The token is genuinely rejected → real session loss.
-        clearTokens();
         router.replace("/login");
         return;
       }
@@ -74,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (retryErr) {
           const retryStatus = retryErr instanceof ApiError ? retryErr.status : undefined;
           if (retryStatus === 401) {
-            clearTokens();
             router.replace("/login");
             return;
           }
@@ -94,9 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [load]);
 
   const logout = useCallback(() => {
-    const { refresh } = getTokens();
-    if (refresh) void authApi.logout(refresh).catch(() => undefined);
-    clearTokens();
+    void authApi.logout().catch(() => undefined);
+    clearLegacyTokens();
     router.replace("/login");
   }, [router]);
 

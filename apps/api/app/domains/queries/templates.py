@@ -32,7 +32,7 @@ def build_templates() -> list[dict[str, object]]:
         {
             "id": "invoices_overdue",
             "name": "فاکتورهای فروش معوق",
-            "description": "صورتحسابهای صادرشده یا جزیی پرداختشده که سررسیدشان گذشته است",
+            "description": "صورت‌حساب‌های صادرشده یا جزئی پرداخت‌شده که سررسیدشان گذشته است",
             "ast": {
                 "dataset": "invoices",
                 "fields": ["number", "customer_name", "issue_date", "due_date", "total", "status"],
@@ -48,7 +48,7 @@ def build_templates() -> list[dict[str, object]]:
         {
             "id": "bills_unpaid_over",
             "name": "فاکتورهای خرید پرداختنشده بالای X در سه ماه گذشته",
-            "description": "فاکتورهای خرید باز یا جزیی پرداختشده با مبلغ بیشتر از X "
+            "description": "فاکتورهای خرید باز یا جزئی پرداخت‌شده با مبلغ بیشتر از X "
             "در سه ماه گذشته",
             "ast": {
                 "dataset": "bills",
@@ -65,8 +65,8 @@ def build_templates() -> list[dict[str, object]]:
         },
         {
             "id": "expenses_by_project",
-            "name": "هزینههای ثبتشده به تفکیک پروژه",
-            "description": "مجموع هزینههای ثبتشده هر پروژه (در سال جاری)",
+            "name": "هزینه‌های ثبت‌شده به تفکیک پروژه",
+            "description": "مجموع هزینه‌های ثبت‌شده هر پروژه (در سال جاری)",
             "ast": {
                 "dataset": "expenses",
                 "fields": ["project_name", "amount"],

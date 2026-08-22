@@ -9,9 +9,9 @@ import { formatJalaliLong, formatRials } from "@/lib/format";
 import { Badge, ErrorBlock, LoadingBlock } from "@/components/ui";
 
 function StatusBadge({ status }: { status: ExpenseOut["status"] }) {
-  if (status === "posted") return <Badge tone="success">ثبتشده</Badge>;
+  if (status === "posted") return <Badge tone="success">ثبت‌شده</Badge>;
   if (status === "voided") return <Badge tone="danger">برگشت خورده</Badge>;
-  return <Badge tone="muted">پیشنویس</Badge>;
+  return <Badge tone="muted">پیش‌نویس</Badge>;
 }
 
 export default function ExpensesPage() {
@@ -69,9 +69,9 @@ export default function ExpensesPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">هزینهها</h1>
+          <h1 className="text-lg font-extrabold">هزینه‌ها</h1>
           <p className="mt-0.5 text-xs text-muted">
-            {totals.count} هزینه · ثبتشده: <b className="tabular-nums">{formatRials(totals.postedSum)}</b> ریال
+            {totals.count} هزینه · ثبت‌شده: <b className="tabular-nums">{formatRials(totals.postedSum)}</b> ریال
           </p>
         </div>
         {canDraft ? (
@@ -87,17 +87,22 @@ export default function ExpensesPage() {
             onClick={() => setFilter(f)}
             aria-pressed={filter === f}
           >
-            {f === "all" ? "همه" : f === "draft" ? "پیشنویس" : f === "posted" ? "ثبتشده" : "برگشتی"}
+            {f === "all" ? "همه" : f === "draft" ? "پیش‌نویس" : f === "posted" ? "ثبت‌شده" : "برگشتی"}
           </button>
         ))}
       </div>
 
       {isLoading ? <LoadingBlock /> : null}
       {isError ? <ErrorBlock message={error instanceof Error ? error.message : "خطا"} onRetry={() => void refetch()} /> : null}
+      {postMutation.isError || voidMutation.isError ? (
+        <div className="mb-3">
+          <ErrorBlock message={(postMutation.error ?? voidMutation.error) instanceof Error ? (postMutation.error ?? voidMutation.error as Error).message : "عملیات انجام نشد."} />
+        </div>
+      ) : null}
 
       {visible.length === 0 ? (
         <div className="card px-4 py-10 text-center text-sm text-muted">
-          هزینهای در این وضعیت یافت نشد.
+          هزینه‌ای در این وضعیت یافت نشد.
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -108,7 +113,7 @@ export default function ExpensesPage() {
                   <th className="px-3 py-2.5">شماره</th>
                   <th className="px-3 py-2.5">تاریخ</th>
                   <th className="px-3 py-2.5">شرح</th>
-                  <th className="px-3 py-2.5">طرف حساب</th>
+                  <th className="px-3 py-2.5">طرف‌حساب</th>
                   <th className="px-3 py-2.5">حساب</th>
                   <th className="px-3 py-2.5">پرداخت</th>
                   <th className="px-3 py-2.5 text-left">مبلغ (ریال)</th>
@@ -152,7 +157,7 @@ export default function ExpensesPage() {
                             className="btn btn-danger-ghost btn-sm"
                             disabled={voidMutation.isPending}
                             onClick={() => {
-                              if (window.confirm("این هزینه برگشت (معکوس) میشود و سند برگشتی ثبت میگردد. ادامه میدهید؟"))
+                              if (window.confirm("این هزینه برگشت (معکوس) می‌شود و سند برگشتی ثبت میگردد. ادامه می‌دهید؟"))
                                 voidMutation.mutate(e.id);
                             }}
                           >

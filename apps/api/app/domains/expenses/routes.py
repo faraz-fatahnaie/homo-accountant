@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import current_user, require_roles
 from app.api.errors import error_response
+from app.core.config import get_settings
 from app.core.db import get_db
+from app.core.http import attachment_disposition
 from app.domains.expenses.schemas import AttachmentOut, ExpenseCreate, ExpenseOut, ExpenseUpdate
 from app.domains.expenses.service import (
     ExpenseError,
@@ -87,7 +89,7 @@ def expenses_update(
     if expense is None:
         return error_response(404, "not_found", "هزینه یافت نشد")
     if expense.status != "draft":
-        return error_response(422, "expense_not_draft", "فقط هزینه پیشنویس قابل ویرایش است")
+        return error_response(422, "expense_not_draft", "فقط هزینه پیش‌نویس قابل ویرایش است")
     changes = payload.model_dump(exclude_unset=True)
     for key, value in changes.items():
         if value is not None:
@@ -119,7 +121,7 @@ def expenses_post(
     from app.domains.expenses.service import _to_out
 
     try:
-        expense = post_expense(db, expense_id, actor.id)
+        expense = post_expense(db, actor.company_id, expense_id, actor.id)
     except ExpenseError as exc:
         db.rollback()
         return _handle(exc)
@@ -139,7 +141,7 @@ def expenses_void(
     from app.domains.expenses.service import _to_out
 
     try:
-        expense = void_expense(db, expense_id, actor.id)
+        expense = void_expense(db, actor.company_id, expense_id, actor.id)
     except ExpenseError as exc:
         db.rollback()
         return _handle(exc)
@@ -168,9 +170,12 @@ async def expenses_attach(
         return error_response(404, "not_found", "هزینه یافت نشد")
     if expense.status != "draft":
         return error_response(
-            422, "expense_not_draft", "فقط به هزینه پیشنویس میتوان پیوست اضافه کرد"
+            422, "expense_not_draft", "فقط به هزینه پیش‌نویس می‌توان پیوست اضافه کرد"
         )
-    data = await file.read()
+    try:
+        data = await file.read(get_settings().max_upload_bytes + 1)
+    finally:
+        await file.close()
     try:
         attachment = store_attachment(
             db,
@@ -204,7 +209,7 @@ def attachment_download(
         content=data,
         media_type=attachment.content_type,
         headers={
-            "Content-Disposition": f'attachment; filename="{attachment.filename}"',
+            "Content-Disposition": attachment_disposition(attachment.filename),
             "X-Content-Type-Options": "nosniff",
         },
     )

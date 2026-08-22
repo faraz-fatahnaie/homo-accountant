@@ -78,8 +78,8 @@ positive **and** negative tests. Reports: `artifacts/quality-summary.json` (mach
 - OCR, tax/VAT, bank-statement import — explicitly out of scope (fixed product decisions).
 - Email reminders & live online-payment integration — deferred (documented in the invoice/funding
   slices); Stripe exists only as disabled example infrastructure for legally supported regions.
-- Dashboard figures are design samples until slice 8 derives them from posted ledger entries.
-- `packages/api-client` generated from OpenAPI lands in slice 2 (drift guard in CI).
+- OCR and automated tax handling remain intentionally deferred; current financial reports and
+  dashboard totals derive from posted ledger lines.
 
 ## Quick start (dev)
 

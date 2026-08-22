@@ -60,6 +60,7 @@ class JournalStatus(StrEnum):
 
 class JournalEntry(Base):
     __tablename__ = "journal_entries"
+    __table_args__ = (UniqueConstraint("reversal_of_id", name="uq_journal_entries_reversal_of"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"), nullable=False, index=True)

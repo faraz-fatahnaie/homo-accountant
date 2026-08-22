@@ -60,7 +60,7 @@ export default function NewBillPage() {
         throw new ApiError(422, { error: { code: "invalid_amount", message: "مبلغ معتبر وارد کنید" } });
       }
       if (!accountCode) throw new ApiError(422, { error: { code: "no_account", message: "حساب هزینه را انتخاب کنید" } });
-      if (!vendorId) throw new ApiError(422, { error: { code: "no_vendor", message: "تأمینکننده را انتخاب کنید" } });
+      if (!vendorId) throw new ApiError(422, { error: { code: "no_vendor", message: "تأمین‌کننده را انتخاب کنید" } });
       const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       return billsApi.create({
         vendor_id: Number(vendorId),
@@ -88,7 +88,7 @@ export default function NewBillPage() {
       <div className="mb-4">
         <h1 className="text-lg font-extrabold">فاکتور خرید جدید</h1>
         <p className="mt-0.5 text-xs text-muted">
-          پس از ایجاد، «ثبت نهایی» سند «هزینه ← پرداختنی» را در دفتر کل مینویسد
+          پس از ایجاد، «ثبت نهایی» سند «هزینه ← پرداختنی» را در دفتر کل می‌نویسد
         </p>
       </div>
 
@@ -98,9 +98,9 @@ export default function NewBillPage() {
       >
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="label" htmlFor="b-vendor">تأمینکننده <span className="text-danger">*</span></label>
+            <label className="label" htmlFor="b-vendor">تأمین‌کننده <span className="text-danger">*</span></label>
             <select id="b-vendor" className="input" value={vendorId} onChange={(e) => setVendorId(e.target.value)}>
-              <option value="">انتخاب تأمینکننده…</option>
+              <option value="">انتخاب تأمین‌کننده…</option>
               {vendorList.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -141,7 +141,7 @@ export default function NewBillPage() {
               placeholder="خالی = ۳۰ روز بعد" />
           </div>
           <div>
-            <label className="label" htmlFor="b-number">شماره فاکتور تأمینکننده</label>
+            <label className="label" htmlFor="b-number">شماره فاکتور تأمین‌کننده</label>
             <input id="b-number" className="input" dir="ltr" value={billNumber} onChange={(e) => setBillNumber(e.target.value)} />
           </div>
           <div>

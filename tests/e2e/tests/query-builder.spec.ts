@@ -20,7 +20,7 @@ test.describe("query builder user journey (real API + DB)", () => {
     // seed a customer + invoice via API so the query has data
     const c = await request.post(`${API}/contacts`, {
       headers: { Authorization: `Bearer ${token}` },
-      data: { name: "مشتری پرسوجو", roles: ["customer"] },
+      data: { name: "مشتری پرس‌وجو", roles: ["customer"] },
     });
     const cid = (await c.json()).id as number;
     await request.post(`${API}/invoices`, {
@@ -34,11 +34,11 @@ test.describe("query builder user journey (real API + DB)", () => {
     });
 
     await page.goto("/query-builder");
-    await expect(page.getByRole("heading", { name: "پرسوجو و جستجو" })).toBeVisible({ timeout: 25_000 });
+    await expect(page.getByRole("heading", { name: "پرس‌وجو و جست‌وجو" })).toBeVisible({ timeout: 25_000 });
 
     // apply the overdue template, then run
     await page.getByRole("button", { name: "فاکتورهای فروش معوق" }).click();
-    await page.getByRole("button", { name: "اجرای پرسوجو" }).click();
+    await page.getByRole("button", { name: "اجرای پرس‌وجو" }).click();
     await expect(page.getByText("خلاصه:")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/ردیف/)).toBeVisible({ timeout: 20_000 });
 
@@ -64,7 +64,7 @@ test.describe("query builder user journey (real API + DB)", () => {
       token,
     );
     await page.goto("/query-builder");
-    await expect(page.getByRole("heading", { name: "پرسوجو و جستجو" })).toBeVisible({ timeout: 25_000 });
-    await expect(page.getByRole("button", { name: "اجرای پرسوجو" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "پرس‌وجو و جست‌وجو" })).toBeVisible({ timeout: 25_000 });
+    await expect(page.getByRole("button", { name: "اجرای پرس‌وجو" })).toBeVisible();
   });
 });

@@ -26,14 +26,19 @@ export default function PeriodsPage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-lg font-extrabold">دورههای حسابداری</h1>
+        <h1 className="text-lg font-extrabold">دوره‌های حسابداری</h1>
         <p className="mt-0.5 text-xs text-muted">
-          سال مالی ۱۴۰۵ — ثبت سند در دوره بستهشده مجاز نیست؛ بازگشایی فقط توسط مدیر
+          سال مالی ۱۴۰۵ — ثبت سند در دوره بسته‌شده مجاز نیست؛ بازگشایی فقط توسط مدیر
         </p>
       </div>
 
       {isLoading ? <LoadingBlock /> : null}
       {isError ? <ErrorBlock message={error instanceof Error ? error.message : "خطا"} onRetry={() => void refetch()} /> : null}
+      {closeMutation.isError || reopenMutation.isError ? (
+        <div className="mb-3">
+          <ErrorBlock message={(closeMutation.error ?? reopenMutation.error) instanceof Error ? (closeMutation.error ?? reopenMutation.error as Error).message : "عملیات انجام نشد."} />
+        </div>
+      ) : null}
 
       {data ? (
         <div className="card overflow-hidden">
@@ -43,7 +48,7 @@ export default function PeriodsPage() {
                 <tr className="border-b-2 border-border-strong bg-surface-2 text-[11px] font-extrabold text-muted">
                   <th className="px-3 py-2.5">ماه</th>
                   <th className="px-3 py-2.5">وضعیت</th>
-                  <th className="px-3 py-2.5">بستهشده در</th>
+                  <th className="px-3 py-2.5">بسته‌شده در</th>
                   <th className="px-3 py-2.5">بازگشایی در</th>
                   <th className="px-3 py-2.5 text-left">عملیات</th>
                 </tr>
@@ -90,7 +95,7 @@ export default function PeriodsPage() {
                         </button>
                       ) : null}
                       {p.status === "closed" && !isOwner ? (
-                        <span className="text-[11px] text-muted">فقط مدیر میتواند بازگشایی کند</span>
+                        <span className="text-[11px] text-muted">فقط مدیر می‌تواند بازگشایی کند</span>
                       ) : null}
                     </td>
                   </tr>

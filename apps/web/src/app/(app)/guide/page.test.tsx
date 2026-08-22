@@ -21,22 +21,22 @@ describe("guide page", () => {
     expect(screen.getByRole("navigation", { name: "فهرست مطالب" })).toBeInTheDocument();
   });
 
-  it("covers quick start, roles, journeys, FAQ and roadmap", () => {
+  it("covers quick start, roles, journeys, FAQ and active analysis tools", () => {
     render(<GuidePage />);
     const headings = screen.getAllByRole("heading", { level: 2 });
     const titles = headings.map((h) => (h.textContent ?? "").replace(/\u200c/g, ""));
     for (const expected of [
       "۱) شروع سریع — در پنج قدم",
-      "۲) نقشها و دسترسیها",
+      "۲) نقش‌ها و دسترسی‌ها",
       "۳) مفاهیم پایه (به زبان ساده)",
-      "۴) مسیر کاربری: ثبت یک سند (قدمبهقدم)",
+      "۴) مسیر کاربری: ثبت یک سند (قدم‌به‌قدم)",
       "۵) مسیر کاربری: برگشت سند (اصلاح اشتباه)",
-      "۶) دورههای حسابداری",
-      "۷) نکتهها و میانبرها",
+      "۶) دوره‌های حسابداری",
+      "۷) نکته‌ها و میانبرها",
       "۸) سوالات پرتکرار",
-      "۹) وضعیت امکانات و چه چیزهایی در راه است",
+      "۹) گزارش‌ها، جست‌وجو و خروجی",
     ]) {
-      expect(titles.some((t) => t === expected)).toBe(true);
+      expect(titles.some((t) => t === expected.replace(/\u200c/g, ""))).toBe(true);
     }
   });
 
@@ -56,9 +56,10 @@ describe("guide page", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("lists honest future features", () => {
+  it("lists the active reports, query builder, and exports", () => {
     render(<GuidePage />);
-    expect(screen.getAllByText(textIncludes("گزارشها (تراز، سود و زیان")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(textIncludes("پرسوجوی فارسی امن و خروجی CSV/Excel")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(textIncludes("ترازنامه و سود و زیان")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(textIncludes("پرس‌وجوی امن با فیلتر")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(textIncludes("خروجی CSV، Excel و PDF")).length).toBeGreaterThan(0);
   });
 });

@@ -20,6 +20,12 @@ else
   BACKUP_ROOT="$(dirname "$DUMP")"
 fi
 [ -f "$DUMP" ] || { echo "dump not found: $DUMP" >&2; exit 1; }
+if [ -f "$BACKUP_ROOT/SHA256SUMS" ]; then
+  (cd "$BACKUP_ROOT" && sha256sum -c SHA256SUMS)
+else
+  echo "[restore] WARNING: legacy backup has no SHA256SUMS manifest" >&2
+fi
+gzip -t "$DUMP"
 COMPOSE="docker compose -f compose.prod.yaml"
 DB_CONTAINER=$($COMPOSE ps -q db)
 [ -n "$DB_CONTAINER" ] || { echo "db container not running" >&2; exit 1; }

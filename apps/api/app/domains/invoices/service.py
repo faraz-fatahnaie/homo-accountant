@@ -1,6 +1,6 @@
 """Invoices service: lifecycle + posting rules.
 
-Issue:   Dr 203 حسابهای دریافتنی   total    /   Cr 401 درآمد فروش   total
+Issue:   Dr 203 حساب‌های دریافتنی   total    /   Cr 401 درآمد فروش   total
 Payment: Dr 101 صندوق / 102 بانک    amount  /   Cr 203 دریافتنی      amount
 Void:    reversal of the issue entry (only allowed when nothing was paid).
 All flows are single-transaction and reuse the ledger posting service.
@@ -14,6 +14,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.core.jalali import entry_period
 from app.domains.invoices.models import Invoice, InvoiceItem, InvoicePayment, InvoiceStatus
 from app.domains.ledger.service import (
@@ -30,12 +31,9 @@ RECEIVABLE_ACCOUNT = "203"
 REVENUE_ACCOUNT = "401"
 
 
-class InvoiceError(Exception):
+class InvoiceError(AppError):
     def __init__(self, message: str, code: str = "invoice_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 def _line_total(item: InvoiceItem) -> int:
@@ -56,7 +54,12 @@ def create_invoice(
     payment_instructions: str | None,
 ) -> Invoice:
     if due_date < issue_date:
-        raise InvoiceError("سررسید نمیتواند قبل از تاریخ صدور باشد", code="invoice_dates_invalid")
+        raise InvoiceError("سررسید نمی‌تواند قبل از تاریخ صدور باشد", code="invoice_dates_invalid")
+    if project_id is not None:
+        from app.domains.projects.service import get_project
+
+        if get_project(db, company_id, project_id) is None:
+            raise InvoiceError("پروژه یافت نشد", code="project_missing", status_code=404)
     invoice = Invoice(
         company_id=company_id,
         customer_id=customer_id,
@@ -111,14 +114,16 @@ def _refresh_status(db: Session, invoice: Invoice) -> None:
     db.flush()
 
 
-def issue_invoice(db: Session, invoice_id: int, actor_id: int) -> Invoice:
-    invoice = db.get(Invoice, invoice_id)
+def issue_invoice(db: Session, company_id: int, invoice_id: int, actor_id: int) -> Invoice:
+    invoice = db.scalar(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.company_id == company_id)
+    )
     if invoice is None:
-        raise InvoiceError("صورتحساب یافت نشد", code="invoice_missing", status_code=404)
+        raise InvoiceError("صورت‌حساب یافت نشد", code="invoice_missing", status_code=404)
     if invoice.status == InvoiceStatus.VOID:
-        raise InvoiceError("صورتحساب باطل شده است", code="invoice_voided")
+        raise InvoiceError("صورت‌حساب باطل شده است", code="invoice_voided")
     if invoice.journal_entry_id is not None:
-        raise InvoiceError("صورتحساب از قبل صادر شده است", code="invoice_already_issued")
+        raise InvoiceError("صورت‌حساب از قبل صادر شده است", code="invoice_already_issued")
 
     entry = create_draft_entry(
         db,
@@ -129,7 +134,7 @@ def issue_invoice(db: Session, invoice_id: int, actor_id: int) -> Invoice:
         lines=[(RECEIVABLE_ACCOUNT, invoice.total, 0), (REVENUE_ACCOUNT, 0, invoice.total)],
         idempotency_key=None,
     )
-    posted = post_entry(db, entry.id, actor_id)
+    posted = post_entry(db, company_id, entry.id, actor_id)
     year, month = entry_period(invoice.issue_date)
     invoice.number = next_reference(db, invoice.company_id, year, month, "INV")
     invoice.journal_entry_id = posted.id
@@ -145,6 +150,7 @@ def issue_invoice(db: Session, invoice_id: int, actor_id: int) -> Invoice:
 def record_payment(
     db: Session,
     *,
+    company_id: int,
     invoice_id: int,
     actor_id: int,
     amount: int,
@@ -152,13 +158,15 @@ def record_payment(
     method: str,
     reference: str | None,
 ) -> InvoicePayment:
-    invoice = db.get(Invoice, invoice_id)
+    invoice = db.scalar(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.company_id == company_id)
+    )
     if invoice is None:
-        raise InvoiceError("صورتحساب یافت نشد", code="invoice_missing", status_code=404)
+        raise InvoiceError("صورت‌حساب یافت نشد", code="invoice_missing", status_code=404)
     if invoice.status in (InvoiceStatus.DRAFT, InvoiceStatus.VOID):
-        raise InvoiceError("فقط صورتحساب صادرشده را میتوان پرداخت کرد", code="invoice_not_issued")
+        raise InvoiceError("فقط صورت‌حساب صادرشده را می‌توان پرداخت کرد", code="invoice_not_issued")
     if invoice.journal_entry_id is None:
-        raise InvoiceError("صورتحساب هنوز صادر نشده است", code="invoice_not_issued")
+        raise InvoiceError("صورت‌حساب هنوز صادر نشده است", code="invoice_not_issued")
     paid = sum(p.amount for p in invoice.payments)
     if paid + amount > invoice.total:
         raise InvoiceError("مبلغ پرداختی بیش از مانده است", code="invoice_overpayment")
@@ -173,7 +181,7 @@ def record_payment(
         lines=[(cash_account, amount, 0), (RECEIVABLE_ACCOUNT, 0, amount)],
         idempotency_key=None,
     )
-    posted = post_entry(db, entry.id, actor_id)
+    posted = post_entry(db, company_id, entry.id, actor_id)
     payment = InvoicePayment(
         invoice_id=invoice.id,
         amount=amount,
@@ -193,12 +201,14 @@ def record_payment(
     return payment
 
 
-def void_invoice(db: Session, invoice_id: int, actor_id: int) -> Invoice:
-    invoice = db.get(Invoice, invoice_id)
+def void_invoice(db: Session, company_id: int, invoice_id: int, actor_id: int) -> Invoice:
+    invoice = db.scalar(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.company_id == company_id)
+    )
     if invoice is None:
-        raise InvoiceError("صورتحساب یافت نشد", code="invoice_missing", status_code=404)
+        raise InvoiceError("صورت‌حساب یافت نشد", code="invoice_missing", status_code=404)
     if invoice.status == InvoiceStatus.VOID:
-        raise InvoiceError("صورتحساب از قبل باطل شده است", code="invoice_already_voided")
+        raise InvoiceError("صورت‌حساب از قبل باطل شده است", code="invoice_already_voided")
     if invoice.journal_entry_id is None:
         # never issued — just mark void
         invoice.status = InvoiceStatus.VOID
@@ -206,14 +216,15 @@ def void_invoice(db: Session, invoice_id: int, actor_id: int) -> Invoice:
         return invoice
     if sum(p.amount for p in invoice.payments) > 0:
         raise InvoiceError(
-            "صورتحسابی که پرداخت داشته را نمیتوان باطل کرد؛ ابتدا پرداختها را بررسی کنید",
+            "صورت‌حسابی که پرداخت داشته را نمی‌توان باطل کرد؛ ابتدا پرداخت‌ها را بررسی کنید",
             code="invoice_has_payments",
         )
     void_entry(
         db,
+        company_id,
         invoice.journal_entry_id,
         actor_id,
-        memo=f"ابطال صورتحساب {invoice.number or invoice.id}",
+        memo=f"ابطال صورت‌حساب {invoice.number or invoice.id}",
     )
     invoice.status = InvoiceStatus.VOID
     db.flush()

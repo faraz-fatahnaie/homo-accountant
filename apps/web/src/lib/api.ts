@@ -9,8 +9,10 @@
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
-export const TOKEN_KEY = "homo-accountant-access-token";
-export const REFRESH_KEY = "homo-accountant-refresh-token";
+const LEGACY_TOKEN_KEYS = [
+  "homo-accountant-access-token",
+  "homo-accountant-refresh-token",
+] as const;
 
 export interface ApiErrorBody {
   error: { code: string; message: string; details?: Record<string, string> | null };
@@ -30,30 +32,9 @@ export class ApiError extends Error {
   }
 }
 
-export function getTokens(): { access: string | null; refresh: string | null } {
+export function clearLegacyTokens() {
   try {
-    return {
-      access: window.localStorage.getItem(TOKEN_KEY),
-      refresh: window.localStorage.getItem(REFRESH_KEY),
-    };
-  } catch {
-    return { access: null, refresh: null };
-  }
-}
-
-export function storeTokens(access: string, refresh: string) {
-  try {
-    window.localStorage.setItem(TOKEN_KEY, access);
-    window.localStorage.setItem(REFRESH_KEY, refresh);
-  } catch {
-    /* private mode */
-  }
-}
-
-export function clearTokens() {
-  try {
-    window.localStorage.removeItem(TOKEN_KEY);
-    window.localStorage.removeItem(REFRESH_KEY);
+    for (const key of LEGACY_TOKEN_KEYS) window.localStorage.removeItem(key);
   } catch {
     /* private mode */
   }
@@ -74,16 +55,19 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   };
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   if (body !== undefined && !isFormData) requestHeaders["Content-Type"] = "application/json";
-  if (auth) {
-    const { access } = getTokens();
-    if (access) requestHeaders.Authorization = `Bearer ${access}`;
-  }
-
-  const init: RequestInit = { method, headers: requestHeaders, credentials: "omit" };
+  const init: RequestInit = { method, headers: requestHeaders, credentials: "include" };
   if (body !== undefined) {
     init.body = isFormData ? (body as FormData) : JSON.stringify(body);
   }
-  const response = await fetch(`${API_BASE}${path}`, init);
+  let response = await fetch(`${API_BASE}${path}`, init);
+  if (auth && response.status === 401 && !path.startsWith("/auth/")) {
+    const refreshed = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    });
+    if (refreshed.ok) response = await fetch(`${API_BASE}${path}`, init);
+  }
 
   let payload: unknown = null;
   const text = await response.text();
@@ -101,10 +85,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   return payload as T;
 }
 
-export interface TokenPair {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
+export interface SessionOut {
   expires_in: number;
 }
 
@@ -179,9 +160,8 @@ function queryString(params: Record<string, string | number | undefined>): strin
 
 export const authApi = {
   login: (email: string, password: string) =>
-    api<TokenPair>("/auth/login", { method: "POST", auth: false, body: { email, password } }),
-  logout: (refresh_token: string) =>
-    api<{ status: string }>("/auth/logout", { method: "POST", auth: false, body: { refresh_token } }),
+    api<SessionOut>("/auth/login", { method: "POST", auth: false, body: { email, password } }),
+  logout: () => api<{ status: string }>("/auth/logout", { method: "POST", auth: false }),
   me: () => api<UserOut>("/users/me"),
 };
 
@@ -213,9 +193,9 @@ export type ContactRole =
 
 export const CONTACT_ROLE_LABELS: Record<ContactRole, string> = {
   customer: "مشتری",
-  vendor: "تأمینکننده",
+  vendor: "تأمین‌کننده",
   employee: "کارمند",
-  investor: "سرمایهگذار",
+  investor: "سرمایه‌گذار",
   lender: "وامدهنده (بانک)",
   grantor: "کمککننده",
   other: "سایر",
@@ -245,7 +225,7 @@ export interface ProjectOut {
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   active: "فعال",
-  completed: "تکمیلشده",
+  completed: "تکمیل‌شده",
   on_hold: "معلق",
 };
 
@@ -356,11 +336,11 @@ export interface InvoiceOut {
 }
 
 export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
-  draft: "پیشنویس",
+  draft: "پیش‌نویس",
   issued: "صادرشده",
-  partially_paid: "جزیی پرداختشده",
-  paid: "پرداختشده",
-  void: "باطلشده",
+  partially_paid: "جزئی پرداخت‌شده",
+  paid: "پرداخت‌شده",
+  void: "باطل‌شده",
 };
 
 /* ---------------- bills (payables) ---------------- */
@@ -400,11 +380,11 @@ export interface BillOut {
 }
 
 export const BILL_STATUS_LABELS: Record<BillStatus, string> = {
-  draft: "پیشنویس",
-  open: "باز (ثبتشده)",
-  partially_paid: "جزیی پرداختشده",
-  paid: "پرداختشده",
-  void: "باطلشده",
+  draft: "پیش‌نویس",
+  open: "باز (ثبت‌شده)",
+  partially_paid: "جزئی پرداخت‌شده",
+  paid: "پرداخت‌شده",
+  void: "باطل‌شده",
 };
 
 export const billsApi = {
@@ -440,7 +420,7 @@ export interface FundingEventOut {
 }
 
 export const FUNDING_TYPE_LABELS: Record<FundingType, string> = {
-  investment: "سرمایهگذاری",
+  investment: "سرمایه‌گذاری",
   loan: "وام",
   grant: "کمک بلاعوض",
   revenue: "درآمد",
@@ -513,13 +493,12 @@ export const queryBuilderApi = {
     api<{ id: number; name: string }>(`/query-builder/saved/${id}/duplicate`, { method: "POST" }),
   remove: (id: number) => api<null>(`/query-builder/saved/${id}`, { method: "DELETE" }),
   async exportFile(format: "csv" | "xlsx", ast: object, filename = `query.${format}`) {
-    const { access } = getTokens();
     const response = await fetch(`${API_BASE}/query-builder/export?format=${format}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(access ? { Authorization: `Bearer ${access}` } : {}),
       },
+      credentials: "include",
       body: JSON.stringify(ast),
     });
     if (!response.ok) throw new ApiError(response.status, null);
@@ -546,9 +525,8 @@ export const invoicesApi = {
   /** Download the PDF via an authenticated fetch → blob (a plain <a href>
    *  cannot carry the Authorization header). */
   async downloadPdf(id: number, fallbackName = `invoice-${id}.pdf`) {
-    const { access } = getTokens();
     const response = await fetch(`${API_BASE}/invoices/${id}/pdf`, {
-      headers: access ? { Authorization: `Bearer ${access}` } : {},
+      credentials: "include",
     });
     if (!response.ok) throw new ApiError(response.status, null);
     const blob = await response.blob();

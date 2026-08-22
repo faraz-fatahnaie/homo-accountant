@@ -19,7 +19,7 @@ import {
 
 const STATUS_LABELS: Record<string, string> = {
   active: "فعال",
-  completed: "تکمیلشده",
+  completed: "تکمیل‌شده",
   on_hold: "معلق",
 };
 
@@ -41,11 +41,11 @@ export default function BudgetPage() {
     <div>
       <ReportHeader
         active="/reports/budget"
-        title="بودجه و عملکرد پروژهها"
-        subtitle="مقایسه بودجه هر پروژه با هزینههای ثبتشده (پستشده) در بازه انتخابی."
+        title="بودجه و عملکرد پروژه‌ها"
+        subtitle="مقایسه بودجه هر پروژه با هزینه‌های ثبت‌شده (پستشده) در بازه انتخابی."
       >
         <div className="flex flex-wrap items-center gap-2">
-          {data && <ReconBadge ok={data.reconciled} label="از هزینههای ثبتشده" />}
+          {data && <ReconBadge ok={data.reconciled} label="از هزینه‌های ثبت‌شده" />}
           <RangePicker from={range.from} to={range.to} onChange={(from, to) => setRange({ from, to })} />
         </div>
       </ReportHeader>
@@ -57,7 +57,7 @@ export default function BudgetPage() {
       ) : data ? (
         <div className="space-y-4">
           {data.rows.length === 0 ? (
-            <div className="card p-6 text-sm text-muted">هنوز پروژهای تعریف نشده است.</div>
+            <div className="card p-6 text-sm text-muted">هنوز پروژه‌ای تعریف نشده است.</div>
           ) : (
             <ReportTable
               head={
@@ -89,9 +89,9 @@ export default function BudgetPage() {
             <TotalRow label="مانده کل" value={data.total_remaining} />
           </div>
           <p className="rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">تطبیق:</b> «عملکرد» مجموع هزینههای ثبتشده (پستشده و غیر باطل)
-            تخصیصیافته به هر پروژه است؛ پشت هر هزینه سند دفتر کل (حساب هزینه) وجود دارد. هزینههای
-            بدون تخصیص پروژه در این گزارش دیده نمیشوند.
+            <b className="text-text">تطبیق:</b> «عملکرد» مجموع هزینه‌های ثبت‌شده (پستشده و غیر باطل)
+            تخصیص‌یافته به هر پروژه است؛ پشت هر هزینه سند دفتر کل (حساب هزینه) وجود دارد. هزینه‌های
+            بدون تخصیص پروژه در این گزارش دیده نمی‌شوند.
           </p>
         </div>
       ) : null}

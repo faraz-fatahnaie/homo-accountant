@@ -7,6 +7,7 @@ import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -30,11 +31,37 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.environment,
+        release=settings.sentry_release or None,
+        traces_sample_rate=settings.sentry_traces_sample_rate,
+        send_default_pii=False,
+    )
 
-def _maybe_seed_dev_data() -> None:
-    """Dev convenience: seed demo users + chart + periods when enabled."""
+
+def _initialize_data() -> None:
+    """Ensure production invariants, then optionally add development demo data."""
+    from app.core.db import SessionLocal
+
+    if settings.is_production:
+        from app.domains.identity.bootstrap import ensure_required_system_data
+
+        db = SessionLocal()
+        try:
+            result = ensure_required_system_data(db)
+            db.commit()
+            if any(value for key, value in result.items() if key != "company_id"):
+                logger.info("required system data initialized", extra=result)
+        except Exception:
+            db.rollback()
+            logger.exception("required system data initialization failed")
+            raise
+        finally:
+            db.close()
+
     if settings.seed_demo_users and not settings.is_production:
-        from app.core.db import SessionLocal
         from app.domains.identity.seed import seed_dev_data
 
         db = SessionLocal()
@@ -50,7 +77,7 @@ def _maybe_seed_dev_data() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    _maybe_seed_dev_data()
+    _initialize_data()
     yield
 
 
@@ -92,8 +119,10 @@ async def security_and_trace(
 
     try:
         response = await call_next(request)
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         logger.exception("unhandled error", extra={"request_id": request_id})
+        if settings.sentry_dsn:
+            sentry_sdk.capture_exception(exc)
         response = JSONResponse(
             status_code=500,
             content={"error": {"code": "internal_error", "message": "خطای داخلی سرور"}},

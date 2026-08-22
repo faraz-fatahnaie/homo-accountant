@@ -63,7 +63,7 @@ def contacts_update(
 ) -> Contact | JSONResponse:
     contact = get_contact(db, actor.company_id, contact_id)
     if contact is None:
-        return error_response(404, "not_found", "طرف حساب یافت نشد")
+        return error_response(404, "not_found", "طرف‌حساب یافت نشد")
     changes = payload.model_dump(exclude_unset=True)
     if "roles" in changes and changes["roles"] is not None:
         try:

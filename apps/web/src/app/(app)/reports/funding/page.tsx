@@ -19,7 +19,7 @@ import {
 } from "../_components";
 
 const TYPE_LABELS: Record<string, string> = {
-  investment: "سرمایهگذاری",
+  investment: "سرمایه‌گذاری",
   loan: "وام",
   grant: "کمک بلاعوض",
   revenue: "درآمد",
@@ -37,7 +37,7 @@ export default function FundingPage() {
       <ReportHeader
         active="/reports/funding"
         title="خلاصه تأمین مالی"
-        subtitle="رویدادهای سرمایهگذاری، وام، کمک بلاعوض و درآمد در بازه انتخابی."
+        subtitle="رویدادهای سرمایه‌گذاری، وام، کمک بلاعوض و درآمد در بازه انتخابی."
       >
         <div className="flex flex-wrap items-center gap-2">
           {data && <ReconBadge ok={data.reconciled} label={data.reconciled ? "تطبیق با دفتر کل" : "عدم تطبیق"} />}
@@ -84,9 +84,9 @@ export default function FundingPage() {
           </ReportTable>
           <TotalRow label="جمع تأمین مالی دوره" value={data.total} />
           <p className="rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">تطبیق:</b> جمع رویدادهای هر نوع باید برابر با اعتبار ثبتشده روی
-            حساب نگاشت همان نوع (مثلاً سرمایهگذاری ← ۳۰۱ سرمایه مالک، وام ← ۲۰۵ وام دریافتی) در
-            سندهای دفتر کل باشد. وام و سرمایه هرگز به عنوان درآمد ثبت نمیشوند.
+            <b className="text-text">تطبیق:</b> جمع رویدادهای هر نوع باید برابر با اعتبار ثبت‌شده روی
+            حساب نگاشت همان نوع (مثلاً سرمایه‌گذاری ← ۳۰۱ سرمایه مالک، وام ← ۲۰۵ وام دریافتی) در
+            سندهای دفتر کل باشد. وام و سرمایه هرگز به عنوان درآمد ثبت نمی‌شوند.
           </p>
         </div>
       ) : null}

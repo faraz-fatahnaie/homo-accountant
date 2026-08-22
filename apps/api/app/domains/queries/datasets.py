@@ -67,7 +67,7 @@ DATASETS: dict[str, DatasetDef] = {
         },
     ),
     "expenses": DatasetDef(
-        label="هزینهها",
+        label="هزینه‌ها",
         base=Expense,
         joins=(
             (_Contact, Expense.contact_id == _Contact.id, True),
@@ -78,7 +78,7 @@ DATASETS: dict[str, DatasetDef] = {
             "number": ColumnDef("شماره", "string", Expense.number),
             "entry_date": ColumnDef("تاریخ", "date", Expense.entry_date),
             "description": ColumnDef("شرح", "string", Expense.description),
-            "contact_name": ColumnDef("طرف حساب", "string", _Contact.name),
+            "contact_name": ColumnDef("طرف‌حساب", "string", _Contact.name),
             "project_name": ColumnDef("پروژه", "string", _Project.name),
             "account_code": ColumnDef("کد حساب", "string", _Account.code),
             "account_name": ColumnDef("حساب", "string", _Account.name),
@@ -90,7 +90,7 @@ DATASETS: dict[str, DatasetDef] = {
         },
     ),
     "invoices": DatasetDef(
-        label="صورتحسابهای فروش",
+        label="صورت‌حساب‌های فروش",
         base=Invoice,
         joins=(
             (_Contact, Invoice.customer_id == _Contact.id, True),
@@ -121,7 +121,7 @@ DATASETS: dict[str, DatasetDef] = {
         ),
         columns={
             "number": ColumnDef("شماره", "string", Bill.number),
-            "vendor_name": ColumnDef("تأمینکننده", "string", _Contact.name),
+            "vendor_name": ColumnDef("تأمین‌کننده", "string", _Contact.name),
             "project_name": ColumnDef("پروژه", "string", _Project.name),
             "account_code": ColumnDef("کد حساب", "string", _Account.code),
             "account_name": ColumnDef("حساب", "string", _Account.name),
@@ -146,7 +146,7 @@ DATASETS: dict[str, DatasetDef] = {
             "funding_type": ColumnDef(
                 "نوع", "enum", FundingEvent.funding_type, ["investment", "loan", "grant", "revenue"]
             ),
-            "contact_name": ColumnDef("طرف حساب", "string", _Contact.name),
+            "contact_name": ColumnDef("طرف‌حساب", "string", _Contact.name),
             "event_date": ColumnDef("تاریخ", "date", FundingEvent.event_date),
             "amount": ColumnDef("مبلغ", "amount", FundingEvent.amount, amount=True),
             "method": ColumnDef("روش", "enum", FundingEvent.method, ["cash", "bank", "online"]),
@@ -155,7 +155,7 @@ DATASETS: dict[str, DatasetDef] = {
         },
     ),
     "contacts": DatasetDef(
-        label="طرف حسابها",
+        label="طرف‌حساب‌ها",
         base=Contact,
         columns={
             "name": ColumnDef("نام", "string", Contact.name),
@@ -166,7 +166,7 @@ DATASETS: dict[str, DatasetDef] = {
         },
     ),
     "projects": DatasetDef(
-        label="پروژهها",
+        label="پروژه‌ها",
         base=Project,
         columns={
             "name": ColumnDef("نام", "string", Project.name),

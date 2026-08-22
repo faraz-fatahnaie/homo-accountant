@@ -51,14 +51,14 @@ export default function ContactsPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">طرف حسابها</h1>
+          <h1 className="text-lg font-extrabold">طرف‌حساب‌ها</h1>
           <p className="mt-0.5 text-xs text-muted">
-            مشتری، تأمینکننده، سرمایهگذار، بانک و… — {(data ?? []).length} طرف حساب
+            مشتری، تأمین‌کننده، سرمایه‌گذار، بانک و… — {(data ?? []).length} طرف‌حساب
           </p>
         </div>
         {isWriter ? (
           <button className="btn btn-primary" onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "بستن" : "+ طرف حساب جدید"}
+            {showForm ? "بستن" : "+ طرف‌حساب جدید"}
           </button>
         ) : null}
       </div>
@@ -92,7 +92,7 @@ export default function ContactsPage() {
             </div>
           </div>
           <div className="mt-3">
-            <span className="label">نقشها</span>
+            <span className="label">نقش‌ها</span>
             <div className="flex flex-wrap gap-2">
               {ALL_ROLES.map((role) => (
                 <label key={role} className={`chip cursor-pointer ${roles.includes(role) ? "active" : ""}`}>
@@ -119,8 +119,8 @@ export default function ContactsPage() {
 
       {data && data.length === 0 ? (
         <div className="card px-4 py-10 text-center text-sm text-muted">
-          هنوز طرف حسابی ثبت نشده است.
-          {isWriter ? " با دکمه «+ طرف حساب جدید» شروع کنید." : null}
+          هنوز طرف‌حسابی ثبت نشده است.
+          {isWriter ? " با دکمه «+ طرف‌حساب جدید» شروع کنید." : null}
         </div>
       ) : null}
 

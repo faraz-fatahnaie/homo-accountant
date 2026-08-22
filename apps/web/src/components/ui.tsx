@@ -15,14 +15,22 @@ export function LoadingBlock({ label = "در حال بارگذاری…" }: { la
   );
 }
 
-export function ErrorBlock({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export function ErrorBlock({
+  message,
+  title = "خطا در انجام عملیات",
+  onRetry,
+}: {
+  message: string;
+  title?: string;
+  onRetry?: () => void;
+}) {
   return (
     <div className="card border-danger-soft bg-danger-soft px-4 py-4 text-sm" role="alert">
       <div className="flex items-center gap-2 font-bold text-danger-strong">
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8}>
           <path d="M12 3.5l10 17H2zM12 10v4.5M12 17.6v.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        خطا در دریافت دادهها
+        {title}
       </div>
       <p className="mt-1 text-muted">{message}</p>
       {onRetry ? (
@@ -56,13 +64,13 @@ export function StatusBadge({ status }: { status: JournalStatus }) {
         <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        ثبتشده
+        ثبت‌شده
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-bold text-muted">
-      پیشنویس
+      پیش‌نویس
     </span>
   );
 }

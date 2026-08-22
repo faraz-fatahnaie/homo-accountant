@@ -111,7 +111,7 @@ export default function NewExpensePage() {
       <div className="mb-4">
         <h1 className="text-lg font-extrabold">ثبت هزینه جدید</h1>
         <p className="mt-0.5 text-xs text-muted">
-          پیشنویس میسازد؛ پس از ایجاد میتوانید «ثبت نهایی» کنید تا سند وارد دفتر کل شود
+          پیش‌نویس می‌سازد؛ پس از ایجاد می‌توانید «ثبت نهایی» کنید تا سند وارد دفتر کل شود
         </p>
       </div>
 
@@ -156,13 +156,13 @@ export default function NewExpensePage() {
               ))}
             </select>
             <p className="mt-1 text-[11px] text-muted">
-              {paymentMethod === "cash" ? "از صندوق (۱۰۱) پرداخت میشود" : "از بانک (۱۰۲) پرداخت میشود"}
+              {paymentMethod === "cash" ? "از صندوق (۱۰۱) پرداخت می‌شود" : "از بانک (۱۰۲) پرداخت می‌شود"}
             </p>
           </div>
           <div>
-            <label className="label" htmlFor="ex-contact">طرف حساب</label>
+            <label className="label" htmlFor="ex-contact">طرف‌حساب</label>
             <select id="ex-contact" className="input" value={contactId} onChange={(e) => setContactId(e.target.value)}>
-              <option value="">بدون طرف حساب</option>
+              <option value="">بدون طرف‌حساب</option>
               {(contacts ?? []).map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}

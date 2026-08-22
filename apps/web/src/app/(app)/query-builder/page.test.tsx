@@ -15,7 +15,7 @@ vi.mock("@/lib/auth", () => ({
 const datasets: QueryDataset[] = [
   {
     id: "invoices",
-    label: "صورتحسابهای فروش",
+    label: "صورت‌حساب‌های فروش",
     columns: [
       { field: "number", label: "شماره", type: "string" },
       { field: "customer_name", label: "مشتری", type: "string" },
@@ -58,16 +58,23 @@ describe("query builder page", () => {
 
   it("renders the builder with dataset + templates", () => {
     render(<QueryBuilderPage />);
-    expect(screen.getByRole("heading", { name: "پرسوجو و جستجو" })).toBeInTheDocument();
-    expect(screen.getByText("قالبهای آماده:")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "پرس‌وجو و جست‌وجو" })).toBeInTheDocument();
+    expect(screen.getByText("قالب‌های آماده:")).toBeInTheDocument();
     expect(screen.getByText("فاکتورهای فروش معوق")).toBeInTheDocument();
-    expect(screen.getByText("صورتحسابهای فروش")).toBeInTheDocument();
+    expect(screen.getByText("صورت‌حساب‌های فروش")).toBeInTheDocument();
   });
 
   it("shows a prompt before running", () => {
     render(<QueryBuilderPage />);
     expect(
-      screen.getByText("یک قالب آماده انتخاب کنید یا پرسوجوی خود را بسازید و «اجرای پرسوجو» را بزنید."),
+      screen.getByText("یک قالب آماده انتخاب کنید یا پرس‌وجوی خود را بسازید و «اجرای پرس‌وجو» را بزنید."),
     ).toBeInTheDocument();
+  });
+
+  it("offers localized choices for enum filters", () => {
+    render(<QueryBuilderPage />);
+    const valueSelect = screen.getByRole("combobox", { name: "مقدار شرط" });
+    expect(valueSelect).toHaveValue("issued");
+    expect(screen.getByRole("option", { name: "صادرشده" })).toBeInTheDocument();
   });
 });

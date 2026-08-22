@@ -122,7 +122,7 @@ def _build_ledger(client: TestClient, headers: dict, with_funding: bool = False)
         client,
         headers,
         D1,
-        "سرمایهگذاری مالک",
+        "سرمایه‌گذاری مالک",
         [
             {"account_code": "102", "debit": INVEST_AMOUNT, "credit": 0},
             {"account_code": "301", "debit": 0, "credit": INVEST_AMOUNT},
@@ -146,12 +146,12 @@ def _build_ledger(client: TestClient, headers: dict, with_funding: bool = False)
         headers=headers,
     )
     assert pay.status_code == 201, pay.text
-    vendor = _contact(client, headers, "تأمینکننده صنعت", "vendor")
+    vendor = _contact(client, headers, "تأمین‌کننده صنعت", "vendor")
     _bill(
         client, headers, vendor, issue_date="2025-12-01", due_date="2026-01-01"
     )  # >90 days overdue on AS_OF
     if with_funding:
-        investor = _contact(client, headers, "سرمایهگذار", "investor")
+        investor = _contact(client, headers, "سرمایه‌گذار", "investor")
         client.post(
             "/api/v1/funding",
             json={
@@ -237,7 +237,7 @@ class TestTrialBalance:
             "/api/v1/journal-entries",
             json={
                 "entry_date": D2,
-                "memo": "پیشنویس",
+                "memo": "پیش‌نویس",
                 "lines": [
                     {"account_code": "603", "debit": 10_000_000, "credit": 0},
                     {"account_code": "102", "debit": 0, "credit": 10_000_000},

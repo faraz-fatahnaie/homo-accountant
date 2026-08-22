@@ -57,7 +57,7 @@ export default function TransactionsPage() {
         <div>
           <h1 className="text-lg font-extrabold">سندهای حسابداری</h1>
           <p className="mt-0.5 text-xs text-muted">
-            {totals.count} سند · {totals.postedCount} ثبتشده · جمع مبلغ{" "}
+            {totals.count} سند · {totals.postedCount} ثبت‌شده · جمع مبلغ{" "}
             <b className="tabular-nums">{formatRials(totals.sum)}</b> ریال
           </p>
         </div>
@@ -92,6 +92,11 @@ export default function TransactionsPage() {
           onRetry={() => void refetch()}
         />
       ) : null}
+      {postMutation.isError || voidMutation.isError ? (
+        <div className="mb-3">
+          <ErrorBlock message={(postMutation.error ?? voidMutation.error) instanceof Error ? (postMutation.error ?? voidMutation.error as Error).message : "عملیات انجام نشد."} />
+        </div>
+      ) : null}
 
       {data && data.length === 0 ? (
         <EmptyBlock
@@ -109,7 +114,7 @@ export default function TransactionsPage() {
                   <th className="px-3 py-2.5">تاریخ</th>
                   <th className="px-3 py-2.5">شماره</th>
                   <th className="px-3 py-2.5">شرح</th>
-                  <th className="px-3 py-2.5">حسابها</th>
+                  <th className="px-3 py-2.5">حساب‌ها</th>
                   <th className="px-3 py-2.5 text-left">مبلغ (ریال)</th>
                   <th className="px-3 py-2.5">وضعیت</th>
                   <th className="px-3 py-2.5">عملیات</th>
@@ -150,7 +155,7 @@ export default function TransactionsPage() {
                             className="btn btn-danger-ghost btn-sm"
                             disabled={voidMutation.isPending}
                             onClick={() => {
-                              if (window.confirm("سند برگشتی (معکوس) برای این سند ثبت میشود. ادامه میدهید؟"))
+                              if (window.confirm("سند برگشتی (معکوس) برای این سند ثبت می‌شود. ادامه می‌دهید؟"))
                                 voidMutation.mutate(entry.id);
                             }}
                           >

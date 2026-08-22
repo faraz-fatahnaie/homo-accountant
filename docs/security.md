@@ -1,84 +1,49 @@
-# امنیت — Security hardening (slice 9)
+# امنیت
 
-## Threat model
+این سند کنترل‌های امنیتی نسخهٔ فعلی برنامهٔ حسابداری «آریا تجارت» را خلاصه می‌کند. یکپارچگی دفتر کل، محرمانگی اسناد مالی و امکان بازیابی داده‌ها مهم‌ترین دارایی‌ها هستند.
 
-A small, self-hosted accounting web app (FastAPI + Next.js) for ~3–4 users. The ledger is the
-source of truth; integrity and confidentiality of posted financial data matter most. This page
-documents the controls in place, how they were verified, and the residual risks.
+## احراز هویت و دسترسی
 
-## Transport & TLS
+- رمز عبور با PBKDF2-HMAC-SHA256، salt اختصاصی و ۶۰۰٬۰۰۰ دور نگهداری می‌شود.
+- نشست مرورگر با cookieهای `HttpOnly` و `SameSite=Lax` کار می‌کند؛ در production ویژگی `Secure` نیز فعال است. access token کوتاه‌عمر است و refresh token پس از هر استفاده می‌چرخد.
+- استفادهٔ مجدد از refresh token، کل خانوادهٔ آن نشست را باطل می‌کند. خروج نیز refresh token را باطل و cookieها را پاک می‌کند.
+- API clientهای غیرمرورگری همچنان می‌توانند از Bearer token استفاده کنند.
+- نقش، دسترسی و محدودهٔ شرکت در backend کنترل می‌شود؛ مخفی‌کردن دکمه در UI کنترل امنیتی محسوب نمی‌شود.
+- endpoint ورود هم در API و هم در nginx محدودیت نرخ دارد.
 
-- **nginx terminates TLS** (TLS 1.2/1.3 only), redirects HTTP → HTTPS, hides `server_tokens`,
-  limits body size to 20 MB (attachments), and adds security headers on every response
-  (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`,
-  `Strict-Transport-Security`). Validated with a real `nginx -t` (slice 9).
-- **Defense-in-depth login rate limit** at nginx on `/api/v1/auth/login` (`limit_req`,
-  20 req/min + burst) in addition to the API's own limiter.
+## دفتر کل و داده‌های مالی
 
-## API security
+- ثبت نهایی فقط برای سند متوازن و در یک تراکنش پایگاه داده انجام می‌شود.
+- سند ثبت‌شده تغییرناپذیر است و اصلاح آن فقط با سند معکوس انجام می‌شود.
+- هر سند فقط یک‌بار می‌تواند معکوس شود؛ این قاعده در service و پایگاه داده enforce می‌شود.
+- همهٔ mutationها و گزارش‌ها به شرکت کاربر محدودند و گزارش‌ها از خطوط ثبت‌شدهٔ دفتر کل ساخته می‌شوند.
+- query builder فقط AST مجاز، پارامتری و read-only را کامپایل می‌کند و SQL خام نمی‌پذیرد.
 
-- **Auth:** PBKDF2-HMAC-SHA256 (600k iterations, per-user salt), short-lived HS256 access JWTs,
-  opaque refresh tokens stored hashed and rotated (slice 1). Bearer tokens live in
-  localStorage and are sent with `credentials: "omit"` — **no cookies, so CSRF does not apply**
-  (asserted by a test: no `Set-Cookie` anywhere).
-- **RBAC** is server-enforced on every endpoint (`require_roles`), not hidden buttons.
-- **Rate limiting** on `/auth/login` (sliding window, 10/min default; prod default; dev/E2E raises
-  it — see CI notes below).
-- **Headers/CSP:** all API responses carry nosniff, DENY frame options, Referrer-Policy,
-  Permissions-Policy, CSP (`frame-ancestors 'none'`), and `X-Request-ID` correlation, including
-  error responses. In production `/docs` and `/openapi.json` are disabled.
-- **Uploads:** only JPG/PNG/PDF, ≤ 5 MB, and — new in slice 9 — **magic-byte signature checks**
-  (`sniff_content_type`) so a spoofed content-type with HTML/JS payload is rejected
-  (`upload_content_mismatch`). Downloads are served with `Content-Disposition: attachment` +
-  nosniff (no inline rendering → no stored-XSS path).
-- **Ledger integrity** (slices 2–8): balanced double-entry enforced in the posting service and by
-  DB check constraints; posted lines immutable; reversals only; every report reconciles to the
-  posted ledger and surfaces a `reconciled` flag.
+## فایل و خروجی
 
-## Web security
+- فایل ضمیمه فقط JPG، PNG یا PDF و حداکثر ۵ MiB است؛ نوع واقعی فایل با magic bytes بررسی می‌شود.
+- route حداکثر `MAX_UPLOAD_BYTES + 1` را می‌خواند، فایل را در `finally` می‌بندد و nginx درخواست را در ۶ MiB محدود می‌کند.
+- نام فایل download پیش از ساخت `Content-Disposition` پاک‌سازی و با RFC 5987 encode می‌شود.
+- خروجی CSV در برابر spreadsheet formula injection محافظت می‌شود.
 
-- **Dependency CVEs fixed (slice 9):** Next.js `15.3.4 → 15.5.23` (CVE-2025-66478 React2Shell and
-  the July 2026 advisories; earlier 15.x minors are not patched), nested `postcss` forced to
-  `^8.5.23` and `sharp` to `^0.35.0` via `package.json` overrides. **`npm audit`: 0
-  vulnerabilities** (prod and full trees).
-- **CSP:** delivered per-request by `src/middleware.ts` (not a static header — a static
-  `default-src 'self'` was verified to **break** Next.js RSC inline bootstrap scripts in a real
-  browser). `script-src 'self' 'unsafe-inline'` is required because App Router pages are
-  statically prerendered (per-request nonces can't be baked into cached HTML — verified
-  empirically); every other directive stays strict (`frame-ancestors 'none'`, `base-uri 'self'`,
-  `form-action 'self'`, restricted `connect-src`, `font-src`, `img-src`).
-- **Auth-session resilience (fixed in slice 9):** a full-page navigation used to abort the
-  in-flight `me()` check, which the old code treated as session death → `clearTokens()` →
-  logged-out flash (reproduced 10/30 in a tight loop; fixed to 0/40). Now only a definitive
-  **401** clears the session; transient failures (aborted fetch, network blip, 5xx) retry
-  (2× backoff) and never wipe tokens.
-- **A11y keyboard access:** scrollable regions (report tables, guide table, sidebar nav) are now
-  focusable with `tabIndex` + `role="region"`/`aria-label` (axe `scrollable-region-focusable`).
+## production و شبکه
 
-## Secrets & config
+- production با JWT secret پیش‌فرض/کوتاه، رمز پیش‌فرض DB یا CORS wildcard بالا نمی‌آید.
+- secretها فقط از environment یا فایل `.env` خارج از Git تأمین می‌شوند.
+- API docs در production غیرفعال است و پاسخ‌ها هدرهای امنیتی و `X-Request-ID` دارند.
+- TLS در proxy بیرونی خاتمه می‌یابد و VM فقط پورت ۸۰ را منتشر می‌کند. nginx مقدار `X-Forwarded-For` را از `$remote_addr` می‌سازد تا header ساختگی client زنجیره نشود.
+- اگر proxy بیرونی IP اصلی را در header می‌فرستد، فقط IP همان proxy باید با `set_real_ip_from` trusted شود.
+- CSP، frame protection، content-type protection و policyهای browser در لایهٔ web/nginx فعال‌اند.
 
-- Secrets live only in `.env` on the VPS; `.env` is never committed; `infra/nginx/ssl/` is
-  gitignored (certs are mounted at deploy).
-- Production disables the docs surface; `HOMO_ENVIRONMENT` gates dev-only seeding and CORS.
-- CORS allowlist is explicit (`HOMO_CORS_ORIGINS`).
+## عملیات و بازیابی
 
-## Verification (all run in this sandbox, real Postgres + real Chromium)
+- startup ابتدا migrationها و سپس bootstrap idempotent حساب‌های سیستمی را اجرا می‌کند؛ bootstrap حساب موجود را بازنویسی نمی‌کند.
+- backup روزانه شامل dump پایگاه داده و فایل‌هاست. gzip، catalog بازیابی PostgreSQL و manifest SHA-256 هنگام backup بررسی می‌شوند؛ restore نیز checksum را پیش از تغییر داده کنترل می‌کند.
+- Sentry اختیاری است و فقط با DSN فعال می‌شود؛ PII ارسال نمی‌شود. release و sampling از environment قابل تنظیم‌اند.
+- تغییر رمز production با `python -m app.scripts.rotate_password` و secretهای environment انجام می‌شود؛ فرمان رمز را چاپ نمی‌کند و نشست‌های قبلی را باطل می‌کند.
 
-- Backend: 239 pytest tests incl. **security-header, prod-surface, upload-sniffing and
-  no-cookie/CSRF tests**; ruff + mypy clean.
-- Frontend: tsc strict, ESLint clean, 52 unit/component tests; `npm audit` 0 vulnerabilities.
-- E2E: **78 Playwright tests** (desktop + mobile) against the real stack, including new
-  report journeys and **axe WCAG 2.2 A/AA scans** on login, dashboard, transactions, reports
-  hub, trial balance, cash flow and the guide — 0 serious/critical violations.
-- Browser-verified CSP: 0 violations and full rendering (was 10 violations + broken page).
-- `nginx -t` clean; compose YAML validated; backup/restore rehearsed on real Postgres.
+## اعتبارسنجی و ریسک باقی‌مانده
 
-## Residual risks / notes
+اسکن استاندارد Codex Security روی snapshot مبنا دو یافتهٔ کم‌خطر پیدا کرد: پذیرش JWT secret شناخته‌شده و خواندن نامحدود upload پیش از کنترل اندازه. هر دو در working tree رفع و برایشان regression test افزوده شده است. گزارش نهایی باید همراه نتایج واقعی CI، تست integration/E2E، dependency audit و آزمون deployment خوانده شود.
 
-- `script-src 'unsafe-inline'` weakens script-level CSP (inherent to static App Router pages);
-  frame-ancestors, base-uri, form-action and connect-src still constrain injection impact.
-  Revisit when the app moves fully to dynamic rendering or Next.js nonce support for static HTML.
-- The login rate limiter is in-memory (single-process); scale-out deployments should move it to
-  Redis (interface is ready in `app/core/ratelimit.py`).
-- E2E/CI raise `HOMO_LOGIN_RATE_LIMIT_PER_MINUTE` (1000) so parallel workers don't 429; prod
-  stays at the default 10/min.
+محدودیت نرخ ورود در حافظهٔ یک process نگهداری می‌شود؛ برای همین استقرار تک‌process فعلی مناسب است، اما پیش از scale-out باید به storage مشترک مانند Redis منتقل شود. CSP فعلی به‌دلیل bootstrap درون‌خطی Next.js شامل `script-src 'unsafe-inline'` است؛ سایر directiveها دامنهٔ اثر را محدود می‌کنند و این تصمیم هنگام ارتقای معماری rendering باید دوباره بررسی شود.

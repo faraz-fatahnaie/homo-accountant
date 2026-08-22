@@ -22,7 +22,7 @@ async function seedLedger(request: import("@playwright/test").APIRequestContext)
     headers: H,
     data: {
       entry_date: "2026-08-01",
-      memo: "سرمایهگذاری مالک (گزارش)",
+      memo: "سرمایه‌گذاری مالک (گزارش)",
       lines: [
         { account_code: "102", debit: 400_000_000, credit: 0 },
         { account_code: "301", debit: 0, credit: 400_000_000 },
@@ -96,7 +96,7 @@ test.describe("reports journeys (slice 8, verified in slice 9)", () => {
     await page.waitForURL("**/reports/general-ledger?account_code=102", { timeout: 15_000 });
     await expect(page.getByRole("heading", { name: "دفتر کل" })).toBeVisible();
     // running-balance rows rendered (investment memo)
-    await expect(page.getByText("سرمایهگذاری مالک (گزارش)").first()).toBeVisible();
+    await expect(page.getByText("سرمایه‌گذاری مالک (گزارش)").first()).toBeVisible();
   });
 
   test("aging report reconciles receivable/payable to the ledger", async ({ page }) => {
@@ -111,8 +111,8 @@ test.describe("reports journeys (slice 8, verified in slice 9)", () => {
   test("reports hub shows all checks passing", async ({ page }) => {
     await loginAs(page, "owner@example.com", "owner-homo-1405");
     await page.goto("/reports");
-    await expect(page.getByRole("heading", { name: "گزارشهای مالی" })).toBeVisible();
-    await expect(page.getByText(/همه بررسیها موفق/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "گزارش‌های مالی" })).toBeVisible();
+    await expect(page.getByText(/همه بررسی‌ها موفق/)).toBeVisible();
     // each report card links somewhere
     await expect(page.getByRole("link", { name: /تراز آزمایشی/ })).toBeVisible();
     await expect(page.getByRole("link", { name: /صورت سود و زیان/ })).toBeVisible();

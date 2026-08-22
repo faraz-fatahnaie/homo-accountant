@@ -22,7 +22,7 @@ class BillCreate(BaseModel):
     @model_validator(mode="after")
     def _dates(self) -> BillCreate:
         if self.due_date < self.issue_date:
-            raise ValueError("سررسید نمیتواند قبل از تاریخ فاکتور باشد")
+            raise ValueError("سررسید نمی‌تواند قبل از تاریخ فاکتور باشد")
         return self
 
 

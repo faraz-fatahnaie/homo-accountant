@@ -64,7 +64,7 @@ export default function ProfitLossPage() {
       <ReportHeader
         active="/reports/profit-loss"
         title="صورت سود و زیان"
-        subtitle="درآمد و هزینه دوره با تفکیک حسابها و نتیجه خالص."
+        subtitle="درآمد و هزینه دوره با تفکیک حساب‌ها و نتیجه خالص."
       >
         <RangePicker from={range.from} to={range.to} onChange={(from, to) => setRange({ from, to })} />
       </ReportHeader>
@@ -77,10 +77,10 @@ export default function ProfitLossPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <ReconBadge ok={data.reconciled} label="از دفتر کل" />
-            <span className="text-[11px] text-muted">پیشنویسها خارج از گزارشاند</span>
+            <span className="text-[11px] text-muted">پیش‌نویس‌ها خارج از گزارش‌اند</span>
           </div>
           <Section title="درآمدها" rows={data.revenue} />
-          <Section title="هزینهها" rows={data.expenses} />
+          <Section title="هزینه‌ها" rows={data.expenses} />
           <div className="grid gap-3 sm:grid-cols-3">
             <TotalRow label="جمع درآمد" value={data.total_revenue} />
             <TotalRow label="جمع هزینه" value={data.total_expenses} />

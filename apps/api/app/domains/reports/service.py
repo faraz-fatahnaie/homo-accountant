@@ -1,6 +1,6 @@
 """Report service (slice 8): all figures derive from the posted ledger.
 
-Method notes (documented in docs/accounting-rules.md, "گزارشها"):
+Method notes (documented in docs/accounting-rules.md, "گزارش‌ها"):
 - Only journal entries with status=POSTED are ever included; drafts, voids'
   original entries are netted out by their reversal entries (reversals are
   posted entries with opposite sides, so they naturally cancel in balances).
@@ -40,8 +40,8 @@ from app.domains.projects.models import Project
 # ---------------------------------------------------------------------------
 
 CASH_BANK_CODES = {"101", "102"}  # صندوق + بانک (starter chart)
-RECEIVABLES_CODE = "203"  # حسابهای دریافتنی
-PAYABLES_CODE = "204"  # حسابهای پرداختنی
+RECEIVABLES_CODE = "203"  # حساب‌های دریافتنی
+PAYABLES_CODE = "204"  # حساب‌های پرداختنی
 EQUITY_CODE = "301"  # سرمایه مالک
 LOAN_CODE = "205"  # وام دریافتی (funding default mapping)
 
@@ -452,7 +452,7 @@ def _bucket_for(as_of: dt.date, due_date: dt.date | None) -> str:
 
 
 def aging(db: Session, company_id: int, as_of: dt.date) -> dict[str, object]:
-    """سررسید حسابهای دریافتنی و پرداختنی as of a date.
+    """سررسید حساب‌های دریافتنی و پرداختنی as of a date.
 
     Buckets: current / 1–30 / 31–60 / 61–90 / 90+ days past due.
     Invariant: receivable total == ledger balance of 203;
@@ -557,7 +557,7 @@ def budget_vs_actual(
 ) -> dict[str, object]:
     """بودجه و عملکرد per project: budget vs posted expenses in [from, to].
 
-    «عملکرد» = مجموع هزینههای ثبتشده (پستشده، غیر باطل) تخصیصیافته به پروژه؛
+    «عملکرد» = مجموع هزینه‌های ثبت‌شده (پستشده، غیر باطل) تخصیص‌یافته به پروژه؛
     مستندات هزینه در پس هر کدام سند دفتر کل دارد (حساب هزینه).
     """
     projects = db.scalars(
@@ -798,7 +798,7 @@ def reconciliation(db: Session, company_id: int, as_of: dt.date) -> dict[str, ob
         },
         {
             "key": "balance_sheet",
-            "label": "ترازنامه (داراییها = بدهیها + حقوق صاحبان سهام)",
+            "label": "ترازنامه (دارایی‌ها = بدهی‌ها + حقوق صاحبان سهام)",
             "ok": bool(bs["reconciled"]),  # type: ignore[index]
             "detail": (
                 f"دارایی {bs['total_assets']:,} / بدهی+سرمایه {bs['total_liabilities_equity']:,}"

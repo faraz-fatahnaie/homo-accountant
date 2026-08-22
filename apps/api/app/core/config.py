@@ -1,8 +1,9 @@
 """Application configuration via environment variables (prefix HOMO_)."""
 
 from functools import lru_cache
+from typing import Self
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +29,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = 30
     refresh_token_days: int = 7
+    access_cookie_name: str = "homo_access"
+    refresh_cookie_name: str = "homo_refresh"
     password_hash_iterations: int = 600_000
     # CORS allowlist (comma-separated origins)
     cors_origins: str = "http://localhost:3000"
@@ -45,6 +48,11 @@ class Settings(BaseSettings):
     media_dir: str = "media"  # local disk root for uploads (dev); S3 in prod slice
     max_upload_bytes: int = 5 * 1024 * 1024
 
+    # --- Optional production monitoring ---
+    sentry_dsn: str = ""
+    sentry_release: str = ""
+    sentry_traces_sample_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
@@ -52,6 +60,20 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> Self:
+        if not self.is_production:
+            return self
+        if self.jwt_secret == "change-me-in-production-please" or len(self.jwt_secret) < 32:
+            raise ValueError(
+                "production requires a unique HOMO_JWT_SECRET of at least 32 characters"
+            )
+        if "arya_dev_pw" in self.database_url:
+            raise ValueError("production cannot use the development database password")
+        if "*" in self.cors_origin_list:
+            raise ValueError("production CORS origins cannot contain a wildcard")
+        return self
 
 
 @lru_cache

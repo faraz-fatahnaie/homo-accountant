@@ -83,7 +83,7 @@ export default function NewFundingPage() {
       <div className="mb-4">
         <h1 className="text-lg font-extrabold">رویداد تأمین مالی جدید</h1>
         <p className="mt-0.5 text-xs text-muted">
-          با ثبت، سند «نقد/بانک ← حساب نگاشتشده» در دفتر کل نوشته میشود
+          با ثبت، سند «نقد/بانک ← حساب نگاشتشده» در دفتر کل نوشته می‌شود
         </p>
       </div>
 
@@ -99,9 +99,9 @@ export default function NewFundingPage() {
             <p className="mt-1 text-[11px] text-muted">حساب نگاشت: <b dir="ltr">{mappedAccount}</b></p>
           </div>
           <div>
-            <label className="label" htmlFor="f-contact">طرف حساب</label>
+            <label className="label" htmlFor="f-contact">طرف‌حساب</label>
             <select id="f-contact" className="input" value={contactId} onChange={(e) => setContactId(e.target.value)}>
-              <option value="">بدون طرف حساب</option>
+              <option value="">بدون طرف‌حساب</option>
               {relevantContacts.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}

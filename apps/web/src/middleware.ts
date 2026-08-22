@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * CSP delivered per-request via middleware (verified in slice 9 with a real
@@ -15,8 +15,15 @@ import { NextRequest, NextResponse } from "next/server";
 // (production: /api/v1 through nginx) means same-origin, so 'self' covers it.
 const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 const API_ORIGIN = RAW_API_URL.startsWith("http") ? RAW_API_URL : "";
+const RAW_SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN ?? "";
+let SENTRY_ORIGIN = "";
+try {
+  SENTRY_ORIGIN = RAW_SENTRY_DSN ? new URL(RAW_SENTRY_DSN).origin : "";
+} catch {
+  // Invalid DSNs are ignored; Sentry remains disabled.
+}
 
-export function middleware(request: NextRequest) {
+export function middleware() {
   const response = NextResponse.next();
 
   if (process.env.NODE_ENV === "production") {
@@ -24,7 +31,7 @@ export function middleware(request: NextRequest) {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'", // Next.js RSC inline bootstrap (static prerender)
       "style-src 'self' 'unsafe-inline'", // Tailwind/Next inline styles
-      `connect-src 'self'${API_ORIGIN ? ` ${API_ORIGIN}` : ""}`,
+      `connect-src 'self'${API_ORIGIN ? ` ${API_ORIGIN}` : ""}${SENTRY_ORIGIN ? ` ${SENTRY_ORIGIN}` : ""}`,
       "img-src 'self' data:",
       "font-src 'self'",
       "base-uri 'self'",

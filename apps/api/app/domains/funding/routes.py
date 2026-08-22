@@ -73,7 +73,7 @@ def funding_create(
     if payload.contact_id:
         contact = get_contact(db, actor.company_id, payload.contact_id)
         if contact is None:
-            return error_response(404, "not_found", "طرف حساب یافت نشد")
+            return error_response(404, "not_found", "طرف‌حساب یافت نشد")
     try:
         event = create_funding_event(
             db,

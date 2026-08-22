@@ -36,7 +36,7 @@ const base: FundingEventOut = {
   number: "FDG-1405-0001",
   funding_type: "investment",
   contact_id: 2,
-  contact_name: "شرکت سرمایهگذاری امید",
+  contact_name: "شرکت سرمایه‌گذاری امید",
   project_id: null,
   event_date: "2026-08-10",
   amount: 100_000_000,
@@ -73,9 +73,9 @@ describe("funding page", () => {
     queryState.data = [base];
     render(<FundingPage />);
     expect(screen.getByText("FDG-1405-0001")).toBeInTheDocument();
-    expect(screen.getByText("شرکت سرمایهگذاری امید")).toBeInTheDocument();
+    expect(screen.getByText("شرکت سرمایه‌گذاری امید")).toBeInTheDocument();
     expect(screen.getAllByText("۱۰۰٬۰۰۰٬۰۰۰").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("سرمایهگذاری").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("سرمایه‌گذاری").length).toBeGreaterThan(0);
   });
 
   it("shows mapping summary", () => {
@@ -84,6 +84,6 @@ describe("funding page", () => {
       { funding_type: "loan", account_code: "205" },
     ];
     render(<FundingPage />);
-    expect(screen.getByText("نگاشت حسابها:")).toBeInTheDocument();
+    expect(screen.getByText("نگاشت حساب‌ها:")).toBeInTheDocument();
   });
 });

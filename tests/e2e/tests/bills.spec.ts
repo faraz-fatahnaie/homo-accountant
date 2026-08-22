@@ -16,7 +16,7 @@ test.describe("bills user journey (real API + DB)", () => {
       },
       token,
     );
-    const vendor = `تأمینکننده تست ${Date.now()}`;
+    const vendor = `تأمین‌کننده تست ${Date.now()}`;
     const memo = `خرید ورق فولادی ${Date.now()}`;
 
     const v = await request.post(`${API}/contacts`, {
@@ -45,7 +45,7 @@ test.describe("bills user journey (real API + DB)", () => {
     await page.waitForURL(/\/bills\/\d+/, { timeout: 20_000 });
     await page.getByLabel("مبلغ پرداخت").fill("400000");
     await page.getByRole("button", { name: "ثبت پرداخت" }).click();
-    await expect(page.getByText("جزیی پرداختشده")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("جزئی پرداخت‌شده")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("listitem").getByText("۴۰۰٬۰۰۰")).toBeVisible();
   });
 

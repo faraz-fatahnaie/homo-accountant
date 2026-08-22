@@ -93,7 +93,7 @@ def render_invoice_pdf(
         rightMargin=18 * mm,
         topMargin=16 * mm,
         bottomMargin=16 * mm,
-        title=f"صورتحساب {invoice_number}",
+        title=f"صورت‌حساب {invoice_number}",
         author=company_name,
     )
     story: list[Flowable] = []
@@ -103,7 +103,7 @@ def render_invoice_pdf(
         [
             [
                 Paragraph(shape(company_name), _style("hdr1", 16, bold=True)),
-                Paragraph(shape("صورتحساب فروش"), _style("hdr2", 16, bold=True, align=2)),
+                Paragraph(shape("صورت‌حساب فروش"), _style("hdr2", 16, bold=True, align=2)),
             ],
         ],
         colWidths=[90 * mm, 90 * mm],
@@ -185,7 +185,7 @@ def render_invoice_pdf(
             Paragraph(shape(f"{_money(total)} ریال"), _style("tv", 10, bold=True, align=2)),
         ],
         [
-            Paragraph(shape("پرداختشده:"), _style("t", 10)),
+            Paragraph(shape("پرداخت‌شده:"), _style("t", 10)),
             Paragraph(shape(f"{_money(paid)} ریال"), _style("tv", 10, align=2)),
         ],
         [

@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.errors import AppError
 from app.core.security import (
     create_access_token,
     generate_refresh_token,
@@ -23,13 +24,11 @@ from app.domains.identity.schemas import TokenPair
 logger = logging.getLogger(__name__)
 
 
-class AuthError(Exception):
+class AuthError(AppError):
     """Authentication/authorization failure (mapped to 401/403 in routes)."""
 
-    def __init__(self, message: str, status_code: int = 401) -> None:
-        super().__init__(message)
-        self.message = message
-        self.status_code = status_code
+    def __init__(self, message: str, status_code: int = 401, code: str = "auth_error") -> None:
+        super().__init__(message, code=code, status_code=status_code)
 
 
 def ensure_default_company(db: Session) -> Company:
@@ -108,7 +107,7 @@ def rotate_refresh(db: Session, raw_refresh: str) -> TokenPair:
     if record.revoked_at is not None:
         # Reuse of a revoked token: revoke the whole family defensively.
         _revoke_family(db, record.user_id)
-        raise AuthError("نشست نامعتبر است یا منقضی شده")
+        raise AuthError("نشست نامعتبر است یا منقضی شده", code="refresh_reused")
     if record.expires_at < now:
         raise AuthError("نشست منقضی شده؛ دوباره وارد شوید")
     user = db.get(User, record.user_id)
@@ -143,8 +142,8 @@ def get_user_by_id(db: Session, user_id: int) -> User | None:
     return db.get(User, user_id)
 
 
-def list_users(db: Session) -> list[User]:
-    return list(db.scalars(select(User).order_by(User.id)))
+def list_users(db: Session, company_id: int) -> list[User]:
+    return list(db.scalars(select(User).where(User.company_id == company_id).order_by(User.id)))
 
 
 def resolve_access_token(db: Session, token: str) -> User:

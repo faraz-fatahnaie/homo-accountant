@@ -8,17 +8,15 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.domains.projects.models import Project
 
 logger = logging.getLogger(__name__)
 
 
-class ProjectError(Exception):
+class ProjectError(AppError):
     def __init__(self, message: str, code: str = "project_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 def list_projects(db: Session, company_id: int, *, active_only: bool = False) -> list[Project]:
@@ -49,7 +47,7 @@ def create_project(
 ) -> Project:
     if start_date and end_date and end_date < start_date:
         raise ProjectError(
-            "تاریخ پایان نمیتواند قبل از تاریخ شروع باشد", code="project_dates_invalid"
+            "تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد", code="project_dates_invalid"
         )
     project = Project(
         company_id=company_id,

@@ -84,19 +84,21 @@ class TestAttachmentDelivery:
 
 
 class TestAuthSurface:
-    def test_no_cookie_auth_used(self, client: TestClient, db, auth_headers) -> None:
-        """Auth is bearer-token based (localStorage), not cookie-based — the
-        browser never sends credentials, which removes the CSRF attack surface
-        for state-changing endpoints."""
-        headers, _ = auth_headers(Role.VIEWER)
-        resp = client.get("/api/v1/users/me", headers=headers)
-        assert resp.status_code == 200
-        # no Set-Cookie anywhere in the flow
+    def test_session_cookies_are_http_only_and_same_site(
+        self, client: TestClient, db, make_user
+    ) -> None:
+        user, password = make_user(Role.VIEWER)
         login = client.post(
             "/api/v1/auth/login",
-            json={"email": "viewer@example.com", "password": "viewer-homo-1405"},
+            json={"email": user.email, "password": password},
         )
-        assert "set-cookie" not in login.headers
+        assert login.status_code == 200
+        cookies = login.headers.get_list("set-cookie")
+        assert len(cookies) == 2
+        assert all("HttpOnly" in cookie for cookie in cookies)
+        assert all("SameSite=lax" in cookie for cookie in cookies)
+        assert all("access_token" not in cookie for cookie in cookies)
+        assert client.get("/api/v1/users/me").status_code == 200
 
     def test_unauthenticated_rejected(self, client: TestClient, db) -> None:
         resp = client.get("/api/v1/users/me")

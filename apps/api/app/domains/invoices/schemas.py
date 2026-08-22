@@ -28,7 +28,7 @@ class InvoiceCreate(BaseModel):
     @model_validator(mode="after")
     def _dates(self) -> InvoiceCreate:
         if self.due_date < self.issue_date:
-            raise ValueError("سررسید نمیتواند قبل از تاریخ صدور باشد")
+            raise ValueError("سررسید نمی‌تواند قبل از تاریخ صدور باشد")
         return self
 
 

@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.domains.queries.datasets import DATASETS, DatasetDef, column_for
 
 logger = logging.getLogger(__name__)
@@ -43,12 +44,9 @@ OPS: dict[str, object] = {
 }
 
 
-class QueryError(Exception):
+class QueryError(AppError):
     def __init__(self, message: str, code: str = "query_error", status_code: int = 422) -> None:
-        super().__init__(message)
-        self.message = message
-        self.code = code
-        self.status_code = status_code
+        super().__init__(message, code=code, status_code=status_code)
 
 
 @dataclass
@@ -62,7 +60,7 @@ class CompiledQuery:
 
 def validate_ast(ast: dict) -> None:
     if not isinstance(ast, dict):
-        raise QueryError("ساختار پرسوجو نامعتبر است", code="ast_invalid")
+        raise QueryError("ساختار پرس‌وجو نامعتبر است", code="ast_invalid")
     dataset = ast.get("dataset")
     if dataset not in DATASETS:
         raise QueryError("مجموعه داده نامعتبر است", code="dataset_invalid")

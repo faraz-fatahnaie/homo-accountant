@@ -85,7 +85,7 @@ class TestChartOfAccounts:
         assert exc.value.status_code == 409
 
     def test_parent_lookup(self, db: Session, company: int) -> None:
-        create_account(db, company, "100", "داراییها", AccountType.ASSET, None)
+        create_account(db, company, "100", "دارایی‌ها", AccountType.ASSET, None)
         child = create_account(db, company, "101", "صندوق", AccountType.ASSET, "100")
         assert child.parent_id is not None
 
@@ -93,7 +93,7 @@ class TestChartOfAccounts:
 class TestPosting:
     def test_post_balanced_entry(self, db: Session, company: int, actor: int, chart: None) -> None:
         entry = _draft(db, company, actor)
-        posted = post_entry(db, entry.id, actor)
+        posted = post_entry(db, company, entry.id, actor)
         assert posted.status == JournalStatus.POSTED
         assert posted.reference == "J-1405-0001"
         assert posted.posted_by_id == actor
@@ -104,7 +104,7 @@ class TestPosting:
     ) -> None:
         entry = _draft(db, company, actor, lines=[("603", 50_000_000, 0), ("102", 0, 48_500_000)])
         with pytest.raises(LedgerError) as exc:
-            post_entry(db, entry.id, actor)
+            post_entry(db, company, entry.id, actor)
         assert exc.value.code == "unbalanced_entry"
         # nothing was posted
         fresh = db.get(JournalEntry, entry.id)
@@ -148,14 +148,14 @@ class TestPosting:
     def test_references_sequential_per_period(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
-        e1 = post_entry(db, _draft(db, company, actor).id, actor)
-        e2 = post_entry(db, _draft(db, company, actor).id, actor)
+        e1 = post_entry(db, company, _draft(db, company, actor).id, actor)
+        e2 = post_entry(db, company, _draft(db, company, actor).id, actor)
         assert (e1.reference, e2.reference) == ("J-1405-0001", "J-1405-0002")
 
     def test_references_reset_per_period(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
-        post_entry(db, _draft(db, company, actor).id, actor)
+        post_entry(db, company, _draft(db, company, actor).id, actor)
         # Same jalali period -> continues; a different month starts a new sequence.
         e_other = post_entry(
             db,
@@ -167,10 +167,10 @@ class TestPosting:
     def test_posted_entry_immutable_reference(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
-        posted = post_entry(db, _draft(db, company, actor).id, actor)
+        posted = post_entry(db, company, _draft(db, company, actor).id, actor)
         # No service path mutates a posted entry; double-post is rejected.
         with pytest.raises(LedgerError) as exc:
-            post_entry(db, posted.id, actor)
+            post_entry(db, company, posted.id, actor)
         assert exc.value.code == "entry_already_posted"
 
 
@@ -179,8 +179,8 @@ class TestIdempotency:
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
         key = "expense-2026-08-13-1"
-        e1 = post_entry(db, _draft(db, company, actor, idempotency_key=key).id, actor)
-        e2 = post_entry(db, _draft(db, company, actor, idempotency_key=key).id, actor)
+        e1 = post_entry(db, company, _draft(db, company, actor, idempotency_key=key).id, actor)
+        e2 = post_entry(db, company, _draft(db, company, actor, idempotency_key=key).id, actor)
         assert e1.id == e2.id
         count = len(
             list(db.scalars(select(JournalEntry).where(JournalEntry.company_id == company)))
@@ -192,8 +192,8 @@ class TestVoid:
     def test_void_creates_balanced_reversal(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
-        posted = post_entry(db, _draft(db, company, actor).id, actor)
-        reversal = void_entry(db, posted.id, actor)
+        posted = post_entry(db, company, _draft(db, company, actor).id, actor)
+        reversal = void_entry(db, company, posted.id, actor)
         assert reversal.status == JournalStatus.POSTED
         assert reversal.reversal_of_id == posted.id
         # mirror lines: debit/credit swapped
@@ -208,17 +208,40 @@ class TestVoid:
     def test_void_draft_rejected(self, db: Session, company: int, actor: int, chart: None) -> None:
         draft = _draft(db, company, actor)
         with pytest.raises(LedgerError) as exc:
-            void_entry(db, draft.id, actor)
+            void_entry(db, company, draft.id, actor)
         assert exc.value.code == "entry_not_posted"
 
     def test_void_reversal_again_rejected(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
-        posted = post_entry(db, _draft(db, company, actor).id, actor)
-        reversal = void_entry(db, posted.id, actor)
+        posted = post_entry(db, company, _draft(db, company, actor).id, actor)
+        reversal = void_entry(db, company, posted.id, actor)
         with pytest.raises(LedgerError) as exc:
-            void_entry(db, reversal.id, actor)
+            void_entry(db, company, reversal.id, actor)
         assert exc.value.code == "entry_is_reversal"
+
+    def test_second_reversal_of_original_rejected(
+        self, db: Session, company: int, actor: int, chart: None
+    ) -> None:
+        posted = post_entry(db, company, _draft(db, company, actor).id, actor)
+        void_entry(db, company, posted.id, actor)
+        with pytest.raises(LedgerError) as exc:
+            void_entry(db, company, posted.id, actor)
+        assert exc.value.code == "entry_already_reversed"
+        assert exc.value.status_code == 409
+
+    def test_entry_mutations_are_company_scoped(
+        self, db: Session, company: int, actor: int, chart: None
+    ) -> None:
+        from app.domains.identity.models import Company
+
+        other = Company(name="شرکت دیگر", fiscal_year_start=1405)
+        db.add(other)
+        db.flush()
+        draft = _draft(db, company, actor)
+        with pytest.raises(LedgerError) as exc:
+            post_entry(db, other.id, draft.id, actor)
+        assert exc.value.code == "entry_missing"
 
 
 class TestPeriods:
@@ -226,30 +249,30 @@ class TestPeriods:
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
         period = get_period(db, company, 1405, 5)
-        close_period(db, period.id, actor)
+        close_period(db, company, period.id, actor)
         db.commit()
         draft = _draft(db, company, actor)  # 1405/05/22
         with pytest.raises(LedgerError) as exc:
-            post_entry(db, draft.id, actor)
+            post_entry(db, company, draft.id, actor)
         assert exc.value.code == "period_closed"
 
     def test_post_into_open_period_ok(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
         draft = _draft(db, company, actor)
-        assert post_entry(db, draft.id, actor).status == JournalStatus.POSTED
+        assert post_entry(db, company, draft.id, actor).status == JournalStatus.POSTED
 
     def test_close_and_reopen_recorded(
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
         period = get_period(db, company, 1405, 5)
-        close_period(db, period.id, actor)
+        close_period(db, company, period.id, actor)
         db.flush()
         assert period.status == PeriodStatus.CLOSED
         events = list(db.scalars(select(PeriodEvent).where(PeriodEvent.period_id == period.id)))
         assert [e.action for e in events] == [PeriodAction.CLOSE]
 
-        reopen_period(db, period.id, actor)
+        reopen_period(db, company, period.id, actor)
         db.flush()
         assert period.status == PeriodStatus.OPEN
         events = list(db.scalars(select(PeriodEvent).where(PeriodEvent.period_id == period.id)))
@@ -260,9 +283,9 @@ class TestPeriods:
         self, db: Session, company: int, actor: int, chart: None
     ) -> None:
         period = get_period(db, company, 1405, 5)
-        close_period(db, period.id, actor)
+        close_period(db, company, period.id, actor)
         with pytest.raises(LedgerError) as exc:
-            close_period(db, period.id, actor)
+            close_period(db, company, period.id, actor)
         assert exc.value.code == "period_already_closed"
 
     def test_reopen_open_period_rejected(
@@ -270,7 +293,7 @@ class TestPeriods:
     ) -> None:
         period = get_period(db, company, 1405, 5)
         with pytest.raises(LedgerError) as exc:
-            reopen_period(db, period.id, actor)
+            reopen_period(db, company, period.id, actor)
         assert exc.value.code == "period_already_open"
 
     def test_period_rows_are_independent(
@@ -278,7 +301,7 @@ class TestPeriods:
     ) -> None:
         m5 = get_period(db, company, 1405, 5)
         m6 = get_period(db, company, 1405, 6)
-        close_period(db, m5.id, actor)
+        close_period(db, company, m5.id, actor)
         db.flush()
         assert m5.status == PeriodStatus.CLOSED
         assert m6.status == PeriodStatus.OPEN
@@ -295,20 +318,20 @@ class TestCoverageGaps:
 
     def test_close_reopen_missing_period(self, db: Session, company: int, actor: int) -> None:
         with pytest.raises(LedgerError) as exc:
-            close_period(db, 999_999, actor)
+            close_period(db, company, 999_999, actor)
         assert exc.value.code == "period_missing"
         with pytest.raises(LedgerError) as exc:
-            reopen_period(db, 999_999, actor)
+            reopen_period(db, company, 999_999, actor)
         assert exc.value.code == "period_missing"
 
     def test_post_missing_entry(self, db: Session, company: int, actor: int) -> None:
         with pytest.raises(LedgerError) as exc:
-            post_entry(db, 999_999, actor)
+            post_entry(db, company, 999_999, actor)
         assert exc.value.code == "entry_missing"
 
     def test_void_missing_entry(self, db: Session, company: int, actor: int) -> None:
         with pytest.raises(LedgerError) as exc:
-            void_entry(db, 999_999, actor)
+            void_entry(db, company, 999_999, actor)
         assert exc.value.code == "entry_missing"
 
     def test_idempotency_duplicate_key_blocked_by_db(
@@ -329,7 +352,7 @@ class TestCoverageGaps:
         from app.domains.ledger.service import list_entries
 
         # one entry in 1405/05 and one in 1405/01
-        post_entry(db, _draft(db, company, actor).id, actor)
+        post_entry(db, company, _draft(db, company, actor).id, actor)
         post_entry(
             db,
             _draft(db, company, actor, entry_date=dt.date(2026, 4, 10)).id,
@@ -358,7 +381,7 @@ class TestAccountBalances:
         from app.domains.ledger.service import account_balances
 
         # expense paid from bank: Dr 603 48.5M / Cr 102 48.5M
-        post_entry(db, _draft(db, company, actor).id, actor)
+        post_entry(db, company, _draft(db, company, actor).id, actor)
         # cash sale: Dr 101 5M / Cr 401 5M
         post_entry(
             db,
@@ -385,7 +408,7 @@ class TestAccountBalances:
     def test_drafts_are_excluded(self, db: Session, company: int, actor: int, chart: None) -> None:
         from app.domains.ledger.service import account_balances
 
-        post_entry(db, _draft(db, company, actor).id, actor)
+        post_entry(db, company, _draft(db, company, actor).id, actor)
         _draft(db, company, actor)  # draft, never posted
         db.commit()
         balances = {b["code"]: b for b in account_balances(db, company)}

@@ -27,8 +27,8 @@ jobs:
       POSTGRES_DB: arya_prod
       HOMO_JWT_SECRET: ci-secret-not-for-prod-0123456789
       HOMO_CORS_ORIGINS: https://example.com
-      HOMO_ADMIN_BOOTSTRAP_EMAIL: ""
-      HOMO_ADMIN_BOOTSTRAP_PASSWORD: ""
+      HOMO_ADMIN_BOOTSTRAP_EMAIL: owner-ci@example.com
+      HOMO_ADMIN_BOOTSTRAP_PASSWORD: ci-owner-password-1405
       IMAGE_TAG: ci
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +45,15 @@ jobs:
           curl -sf http://localhost:8000/api/v1/health/ready
           curl -sf -o /dev/null http://localhost:3000/login
           docker compose -f compose.prod.yaml ps
+      - name: Verify idempotent production bootstrap and cookie session
+        run: |
+          docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml exec -T api python -m app.scripts.bootstrap_admin
+          docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml exec -T api python -m app.scripts.bootstrap_admin
+          curl -sf -c /tmp/homo-cookies.txt \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"owner-ci@example.com","password":"ci-owner-password-1405"}' \
+            http://localhost:8000/api/v1/auth/login | grep -q 'expires_in'
+          curl -sf -b /tmp/homo-cookies.txt http://localhost:8000/api/v1/auth/me | grep -q 'owner-ci@example.com'
       - name: Image scan (trivy) — API
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -79,12 +88,9 @@ jobs:
             trivy-api.sarif
             trivy-web.sarif
           retention-days: 14
-
-  # Publishing images / deploying happens ONLY when the owner configures
-  # registry credentials and explicitly authorizes it (see docs/deployment.md).
-  publish:
-    if: ${{ false }} # disabled by default — enable with credentials + review
-    runs-on: ubuntu-latest
-    needs: build-and-smoke
-    steps:
-      - run: echo "Publishing intentionally disabled until owner authorizes registry access."
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml logs --no-color --tail=200
+      - name: Stop smoke stack
+        if: always()
+        run: docker compose -f compose.prod.yaml -f .github/compose.smoke.yaml down -v --remove-orphans

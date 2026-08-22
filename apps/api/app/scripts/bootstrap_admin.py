@@ -11,9 +11,12 @@ from __future__ import annotations
 
 import sys
 
+from sqlalchemy import select
+
 from app.core.config import get_settings
 from app.core.db import SessionLocal
-from app.domains.identity.models import Role
+from app.domains.identity.bootstrap import ensure_required_system_data
+from app.domains.identity.models import Role, User
 from app.domains.identity.service import create_user, ensure_default_company
 
 
@@ -32,17 +35,31 @@ def main() -> int:
 
     db = SessionLocal()
     try:
-        ensure_default_company(db)
-        try:
+        company = ensure_default_company(db)
+        initialized = ensure_required_system_data(db)
+        existing = db.scalar(select(User).where(User.email == email.lower()))
+        if existing is None:
             user = create_user(
-                db, email=email, full_name="مدیر سامانه", password=password, role=Role.OWNER
+                db,
+                email=email,
+                full_name="مدیر سامانه",
+                password=password,
+                role=Role.OWNER,
+                company=company,
             )
-            db.commit()
-            print(f"admin created: {user.email} (role=owner, id={user.id})")
-        except Exception as exc:  # noqa: BLE001 — user exists
-            db.rollback()
-            print(f"admin not created: {exc}")
-            return 1
+            outcome = "created"
+        else:
+            user = existing
+            outcome = "already exists"
+        db.commit()
+        print(
+            f"admin {outcome}: {user.email} (role={user.role.value}, id={user.id}); "
+            f"chart+{initialized['chart_accounts']}, mappings+{initialized['funding_mappings']}"
+        )
+    except Exception as exc:  # noqa: BLE001 — operational CLI reports exact failure
+        db.rollback()
+        print(f"bootstrap_admin failed: {exc}", file=sys.stderr)
+        return 1
     finally:
         db.close()
     return 0

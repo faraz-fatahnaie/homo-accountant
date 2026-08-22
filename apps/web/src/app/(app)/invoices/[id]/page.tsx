@@ -29,6 +29,7 @@ export default function InvoiceDetailPage() {
   const [payMethod, setPayMethod] = useState<PaymentMethod>("cash");
   const [payRef, setPayRef] = useState("");
   const [payError, setPayError] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const issueMutation = useMutation({
     mutationFn: () => invoicesApi.issue(id),
@@ -41,7 +42,8 @@ export default function InvoiceDetailPage() {
   });
   const payMutation = useMutation({
     mutationFn: () => {
-      const date = parseJalaliInput(payDate) ?? new Date();
+      const date = parseJalaliInput(payDate);
+      if (!date) throw new Error("تاریخ پرداخت شمسی نامعتبر است");
       const amount = parseAmount(payAmount);
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error("مبلغ معتبر وارد کنید");
@@ -82,7 +84,7 @@ export default function InvoiceDetailPage() {
 
   if (isLoading) return <LoadingBlock />;
   if (isError || !inv) {
-    return <ErrorBlock message={error instanceof Error ? error.message : "صورتحساب یافت نشد"} onRetry={() => void refetch()} />;
+    return <ErrorBlock message={error instanceof Error ? error.message : "صورت‌حساب یافت نشد"} onRetry={() => void refetch()} />;
   }
 
   const canReceivePayment = inv.status === "issued" || inv.status === "partially_paid";
@@ -91,7 +93,7 @@ export default function InvoiceDetailPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-extrabold">صورتحساب {inv.number ?? "پیشنویس"}</h1>
+          <h1 className="text-lg font-extrabold">صورت‌حساب {inv.number ?? "پیش‌نویس"}</h1>
           <p className="mt-0.5 text-xs text-muted">
             {inv.customer_name} · صدور {formatJalaliLong(new Date(inv.issue_date + "T12:00:00"))} · سررسید{" "}
             {formatJalaliLong(new Date(inv.due_date + "T12:00:00"))}
@@ -101,16 +103,19 @@ export default function InvoiceDetailPage() {
         <div className="flex items-center gap-2">
           {inv.status === "draft" && isWriter ? (
             <button className="btn btn-primary" disabled={issueMutation.isPending} onClick={() => issueMutation.mutate()}>
-              صدور صورتحساب
+              صدور صورت‌حساب
             </button>
           ) : null}
           {inv.status !== "draft" && inv.status !== "void" ? (
             <button
               className="btn btn-ghost"
               onClick={() => {
+                setPdfError(null);
                 void invoicesApi
                   .downloadPdf(inv.id, `invoice-${inv.number ?? inv.id}.pdf`)
-                  .catch(() => undefined);
+                  .catch((downloadError: unknown) => {
+                    setPdfError(downloadError instanceof Error ? downloadError.message : "دانلود PDF انجام نشد");
+                  });
               }}
             >
               دانلود PDF
@@ -119,13 +124,14 @@ export default function InvoiceDetailPage() {
           <button className="btn btn-ghost" onClick={() => router.push("/invoices")}>بازگشت</button>
         </div>
       </div>
+      {pdfError ? <div className="mb-4"><ErrorBlock message={pdfError} /></div> : null}
 
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         <Badge tone={inv.status === "paid" ? "success" : inv.status === "void" ? "danger" : inv.status === "draft" ? "muted" : inv.is_overdue ? "danger" : "info"}>
           {INVOICE_STATUS_LABELS[inv.status]}
         </Badge>
         <span className="text-muted">جمع کل: <b className="tabular-nums">{formatRials(inv.total)}</b> ریال</span>
-        <span className="text-muted">پرداختشده: <b className="tabular-nums">{formatRials(inv.paid_total)}</b></span>
+        <span className="text-muted">پرداخت‌شده: <b className="tabular-nums">{formatRials(inv.paid_total)}</b></span>
         <span className={inv.balance > 0 ? "font-bold text-danger-strong" : "text-muted"}>
           مانده: <b className="tabular-nums">{formatRials(inv.balance)}</b> ریال
         </span>
@@ -134,7 +140,7 @@ export default function InvoiceDetailPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* items */}
         <section className="card">
-          <div className="card-head"><h2 className="text-sm font-extrabold">ردیفها</h2></div>
+          <div className="card-head"><h2 className="text-sm font-extrabold">ردیف‌ها</h2></div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[420px] text-sm">
               <thead>
@@ -167,7 +173,7 @@ export default function InvoiceDetailPage() {
 
         {/* payments */}
         <section className="card">
-          <div className="card-head"><h2 className="text-sm font-extrabold">پرداختها</h2></div>
+          <div className="card-head"><h2 className="text-sm font-extrabold">پرداخت‌ها</h2></div>
           <div className="px-4 py-2">
             {inv.payments.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted">پرداختی ثبت نشده است.</p>
@@ -193,7 +199,7 @@ export default function InvoiceDetailPage() {
               onSubmit={(e) => { e.preventDefault(); setPayError(null); payMutation.mutate(); }}
             >
               <h3 className="mb-2 text-xs font-extrabold text-muted">ثبت پرداخت دریافتی</h3>
-              <div className="grid gap-2 sm:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 <input className="input tabular-nums" dir="ltr" inputMode="numeric" placeholder="مبلغ (ریال)"
                   aria-label="مبلغ پرداخت" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
                 <input className="input" dir="ltr" aria-label="تاریخ پرداخت (شمسی)" value={payDate}
@@ -204,6 +210,8 @@ export default function InvoiceDetailPage() {
                     <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>
                   ))}
                 </select>
+                <input className="input" dir="ltr" aria-label="کد پیگیری پرداخت" placeholder="کد پیگیری"
+                  value={payRef} onChange={(e) => setPayRef(e.target.value)} />
                 <button type="submit" className="btn btn-primary" disabled={payMutation.isPending}>ثبت پرداخت</button>
               </div>
               {payError ? <p className="error mt-2" role="alert">{payError}</p> : null}
@@ -213,8 +221,8 @@ export default function InvoiceDetailPage() {
           {(inv.status === "issued" || inv.status === "partially_paid") && isWriter ? (
             <div className="border-t border-border p-4">
               <button className="btn btn-danger-ghost" disabled={voidMutation.isPending}
-                onClick={() => { if (window.confirm("صورتحساب باطل شود؟ (فقط بدون پرداخت)")) voidMutation.mutate(); }}>
-                باطل کردن صورتحساب
+                onClick={() => { if (window.confirm("صورت‌حساب باطل شود؟ (فقط بدون پرداخت)")) voidMutation.mutate(); }}>
+                باطل کردن صورت‌حساب
               </button>
             </div>
           ) : null}

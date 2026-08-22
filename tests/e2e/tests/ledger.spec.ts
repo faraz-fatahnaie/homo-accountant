@@ -37,11 +37,11 @@ test.describe("ledger user journey (real API + DB)", () => {
 
     // the draft row appears
     const row = page.getByRole("row").filter({ hasText: memo });
-    await expect(row).toContainText("پیشنویس");
+    await expect(row).toContainText("پیش‌نویس");
 
     // post it
     await row.getByRole("button", { name: "ثبت نهایی" }).click();
-    await expect(row).toContainText("ثبتشده");
+    await expect(row).toContainText("ثبت‌شده");
     await expect(row).toContainText(/J-1405-\d{4}/);
 
     // second post attempt is impossible (no button), and void exists
@@ -78,7 +78,7 @@ test.describe("ledger user journey (real API + DB)", () => {
     );
     await page.goto("/periods");
     await page.waitForURL("**/periods", { timeout: 15_000 });
-    await expect(page.getByRole("heading", { name: "دورههای حسابداری" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "دوره‌های حسابداری" })).toBeVisible({ timeout: 15_000 });
     // accountant sees بستن دوره buttons, never بازگشایی
     await expect(page.getByRole("button", { name: "بستن دوره" }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: /بازگشایی/ })).toHaveCount(0);

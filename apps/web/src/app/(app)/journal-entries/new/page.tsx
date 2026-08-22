@@ -53,6 +53,11 @@ export default function NewEntryPage() {
     return { debit, credit, balanced: debit > 0 && debit === credit };
   }, [lines]);
 
+  const formReady = useMemo(
+    () => Boolean(parseJalaliInput(dateInput) && memo.trim() && totals.balanced),
+    [dateInput, memo, totals.balanced],
+  );
+
   function updateLine(key: number, patch: Partial<Line>) {
     setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
   }
@@ -152,7 +157,7 @@ export default function NewEntryPage() {
               placeholder="۱۴۰۵/۰۵/۲۲"
             />
             <p className="mt-1 text-[11px] text-muted">
-              امروز: {formatJalali(new Date())} — ذخیره بهصورت استاندارد (UTC)
+              امروز: {formatJalali(new Date())} — تاریخ سند بدون تبدیل منطقهٔ زمانی ذخیره می‌شود
             </p>
           </div>
           <div>
@@ -171,7 +176,7 @@ export default function NewEntryPage() {
         </div>
 
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-extrabold">ردیفهای سند</h2>
+          <h2 className="text-sm font-extrabold">ردیف‌های سند</h2>
           <button type="button" className="btn btn-ghost btn-sm" onClick={addLine}>
             + افزودن ردیف
           </button>
@@ -264,7 +269,7 @@ export default function NewEntryPage() {
         ) : null}
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || accountsLoading}>
+          <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || accountsLoading || !formReady}>
             {createMutation.isPending ? "در حال ثبت…" : "ایجاد سند"}
           </button>
           <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
@@ -274,7 +279,7 @@ export default function NewEntryPage() {
               onChange={(e) => setPostAfter(e.target.checked)}
               className="h-4 w-4 accent-[var(--primary)]"
             />
-            بلافاصله ثبت نهایی (post)
+            بلافاصله ثبت نهایی
           </label>
           <button
             type="button"

@@ -3,7 +3,8 @@
 ## Backups
 
 - **What:** PostgreSQL dump (custom format) + uploaded attachment files + production Compose and
-  `.env` snapshot. Backup directories are root-only because `.env` contains secrets.
+  `.env` snapshot. Backup directories are root-only because `.env` contains secrets. Every new
+  backup includes and immediately verifies a `SHA256SUMS` integrity manifest and dump structure.
 - **How:** `./infra/backup/backup.sh /mnt/backups` (retention: 14 daily, 8 weekly archives).
 - **Schedule (cron):**
   ```cron
@@ -12,7 +13,8 @@
 - **Retention:** 14 daily directories plus Monday archives retained for eight weeks.
 - **Offsite:** copy `/mnt/backups` off-server daily using encrypted storage (rclone to object
   storage / scp to another host). A local-only backup is not a backup.
-- **Verify:** monthly restore rehearsal onto a scratch database:
+- **Verify:** check the latest cron exit code/log daily and perform a monthly restore rehearsal onto
+  a scratch database:
   `./infra/backup/restore.sh /mnt/backups/homo-accountant-<ts>` (confirm prompt), then check
   a few records and `health/ready`.
 - **Rehearsal evidence (slice 9):** the exact backup→restore pipeline was executed against a real
@@ -34,6 +36,9 @@
 - Container health: `docker compose -f compose.prod.yaml ps` (healthchecks defined for all services).
 - API: `/api/v1/health/live` + `/api/v1/health/ready`; structured JSON logs (prod) with
   `X-Request-ID` correlation; watch 5xx rate and login 429s.
+- Optional Sentry: set `HOMO_SENTRY_DSN` and/or `NEXT_PUBLIC_SENTRY_DSN`; use
+  `HOMO_SENTRY_RELEASE` for release correlation. Tracing is opt-in through
+  `HOMO_SENTRY_TRACES_SAMPLE_RATE` and defaults to `0`; do not enable PII collection.
 - OS basics: `docker stats`, `df -h` (watch `pgdata` and `media` volumes), `journalctl -u docker`.
 - Alerting (optional, recommended): Uptime-Kuma/Healthchecks.io hitting the two health endpoints.
 
@@ -52,3 +57,5 @@
 - Secrets live only in `.env` on the VPS (never in git). Rotate `HOMO_JWT_SECRET` and DB
   passwords on suspicion of compromise (token refresh will force re-login).
 - Least-privilege: application DB role has no superuser; admin accounts via bootstrap only.
+- Rotate a user password with `python -m app.scripts.rotate_password` as documented in the
+  deployment runbook; the command revokes all refresh sessions and never prints the password.

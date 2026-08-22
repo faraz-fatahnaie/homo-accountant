@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import current_user, require_roles
 from app.api.errors import error_response
 from app.core.db import get_db
+from app.core.http import attachment_disposition
 from app.core.jalali import format_jalali, gregorian_to_jalali
 from app.domains.contacts.service import get_contact
 from app.domains.identity.models import Role, User
@@ -108,7 +109,7 @@ def invoices_detail(
 ) -> InvoiceOut | JSONResponse:
     invoice = get_invoice(db, user.company_id, invoice_id)
     if invoice is None:
-        return error_response(404, "not_found", "صورتحساب یافت نشد")
+        return error_response(404, "not_found", "صورت‌حساب یافت نشد")
     return _to_out(db, invoice)
 
 
@@ -119,7 +120,7 @@ def invoices_issue(
     db: Session = Depends(get_db),
 ) -> InvoiceOut | JSONResponse:
     try:
-        invoice = issue_invoice(db, invoice_id, actor.id)
+        invoice = issue_invoice(db, actor.company_id, invoice_id, actor.id)
     except InvoiceError as exc:
         db.rollback()
         return _handle(exc)
@@ -141,6 +142,7 @@ def invoices_pay(
     try:
         payment = record_payment(
             db,
+            company_id=actor.company_id,
             invoice_id=invoice_id,
             actor_id=actor.id,
             amount=payload.amount,
@@ -162,7 +164,7 @@ def invoices_void(
     db: Session = Depends(get_db),
 ) -> InvoiceOut | JSONResponse:
     try:
-        invoice = void_invoice(db, invoice_id, actor.id)
+        invoice = void_invoice(db, actor.company_id, invoice_id, actor.id)
     except InvoiceError as exc:
         db.rollback()
         return _handle(exc)
@@ -178,7 +180,7 @@ def invoices_pdf(
 ) -> Response | JSONResponse:
     invoice = get_invoice(db, user.company_id, invoice_id)
     if invoice is None:
-        return error_response(404, "not_found", "صورتحساب یافت نشد")
+        return error_response(404, "not_found", "صورت‌حساب یافت نشد")
     customer = get_contact(db, user.company_id, invoice.customer_id)
     paid, balance, _ = invoice_metrics(invoice)
     items = [
@@ -207,5 +209,5 @@ def invoices_pdf(
     return Response(
         content=pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": attachment_disposition(filename)},
     )

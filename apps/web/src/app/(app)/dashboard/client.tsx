@@ -89,7 +89,7 @@ export default function DashboardClient() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/reports" className="btn btn-ghost">گزارشها</Link>
+          <Link href="/reports" className="btn btn-ghost">گزارش‌ها</Link>
           <Link href="/journal-entries/new" className="btn btn-primary">+ سند جدید</Link>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function DashboardClient() {
       ) : (
         <>
           <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="موجودی نقد و بانک" value={data.cash_bank} href="/reports/cash-flow" hint="از دفتر کل (حسابهای ۱۰۱ و ۱۰۲)" />
+            <KpiCard label="موجودی نقد و بانک" value={data.cash_bank} href="/reports/cash-flow" hint="از دفتر کل (حساب‌های ۱۰۱ و ۱۰۲)" />
             <KpiCard
               label="درآمد دوره"
               value={data.revenue}
@@ -112,7 +112,7 @@ export default function DashboardClient() {
               tone={data.revenue >= 0 ? "good" : "default"}
             />
             <KpiCard
-              label="هزینههای دوره"
+              label="هزینه‌های دوره"
               value={data.expenses}
               href="/reports/profit-loss"
               hint="سال جاری تا امروز"
@@ -138,7 +138,7 @@ export default function DashboardClient() {
               label="پرداختنی (تأمینکنندگان)"
               value={data.payables}
               href="/reports/aging"
-              hint={`سن بدهیها: ${data.payable_aging_total.toLocaleString("fa-IR")} ریال`}
+              hint={`سن بدهی‌ها: ${data.payable_aging_total.toLocaleString("fa-IR")} ریال`}
             />
             <KpiCard
               label="جریان نقد دوره"
@@ -179,13 +179,13 @@ export default function DashboardClient() {
                       <div className="min-w-0">
                         <div className="truncate font-semibold">{e.memo}</div>
                         <div className="text-[11px] text-muted">
-                          {e.reference ? <span dir="ltr">{e.reference}</span> : "پیشنویس"} ·{" "}
+                          {e.reference ? <span dir="ltr">{e.reference}</span> : "پیش‌نویس"} ·{" "}
                           {formatJalaliLong(new Date(e.entry_date + "T12:00:00"))}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold text-success-strong">
-                          ثبتشده
+                          ثبت‌شده
                         </span>
                         <span className="font-bold tabular-nums">{formatRials(e.total)}</span>
                       </div>
@@ -197,12 +197,12 @@ export default function DashboardClient() {
 
             <section className="card">
               <div className="card-head">
-                <h2 className="text-sm font-extrabold">حسابهای کلیدی</h2>
-                <span className="text-[11px] text-muted">از دفتر کل (سندهای ثبتشده)</span>
+                <h2 className="text-sm font-extrabold">حساب‌های کلیدی</h2>
+                <span className="text-[11px] text-muted">از دفتر کل (سندهای ثبت‌شده)</span>
               </div>
               {data.key_accounts.length === 0 ? (
                 <div className="px-4 py-6 text-sm text-muted">
-                  هنوز سند ثبتشدهای نیست. با «سند افتتاحیه» شروع کنید (راهنمای استفاده).
+                  هنوز سند ثبت‌شدهای نیست. با «سند افتتاحیه» شروع کنید (راهنمای استفاده).
                 </div>
               ) : (
                 <div className="divide-y divide-dashed divide-border px-4">
@@ -236,13 +236,13 @@ export default function DashboardClient() {
           <div className="mt-4 flex flex-wrap gap-2">
             {data.budget_utilization !== null && data.total_budget > 0 && (
               <span className="rounded-full bg-surface-2 px-3 py-1 text-[11px] font-bold text-muted">
-                مصرف بودجه پروژهها:{" "}
+                مصرف بودجه پروژه‌ها:{" "}
                 <b className="tabular-nums">{(Math.round(data.budget_utilization * 100)).toLocaleString("fa-IR")}٪</b>{" "}
                 ({formatRials(data.total_actual)} از {formatRials(data.total_budget)} ریال)
               </span>
             )}
             <span className="rounded-full bg-surface-2 px-3 py-1 text-[11px] font-bold text-muted">
-              تطبیق سن مطالبات/بدهیها:{" "}
+              تطبیق سن مطالبات/بدهی‌ها:{" "}
               {data.aging_reconciled ? (
                 <b className="text-success-strong">برقرار</b>
               ) : (
@@ -252,8 +252,8 @@ export default function DashboardClient() {
           </div>
 
           <p className="mt-4 rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">یادداشت:</b> همه کارتهای داشبورد از گزارشهای مالی محاسبه
-            میشوند که مستقیماً از دفتر کل (سندهای ثبتشده) ساخته میشوند؛ ارقام نمونه طراحی دیگر
+            <b className="text-text">یادداشت:</b> همه کارتهای داشبورد از گزارش‌های مالی محاسبه
+            می‌شوند که مستقیماً از دفتر کل (سندهای ثبت‌شده) ساخته می‌شوند؛ ارقام نمونه طراحی دیگر
             وجود ندارند. با کلیک روی هر کارت به گزارش مربوطه میروید.
           </p>
         </>

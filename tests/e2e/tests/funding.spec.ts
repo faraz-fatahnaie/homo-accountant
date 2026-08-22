@@ -17,7 +17,7 @@ test.describe("funding user journey (real API + DB)", () => {
       token,
     );
 
-    const investor = `سرمایهگذار تست ${Date.now()}`;
+    const investor = `سرمایه‌گذار تست ${Date.now()}`;
     const lender = `بانک تست ${Date.now()}`;
     const c1 = await request.post(`${API}/contacts`, {
       headers: { Authorization: `Bearer ${token}` },

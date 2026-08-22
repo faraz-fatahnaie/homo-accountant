@@ -63,7 +63,7 @@ describe("invoices page", () => {
 
   it("shows empty state", () => {
     render(<InvoicesPage />);
-    expect(screen.getByText("صورتحسابی در این وضعیت یافت نشد.")).toBeInTheDocument();
+    expect(screen.getByText("صورت‌حسابی در این وضعیت یافت نشد.")).toBeInTheDocument();
   });
 
   it("renders invoice rows with Persian amounts and status", () => {

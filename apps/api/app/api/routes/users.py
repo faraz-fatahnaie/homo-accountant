@@ -21,9 +21,9 @@ def me(user: User = Depends(current_user)) -> User:
 
 @router.get("/users", response_model=list[UserOut])
 def users_list(
-    _: User = Depends(require_roles(Role.OWNER)), db: Session = Depends(get_db)
+    actor: User = Depends(require_roles(Role.OWNER)), db: Session = Depends(get_db)
 ) -> list[User]:
-    return list_users(db)
+    return list_users(db, actor.company_id)
 
 
 @router.post("/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -39,6 +39,7 @@ def users_create(
             full_name=payload.full_name,
             password=payload.password,
             role=payload.role,
+            company=actor.company,
         )
     except AuthError as exc:
         raise HTTPException(exc.status_code, detail=exc.message) from exc

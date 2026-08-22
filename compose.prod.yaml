@@ -49,6 +49,9 @@ services:
       HOMO_ADMIN_BOOTSTRAP_EMAIL: ${HOMO_ADMIN_BOOTSTRAP_EMAIL}
       HOMO_ADMIN_BOOTSTRAP_PASSWORD: ${HOMO_ADMIN_BOOTSTRAP_PASSWORD}
       HOMO_MEDIA_DIR: /srv/api/media
+      HOMO_SENTRY_DSN: ${HOMO_SENTRY_DSN:-}
+      HOMO_SENTRY_RELEASE: ${HOMO_SENTRY_RELEASE:-}
+      HOMO_SENTRY_TRACES_SAMPLE_RATE: ${HOMO_SENTRY_TRACES_SAMPLE_RATE:-0}
     volumes:
       - media:/srv/api/media
     depends_on:
@@ -71,10 +74,13 @@ services:
       context: ./apps/web
       args:
         NEXT_PUBLIC_API_URL: /api/v1
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
     image: homo-accountant/web:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: /api/v1   # served through nginx (same origin)
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
       PORT: 3000
     depends_on:
       - api

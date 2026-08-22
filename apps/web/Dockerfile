@@ -14,7 +14,10 @@ WORKDIR /app
 # browsers call the user's own machine). Override via build arg if the web
 # app is hosted separately from the API.
 ARG NEXT_PUBLIC_API_URL=/api/v1
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_SENTRY_DSN=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
+    NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

@@ -199,7 +199,7 @@ def saved_duplicate(
 ) -> JSONResponse:
     saved = db.get(SavedQuery, query_id)
     if saved is None or saved.company_id != user.company_id:
-        return error_response(404, "not_found", "پرسوجوی ذخیرهشده یافت نشد")
+        return error_response(404, "not_found", "پرس‌وجوی ذخیره‌شده یافت نشد")
     clone = SavedQuery(
         company_id=user.company_id,
         name=f"{saved.name} (کپی)",
@@ -220,7 +220,7 @@ def saved_delete(
 ) -> Response | JSONResponse:
     saved = db.get(SavedQuery, query_id)
     if saved is None or saved.company_id != user.company_id:
-        return error_response(404, "not_found", "پرسوجوی ذخیرهشده یافت نشد")
+        return error_response(404, "not_found", "پرس‌وجوی ذخیره‌شده یافت نشد")
     db.delete(saved)
     db.commit()
     return Response(status_code=204)

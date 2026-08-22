@@ -21,12 +21,12 @@ async function gotoApp(page: Page, path: string, email: string, password: string
 test.describe("expenses user journey (real API + DB)", () => {
   test("accountant creates a contact and an expense, then posts it", async ({ page }) => {
     await login(page, "accountant@example.com", "acct-homo-1405");
-    const contactName = `تأمینکننده تست ${Date.now()}`;
+    const contactName = `تأمین‌کننده تست ${Date.now()}`;
     const desc = `خرید کامپیوتر اداری ${Date.now()}`;
 
     // create contact
     await gotoApp(page, "/contacts", "accountant@example.com", "acct-homo-1405");
-    await page.getByRole("button", { name: "+ طرف حساب جدید" }).click();
+    await page.getByRole("button", { name: "+ طرف‌حساب جدید" }).click();
     await page.fill("#c-name", contactName);
     await page.fill("#c-phone", "021-12345678");
     await page.getByRole("button", { name: "ایجاد" }).click();
@@ -46,14 +46,14 @@ test.describe("expenses user journey (real API + DB)", () => {
 
     // row shows posted + number EXP-...
     const row = page.getByRole("row").filter({ hasText: desc });
-    await expect(row).toContainText("ثبتشده");
+    await expect(row).toContainText("ثبت‌شده");
     await expect(row).toContainText(/EXP-1405-\d{4}/);
     await expect(row).toContainText("۵۸٬۵۰۰٬۰۰۰");
   });
 
   test("staff can create a draft but cannot post it", async ({ page }) => {
     await login(page, "staff@example.com", "staff-homo-1405");
-    const desc = `پیشنویس کارمند ${Date.now()}`;
+    const desc = `پیش‌نویس کارمند ${Date.now()}`;
 
     await gotoApp(page, "/expenses/new", "staff@example.com", "staff-homo-1405");
     await expect(page.getByRole("heading", { name: "ثبت هزینه جدید" })).toBeVisible();
@@ -66,7 +66,7 @@ test.describe("expenses user journey (real API + DB)", () => {
     await page.waitForURL("**/expenses", { timeout: 15_000 });
 
     const row = page.getByRole("row").filter({ hasText: desc });
-    await expect(row).toContainText("پیشنویس");
+    await expect(row).toContainText("پیش‌نویس");
     // staff has no post button
     await expect(row.getByRole("button", { name: "ثبت نهایی" })).toHaveCount(0);
   });

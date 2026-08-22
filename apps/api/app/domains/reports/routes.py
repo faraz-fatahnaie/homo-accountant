@@ -31,7 +31,7 @@ from app.domains.reports.service import (
 
 router = APIRouter(tags=["reports"])
 
-_RANGE_MSG = "تاریخ شروع نمیتواند بعد از پایان باشد"
+_RANGE_MSG = "تاریخ شروع نمی‌تواند بعد از پایان باشد"
 
 
 def _invalid_range() -> JSONResponse:
