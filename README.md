@@ -16,29 +16,29 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 [![Security](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/security.yml?label=Security)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/security.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/docker.yml?label=Docker)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/docker.yml)
 
-> **Last verified:** commit `53c78db` · 2026-08-17 · GitHub Actions on Ubuntu with Python,
-> Node 20, PostgreSQL, Docker, Trivy, and Chromium (Playwright). **CI, E2E, Security, and Docker
-> workflows pass.** The production HTTP profile was also smoke-tested on Ubuntu 24.04; database
-> backup/restore and persistent receipt storage were rehearsed successfully.
+> **Last verified:** code commit `eaad3ce` · 2026-08-22 · Windows development host plus an
+> isolated Ubuntu 24.04 VM stack with PostgreSQL 16, production Docker images, and Chromium.
+> The results below are measured local/VM evidence; the workflow badges remain the source of truth
+> for GitHub-hosted runs.
 
 ### Test matrix
 
 | Layer | Tool | Result | Notes |
 |---|---|---|---|
-| Backend unit/API/integration | pytest | ✅ 239 passed | + security headers, prod surface, upload magic-byte, no-cookie/CSRF tests |
-| Backend coverage | pytest-cov | ✅ 93% (floor 80%) | ledger 99% · expenses 92% · reports 96% |
+| Backend unit/API/integration | pytest | ✅ 249 passed | real PostgreSQL; auth cookies, refresh replay, scoping, security headers, uploads, and accounting regressions |
+| Backend coverage | pytest-cov | ✅ 92.78% (floor 80%) | ledger service 99% |
 | Lint / format | Ruff | ✅ | `ruff check` + `ruff format --check` |
-| Types | mypy (strict) | ✅ | 18 source files clean |
+| Types | mypy (strict) | ✅ | 62 source files clean |
 | Migrations | Alembic | ✅ | upgrade head; downgrade→upgrade exercised in tests |
-| Frontend unit/component | Vitest + Testing Library | ✅ 52 passed | + reports hub/reconciliation, trial balance, dashboard KPIs |
+| Frontend unit/component | Vitest + Testing Library | ✅ 64 passed | 82.47% statements/lines; 75.75% branches for measured frontend logic |
 | Frontend lint | ESLint | ✅ | 0 errors/warnings |
 | Frontend types | tsc strict | ✅ | `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
 | Frontend build | next build | ✅ | standalone output |
-| Browser journeys | Playwright | ✅ 78 passed | desktop + mobile; **reports journeys + axe WCAG 2.2 A/AA scans**; auth-session-resilience fix verified |
+| Browser journeys | Playwright | ✅ 78 passed | fresh real PostgreSQL; desktop + mobile; role, ledger, billing, expense, reporting, query/export, and Guide journeys |
 | Accessibility lint | axe | ✅ 0 serious/critical | automated WCAG 2.2 A/AA scans on key surfaces (login, dashboard, transactions, reports, guide) |
-| Docker builds/smoke | compose.prod + Trivy | ✅ | production images build; API/web health smoke and fixable HIGH/CRITICAL image gate pass in `docker.yml` |
-| Security scans | npm audit | ✅ 0 vulnerabilities | Next 15.3.4 → 15.5.23 (CVE-2025-66478); postcss/sharp overrides; pip-audit/trufflehog/CodeQL run in `security.yml` |
-| PDF/export tests | — | ⏳ slice 4/7 | with their features |
+| Docker builds/smoke | compose.prod | ✅ | production API/web images build; migrations, idempotent bootstrap, cookie auth, and HTTP reverse proxy smoke pass |
+| Security scans | Codex Security + npm/pip audit | ✅ | repository scan findings fixed; npm audit 0 and pip-audit 0; GitHub CodeQL/TruffleHog remain workflow checks |
+| PDF/export tests | Playwright/API | ✅ | invoice PDF download and parameterized query CSV export covered |
 | Backup/restore smoke | infra/backup | ✅ | production snapshot restored into a scratch database; all 22 public tables verified |
 
 ### Commands
