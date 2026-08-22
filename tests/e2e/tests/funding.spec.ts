@@ -3,28 +3,18 @@ import { expect, test } from "@playwright/test";
 const API = process.env.E2E_API_URL ?? "http://localhost:8000/api/v1";
 
 test.describe("funding user journey (real API + DB)", () => {
-  test("accountant records an investment and a loan", async ({ page, request }) => {
-    const loginResp = await request.post(`${API}/auth/login`, {
+  test("accountant records an investment and a loan", async ({ page }) => {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
     expect(loginResp.ok()).toBeTruthy();
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
 
     const investor = `سرمایه‌گذار تست ${Date.now()}`;
     const lender = `بانک تست ${Date.now()}`;
-    const c1 = await request.post(`${API}/contacts`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const c1 = await page.request.post(`${API}/contacts`, {
       data: { name: investor, roles: ["investor"] },
     });
-    const c2 = await request.post(`${API}/contacts`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const c2 = await page.request.post(`${API}/contacts`, {
       data: { name: lender, roles: ["lender"] },
     });
     expect(c1.ok() && c2.ok()).toBeTruthy();
@@ -58,18 +48,11 @@ test.describe("funding user journey (real API + DB)", () => {
     await expect(page.getByText("برای وام، تاریخ سررسید الزامی است")).toBeVisible();
   });
 
-  test("viewer can read funding but has no create action", async ({ page, request }) => {
-    const loginResp = await request.post(`${API}/auth/login`, {
+  test("viewer can read funding but has no create action", async ({ page }) => {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "viewer@example.com", password: "viewer-homo-1405" },
     });
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
+    expect(loginResp.ok()).toBeTruthy();
     await page.goto("/funding");
     await expect(page.getByRole("heading", { name: "تأمین مالی" })).toBeVisible({ timeout: 25_000 });
     await expect(page.getByRole("link", { name: "+ رویداد تأمین مالی" })).toHaveCount(0);

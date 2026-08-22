@@ -4,25 +4,16 @@ const API = process.env.E2E_API_URL ?? "http://localhost:8000/api/v1";
 
 /** API-login and pre-seed the browser session (avoids redirect races on full loads). */
 test.describe("invoices user journey (real API + DB)", () => {
-  test("accountant creates, issues, partially pays and downloads PDF", async ({ page, request }) => {
-    const loginResp = await request.post(`${API}/auth/login`, {
+  test("accountant creates, issues, partially pays and downloads PDF", async ({ page }) => {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
     expect(loginResp.ok()).toBeTruthy();
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
     const customer = `مشتری تست ${Date.now()}`;
     const desc = `دستگاه تست ${Date.now()}`;
 
     // create the customer via API (the UI contact flow is covered elsewhere)
-    const c = await request.post(`${API}/contacts`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const c = await page.request.post(`${API}/contacts`, {
       data: { name: customer, roles: ["customer"] },
     });
     expect(c.ok()).toBeTruthy();
@@ -67,16 +58,9 @@ test.describe("invoices user journey (real API + DB)", () => {
     expect(download.suggestedFilename()).toMatch(/\.pdf$/);
   });
 
-  test("viewer can read invoices but has no create/issue actions", async ({ page, request }) => {
-    const vLogin = await request.post(`${API}/auth/login`, { data: { email: "viewer@example.com", password: "viewer-homo-1405" } });
-    const vToken = (await vLogin.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      vToken,
-    );
+  test("viewer can read invoices but has no create/issue actions", async ({ page }) => {
+    const vLogin = await page.request.post(`${API}/auth/login`, { data: { email: "viewer@example.com", password: "viewer-homo-1405" } });
+    expect(vLogin.ok()).toBeTruthy();
     await page.goto("/invoices");
     await expect(page.getByRole("heading", { name: /صورت‌حساب/ })).toBeVisible({ timeout: 20_000 });
     await expect(page.getByRole("link", { name: "+ صورت‌حساب جدید" })).toHaveCount(0);

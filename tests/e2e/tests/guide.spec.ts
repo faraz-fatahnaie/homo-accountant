@@ -40,19 +40,12 @@ test.describe("user guide", () => {
     });
   }
 
-  test("guide FAQ collapses and expands without JS errors", async ({ page, request }) => {
+  test("guide FAQ collapses and expands without JS errors", async ({ page }) => {
     // seed the session via API to avoid login-flow redirect races on this page
-    const loginResp = await request.post(`${API}/auth/login`, {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
+    expect(loginResp.ok()).toBeTruthy();
     await page.goto("/guide");
     // NB: the question mark is the Arabic ؟ (U+061F) — never escape it as \?
     // (\? would match ASCII ? and never find the text)

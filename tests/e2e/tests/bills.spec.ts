@@ -3,24 +3,15 @@ import { expect, test } from "@playwright/test";
 const API = process.env.E2E_API_URL ?? "http://localhost:8000/api/v1";
 
 test.describe("bills user journey (real API + DB)", () => {
-  test("accountant creates, posts and partially pays a supplier bill", async ({ page, request }) => {
-    const loginResp = await request.post(`${API}/auth/login`, {
+  test("accountant creates, posts and partially pays a supplier bill", async ({ page }) => {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
     expect(loginResp.ok()).toBeTruthy();
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
     const vendor = `تأمین‌کننده تست ${Date.now()}`;
     const memo = `خرید ورق فولادی ${Date.now()}`;
 
-    const v = await request.post(`${API}/contacts`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const v = await page.request.post(`${API}/contacts`, {
       data: { name: vendor, roles: ["vendor"] },
     });
     expect(v.ok()).toBeTruthy();
@@ -49,18 +40,11 @@ test.describe("bills user journey (real API + DB)", () => {
     await expect(page.getByRole("listitem").getByText("۴۰۰٬۰۰۰")).toBeVisible();
   });
 
-  test("viewer can read bills but has no create/post actions", async ({ page, request }) => {
-    const loginResp = await request.post(`${API}/auth/login`, {
+  test("viewer can read bills but has no create/post actions", async ({ page }) => {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "viewer@example.com", password: "viewer-homo-1405" },
     });
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
+    expect(loginResp.ok()).toBeTruthy();
     await page.goto("/bills");
     await expect(page.getByRole("heading", { name: /فاکتورهای خرید/ })).toBeVisible({ timeout: 25_000 });
     await expect(page.getByRole("link", { name: "+ فاکتور خرید جدید" })).toHaveCount(0);

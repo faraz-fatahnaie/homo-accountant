@@ -61,10 +61,7 @@ test.describe("RBAC is enforced by the API (direct calls without UI)", () => {
       data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
     expect(login.ok()).toBeTruthy();
-    const { access_token } = await login.json();
-    const users = await request.get(`${API}/users`, {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
+    const users = await request.get(`${API}/users`);
     expect(users.status()).toBe(403);
   });
 
@@ -72,10 +69,8 @@ test.describe("RBAC is enforced by the API (direct calls without UI)", () => {
     const login = await request.post(`${API}/auth/login`, {
       data: { email: "owner@example.com", password: "owner-homo-1405" },
     });
-    const { access_token } = await login.json();
-    const users = await request.get(`${API}/users`, {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
+    expect(login.ok()).toBeTruthy();
+    const users = await request.get(`${API}/users`);
     expect(users.status()).toBe(200);
     expect(Array.isArray(await users.json())).toBeTruthy();
   });

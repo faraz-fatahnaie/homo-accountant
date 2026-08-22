@@ -63,19 +63,12 @@ test.describe("ledger user journey (real API + DB)", () => {
     await expect(page.getByRole("button", { name: "برگشت" })).toHaveCount(0);
   });
 
-  test("periods page: close shows reopen as owner-only", async ({ page, request }) => {
+  test("periods page: close shows reopen as owner-only", async ({ page }) => {
     // API-seeded session (avoids login-flow redirect races on full loads)
-    const loginResp = await request.post(`${API}/auth/login`, {
+    const loginResp = await page.request.post(`${API}/auth/login`, {
       data: { email: "accountant@example.com", password: "acct-homo-1405" },
     });
-    const token = (await loginResp.json()).access_token as string;
-    await page.addInitScript(
-      (access) => {
-        window.localStorage.setItem("homo-accountant-access-token", access);
-        window.localStorage.setItem("homo-accountant-refresh-token", "seed");
-      },
-      token,
-    );
+    expect(loginResp.ok()).toBeTruthy();
     await page.goto("/periods");
     await page.waitForURL("**/periods", { timeout: 15_000 });
     await expect(page.getByRole("heading", { name: "دوره‌های حسابداری" })).toBeVisible({ timeout: 15_000 });

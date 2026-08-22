@@ -15,11 +15,9 @@ async function seedLedger(request: import("@playwright/test").APIRequestContext)
   const login = await request.post(`${API}/auth/login`, {
     data: { email: "accountant@example.com", password: "acct-homo-1405" },
   });
-  const token = (await login.json()).access_token as string;
-  const H = { Authorization: `Bearer ${token}` };
+  expect(login.ok()).toBeTruthy();
 
   await request.post(`${API}/journal-entries`, {
-    headers: H,
     data: {
       entry_date: "2026-08-01",
       memo: "سرمایه‌گذاری مالک (گزارش)",
@@ -29,15 +27,14 @@ async function seedLedger(request: import("@playwright/test").APIRequestContext)
       ],
     },
   });
-  const entries = (await (await request.get(`${API}/journal-entries`, { headers: H })).json()) as {
+  const entries = (await (await request.get(`${API}/journal-entries`)).json()) as {
     id: number;
     status: string;
   }[];
   for (const e of entries.filter((e) => e.status === "draft")) {
-    await request.post(`${API}/journal-entries/${e.id}/post`, { headers: H });
+    await request.post(`${API}/journal-entries/${e.id}/post`);
   }
   await request.post(`${API}/expenses`, {
-    headers: H,
     data: {
       entry_date: "2026-08-13",
       account_code: "603",
@@ -46,12 +43,12 @@ async function seedLedger(request: import("@playwright/test").APIRequestContext)
       description: "هزینه مواد اولیه (گزارش)",
     },
   });
-  const expenses = (await (await request.get(`${API}/expenses`, { headers: H })).json()) as {
+  const expenses = (await (await request.get(`${API}/expenses`)).json()) as {
     id: number;
     status: string;
   }[];
   for (const e of expenses.filter((e) => e.status === "draft")) {
-    await request.post(`${API}/expenses/${e.id}/post`, { headers: H });
+    await request.post(`${API}/expenses/${e.id}/post`);
   }
 }
 
