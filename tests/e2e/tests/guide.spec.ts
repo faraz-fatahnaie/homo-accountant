@@ -18,16 +18,25 @@ async function login(page: Page, email: string, password: string) {
 }
 
 test.describe("user guide", () => {
-    for (const user of USERS) {
-    test(`guide is reachable and renders for ${user.label}`, async ({ page }) => {
+  for (const user of USERS) {
+    test(`guide is reachable and renders for ${user.label}`, async ({ page }, testInfo) => {
       await login(page, user.email, user.password);
-      // sidebar nav link exists for every role; on mobile the bottom nav
-      // scrolls horizontally (RTL), so bring the item into view first.
-      // force: Playwright's mobile emulation hit-test can miss fixed elements
-      // (the nav is opaque and at the viewport bottom for real users).
-      const guideLink = page.getByRole("link", { name: "راهنمای استفاده" });
-      await guideLink.scrollIntoViewIfNeeded();
-      await guideLink.click({ force: true });
+      // Secondary destinations are intentionally grouped under «More» on mobile.
+      if (testInfo.project.name === "mobile") {
+        const moreButton = page.getByRole("button", { name: "بیشتر" });
+        // Exercise the accessible control path. This also avoids a Chromium/Chrome
+        // touch-emulation hit-test mismatch seen only with the local Chrome fallback.
+        await moreButton.focus();
+        await expect(moreButton).toBeFocused();
+        await page.keyboard.press("Enter");
+        await expect(moreButton).toHaveAttribute("aria-expanded", "true");
+      }
+      const guideLink = page.getByRole(
+        testInfo.project.name === "mobile" ? "menuitem" : "link",
+        { name: "راهنمای استفاده" },
+      );
+      await expect(guideLink).toBeVisible();
+      await guideLink.click();
       await page.waitForURL("**/guide", { timeout: 15_000 });
       await expect(
         page.getByRole("heading", { name: "راهنمای استفاده از سامانه" }),

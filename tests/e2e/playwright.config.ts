@@ -14,9 +14,12 @@ export default defineConfig({
   timeout: 60_000,
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
+    ...(process.env.E2E_CHROMIUM_EXECUTABLE
+      ? { launchOptions: { executablePath: process.env.E2E_CHROMIUM_EXECUTABLE } }
+      : {}),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: process.env.E2E_DISABLE_VIDEO ? "off" : "retain-on-failure",
     locale: "fa-IR",
   },
   projects: [
