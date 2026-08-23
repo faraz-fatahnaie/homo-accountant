@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import threading
+
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app.core.config import get_settings
+from app.core.db import SessionLocal
 from app.domains.funding.models import FundingAccountMapping
 from app.domains.identity.bootstrap import ensure_required_system_data
 from app.domains.identity.models import Role, User
@@ -94,3 +97,57 @@ def test_production_system_data_is_complete_idempotent_and_non_destructive(db) -
     db.refresh(custom)
     assert custom.name == "درآمد پروژه سفارشی"
     assert custom.is_system is False
+
+
+def test_production_system_data_bootstrap_serializes_concurrent_workers() -> None:
+    """A second worker waits for the first transaction and then observes its rows."""
+    first_seeded = threading.Event()
+    allow_first_commit = threading.Event()
+    second_started = threading.Event()
+    second_finished = threading.Event()
+    errors: list[BaseException] = []
+    results: list[dict[str, int]] = []
+
+    def first_worker() -> None:
+        db = SessionLocal()
+        try:
+            results.append(ensure_required_system_data(db))
+            first_seeded.set()
+            assert allow_first_commit.wait(timeout=5)
+            db.commit()
+        except BaseException as exc:  # pragma: no cover - asserted in parent thread
+            db.rollback()
+            errors.append(exc)
+        finally:
+            db.close()
+
+    def second_worker() -> None:
+        db = SessionLocal()
+        try:
+            assert first_seeded.wait(timeout=5)
+            second_started.set()
+            results.append(ensure_required_system_data(db))
+            db.commit()
+        except BaseException as exc:  # pragma: no cover - asserted in parent thread
+            db.rollback()
+            errors.append(exc)
+        finally:
+            second_finished.set()
+            db.close()
+
+    first = threading.Thread(target=first_worker)
+    second = threading.Thread(target=second_worker)
+    first.start()
+    second.start()
+    assert second_started.wait(timeout=5)
+    assert not second_finished.wait(timeout=0.25)
+    allow_first_commit.set()
+    first.join(timeout=5)
+    second.join(timeout=5)
+
+    assert not first.is_alive()
+    assert not second.is_alive()
+    assert errors == []
+    assert len(results) == 2
+    assert sorted(result["chart_accounts"] for result in results) == [0, 13]
+    assert sorted(result["funding_mappings"] for result in results) == [0, 4]

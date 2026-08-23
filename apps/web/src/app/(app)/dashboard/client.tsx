@@ -135,7 +135,7 @@ export default function DashboardClient() {
               hint={`سن مطالبات: ${data.receivable_aging_total.toLocaleString("fa-IR")} ریال`}
             />
             <KpiCard
-              label="پرداختنی (تأمینکنندگان)"
+              label="پرداختنی (تأمین‌کنندگان)"
               value={data.payables}
               href="/reports/aging"
               hint={`سن بدهی‌ها: ${data.payable_aging_total.toLocaleString("fa-IR")} ریال`}
@@ -202,7 +202,7 @@ export default function DashboardClient() {
               </div>
               {data.key_accounts.length === 0 ? (
                 <div className="px-4 py-6 text-sm text-muted">
-                  هنوز سند ثبت‌شدهای نیست. با «سند افتتاحیه» شروع کنید (راهنمای استفاده).
+                  هنوز سند ثبت‌شده‌ای نیست. با «سند افتتاحیه» شروع کنید (راهنمای استفاده).
                 </div>
               ) : (
                 <div className="divide-y divide-dashed divide-border px-4">
@@ -252,9 +252,9 @@ export default function DashboardClient() {
           </div>
 
           <p className="mt-4 rounded-md border border-dashed border-border-strong bg-surface-2 px-4 py-3 text-xs leading-6 text-muted">
-            <b className="text-text">یادداشت:</b> همه کارتهای داشبورد از گزارش‌های مالی محاسبه
+            <b className="text-text">یادداشت:</b> همه کارت‌های داشبورد از گزارش‌های مالی محاسبه
             می‌شوند که مستقیماً از دفتر کل (سندهای ثبت‌شده) ساخته می‌شوند؛ ارقام نمونه طراحی دیگر
-            وجود ندارند. با کلیک روی هر کارت به گزارش مربوطه میروید.
+            وجود ندارند. با کلیک روی هر کارت به گزارش مربوطه می‌روید.
           </p>
         </>
       )}
