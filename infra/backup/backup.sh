@@ -56,7 +56,7 @@ chmod 600 "$STAMP/.env"
 
 # Integrity manifest. Verify this before every restore or off-server copy.
 (cd "$STAMP" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
-sha256sum -c "$STAMP/SHA256SUMS" >/dev/null
+(cd "$STAMP" && sha256sum -c SHA256SUMS >/dev/null)
 
 # --- Weekly archive (Monday) ---
 if [ "$(date +%u)" = "1" ]; then
