@@ -13,8 +13,16 @@ import { NextResponse } from "next/server";
 // If NEXT_PUBLIC_API_URL is an absolute origin (e.g. dev points at
 // http://localhost:8000) it must be allowed by connect-src; a RELATIVE path
 // (production: /api/v1 through nginx) means same-origin, so 'self' covers it.
-const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-const API_ORIGIN = RAW_API_URL.startsWith("http") ? RAW_API_URL : "";
+// Keep this fallback aligned with src/lib/api.ts. Otherwise a production
+// build without NEXT_PUBLIC_API_URL embeds localhost in the client while its
+// CSP silently blocks that same origin.
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+let API_ORIGIN = "";
+try {
+  API_ORIGIN = RAW_API_URL.startsWith("http") ? new URL(RAW_API_URL).origin : "";
+} catch {
+  // Invalid API URLs fail in the client; do not weaken CSP for them here.
+}
 const RAW_SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN ?? "";
 let SENTRY_ORIGIN = "";
 try {
