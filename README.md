@@ -16,8 +16,10 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 [![Security](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/security.yml?label=Security)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/security.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/faraz-fatahnaie/homo-accountant/docker.yml?label=Docker)](https://github.com/faraz-fatahnaie/homo-accountant/actions/workflows/docker.yml)
 
-> **Last verified:** code commit `eaad3ce` · 2026-08-22 · Windows development host plus an
-> isolated Ubuntu 24.04 VM stack with PostgreSQL 16, production Docker images, and Chromium.
+> **Last verified:** code commit `bf209a9` · 2026-08-24 18:24 (`Asia/Tehran`) · Windows
+> development host plus Linux test containers, PostgreSQL 16, Chromium, and the allocated Ubuntu
+> 24.04 production VM. Production release `55b2aff` was verified through public TLS at
+> [mohotec.ir](https://mohotec.ir/); `bf209a9` is a Docker-context-only hardening follow-up.
 > The results below are measured local/VM evidence; the workflow badges remain the source of truth
 > for GitHub-hosted runs.
 
@@ -25,19 +27,20 @@ URLs; a badge is always the live source for the branch, the prose below is a dat
 
 | Layer | Tool | Result | Notes |
 |---|---|---|---|
-| Backend unit/API/integration | pytest | ✅ 249 passed | real PostgreSQL; auth cookies, refresh replay, scoping, security headers, uploads, and accounting regressions |
-| Backend coverage | pytest-cov | ✅ 92.78% (floor 80%) | ledger service 99% |
+| Backend unit/API/integration | pytest | ✅ 251 passed | Linux test image + real PostgreSQL; auth cookies, refresh replay, scoping, security headers, uploads, deployment regressions, and accounting invariants |
+| Backend coverage | pytest-cov | ✅ 92% (floor 80%) | ledger service 99% |
 | Lint / format | Ruff | ✅ | `ruff check` + `ruff format --check` |
 | Types | mypy (strict) | ✅ | 62 source files clean |
 | Migrations | Alembic | ✅ | upgrade head; downgrade→upgrade exercised in tests |
-| Frontend unit/component | Vitest + Testing Library | ✅ 64 passed | 82.47% statements/lines; 75.75% branches for measured frontend logic |
+| Frontend unit/component | Vitest + Testing Library | ✅ 65 passed | 82.47% statements/lines; 75.75% branches for measured frontend logic |
 | Frontend lint | ESLint | ✅ | 0 errors/warnings |
 | Frontend types | tsc strict | ✅ | `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
 | Frontend build | next build | ✅ | standalone output |
 | Browser journeys | Playwright | ✅ 78 passed | fresh real PostgreSQL; desktop + mobile; role, ledger, billing, expense, reporting, query/export, and Guide journeys |
 | Accessibility lint | axe | ✅ 0 serious/critical | automated WCAG 2.2 A/AA scans on key surfaces (login, dashboard, transactions, reports, guide) |
-| Docker builds/smoke | compose.prod | ✅ | production API/web images build; migrations, idempotent bootstrap, cookie auth, and HTTP reverse proxy smoke pass |
-| Security scans | Codex Security + npm/pip audit | ✅ | repository scan findings fixed; npm audit 0 and pip-audit 0; GitHub CodeQL/TruffleHog remain workflow checks |
+| Docker builds/smoke | Compose | ✅ | reproducible Linux backend-test image; production API/web images; migrations, idempotent bootstrap, cookie auth, and HTTP reverse-proxy smoke |
+| Production deployment | Ubuntu 24.04 + Docker Compose | ✅ `55b2aff` | healthy API/web/Nginx, public TLS/login/Guide/CSP smoke, and only VM port 80 published by the app stack |
+| Security scans | Codex Security + npm/pip audit | ✅ | repository findings fixed; incremental `521eb7a..bf209a9` review found no reportable issue; npm audit 0 and pip-audit 0; CodeQL/TruffleHog remain workflow checks |
 | PDF/export tests | Playwright/API | ✅ | invoice PDF download and parameterized query CSV export covered |
 | Backup/restore smoke | infra/backup | ✅ | production snapshot restored into a scratch database; all 22 public tables verified |
 
