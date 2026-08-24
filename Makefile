@@ -47,7 +47,7 @@ endif
 # python used from the repo root (prefer venv, else system)
 PY := $(if $(wildcard $(VENV_PY)),$(VENV_PY),$(FALLBACK_PY))
 
-.PHONY: help setup db-up db-down dev api web migrate seed test-db-create test test-api test-web lint format typecheck build e2e quality backup restore clean
+.PHONY: help setup db-up db-down dev api web migrate seed test-db-create test test-api test-api-docker test-web lint format typecheck build e2e quality backup restore clean
 
 help: ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n",$$1,$$2}'
@@ -65,7 +65,7 @@ db-down: ## stop the dev stack
 	$(COMPOSE_DEV) down
 
 test-db-create: ## create the arya_test database (run once after db-up)
-	$(COMPOSE_DEV) exec -T db psql -U arya -d postgres -c "CREATE DATABASE arya_test" || true
+	$(COMPOSE_DEV) exec -T db sh -c "psql -U arya -d postgres -lqt | cut -d '|' -f 1 | grep -qw arya_test || createdb -U arya arya_test"
 
 dev: ## run the full dev stack (db, minio, api, web) — Docker, any OS
 	$(COMPOSE_DEV) up --build
@@ -106,6 +106,9 @@ test: ## backend + frontend unit/component tests
 test-api: export HOMO_DATABASE_URL ?= $(API_TEST_URL)
 test-api: ## backend tests only
 	cd $(API) && $(PY_IN_API) -m pytest tests/ --cov=app
+
+test-api-docker: test-db-create ## backend tests in Linux against Compose PostgreSQL
+	$(COMPOSE_DEV) -f compose.test.yaml run --rm --build api-test
 
 test-web: ## frontend tests only
 	cd $(WEB) && npx vitest run

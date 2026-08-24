@@ -1,0 +1,24 @@
+FROM python:3.12-slim@sha256:2c941e860699f878900b0edc2403613c234d4b32eda3cc9fa7036991a2a63c4a
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /srv/repository/apps/api
+
+COPY apps/api/requirements.txt apps/api/requirements-dev.txt ./
+RUN pip install -r requirements.txt -r requirements-dev.txt \
+ && groupadd --system app \
+ && useradd --system --gid app app
+
+COPY --chown=app:app apps/api/alembic.ini ./
+COPY --chown=app:app apps/api/migrations ./migrations
+COPY --chown=app:app apps/api/app ./app
+COPY --chown=app:app apps/api/tests ./tests
+COPY --chown=app:app infra/backup/backup.sh /srv/repository/infra/backup/backup.sh
+RUN chown -R app:app /srv/repository
+
+USER app
+
+CMD ["python", "-m", "pytest", "tests", "--cov=app", "--cov-report=term-missing"]

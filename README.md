@@ -49,6 +49,7 @@ make lint && make typecheck && make test-api && make test-web && make build
 
 # full local QA
 make quality          # format + lint + typecheck + backend+frontend tests + build
+make test-api-docker  # backend suite in Linux against Compose PostgreSQL
 
 # end-to-end against the real stack
 make dev              # docker compose up (PostgreSQL + MinIO + API + web)

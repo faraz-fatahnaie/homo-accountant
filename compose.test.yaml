@@ -1,0 +1,15 @@
+# Linux-based backend quality runner layered onto compose.yaml.
+services:
+  api-test:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.test
+    environment:
+      HOMO_DATABASE_URL: postgresql+psycopg://arya:${POSTGRES_PASSWORD:-arya_dev_pw}@db:5432/arya_test
+      HOMO_ENVIRONMENT: test
+      HOMO_JWT_SECRET: test-only-secret-0123456789abcdef
+      HOMO_LOGIN_RATE_LIMIT_PER_MINUTE: 1000
+      COVERAGE_FILE: /tmp/.coverage
+    depends_on:
+      db:
+        condition: service_healthy

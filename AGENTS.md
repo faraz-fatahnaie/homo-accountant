@@ -66,6 +66,7 @@ make format
 make lint
 make typecheck
 make test
+make test-api-docker
 make test-e2e
 make build
 ```
